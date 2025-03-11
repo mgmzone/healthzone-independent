@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Plus } from "lucide-react";
 import { useAuth } from '@/lib/AuthContext';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
+import { useFastingData } from '@/hooks/useFastingData';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import { getProgressPercentage } from '@/lib/types';
 import { 
@@ -23,6 +25,7 @@ const Periods = () => {
   const { profile } = useAuth();
   const { periods, isLoading: periodsLoading, addPeriod, getCurrentPeriod, updatePeriod, deletePeriod } = usePeriodsData();
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
+  const { fastingLogs } = useFastingData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [needsFirstPeriod, setNeedsFirstPeriod] = useState(false);
 
@@ -124,6 +127,7 @@ const Periods = () => {
                 weighIns={weighIns}
                 currentPeriod={currentPeriod}
                 isImperial={isImperial}
+                fastingLogs={fastingLogs}
               />
             )}
 
