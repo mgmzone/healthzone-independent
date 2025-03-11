@@ -2,118 +2,101 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import { useProfilePhoto } from '@/hooks/useProfilePhoto';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
+import { useWeightData } from '@/hooks/useWeightData';
+import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
+import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
+import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
+import { 
+  getTimeProgressPercentage,
+  getRemainingTimePercentage,
+  getDaysRemaining,
+  getWeeksInPeriod,
+  getMonthsInPeriod
+} from '@/lib/utils/dateUtils';
+import { getProgressPercentage } from '@/lib/types';
 
 const Dashboard = () => {
-  const { profile, profileLoading, refreshProfile } = useAuth();
-  const {
-    fileInputRef,
-    handlePhotoClick,
-    handlePhotoChange
-  } = useProfilePhoto();
+  const { profile } = useAuth();
+  const { periods, isLoading: periodsLoading, getCurrentPeriod } = usePeriodsData();
+  const { weighIns, isLoading: weighInsLoading } = useWeightData();
+  
+  const isImperial = profile?.measurementUnit === 'imperial';
+  const weightUnit = isImperial ? 'lbs' : 'kg';
 
-  useEffect(() => {
-    if (!profile && !profileLoading) {
-      refreshProfile();
-    }
-  }, [profile, profileLoading, refreshProfile]);
+  const convertWeight = (weight: number) => {
+    if (!weight) return 0;
+    return isImperial ? weight * 2.20462 : weight;
+  };
+
+  const getLatestWeight = () => {
+    if (weighIns.length === 0) return null;
+    return convertWeight(weighIns[0].weight);
+  };
+
+  const latestWeight = getLatestWeight();
+  const currentPeriod = getCurrentPeriod();
+
+  const currentMetrics = currentPeriod ? {
+    weightProgress: latestWeight
+      ? getProgressPercentage(latestWeight, convertWeight(currentPeriod.startWeight), convertWeight(currentPeriod.targetWeight))
+      : 0,
+    timeProgress: getTimeProgressPercentage(currentPeriod.startDate, currentPeriod.endDate),
+    timeRemaining: getRemainingTimePercentage(currentPeriod.startDate, currentPeriod.endDate),
+    daysRemaining: getDaysRemaining(currentPeriod.endDate),
+    totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
+    totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
+    weightChange: latestWeight 
+      ? Math.abs(convertWeight(currentPeriod.startWeight) - latestWeight)
+      : 0,
+    weightDirection: latestWeight && latestWeight < convertWeight(currentPeriod.startWeight) 
+      ? 'lost' as const
+      : 'gained' as const
+  } : null;
+
+  if (periodsLoading || weighInsLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center">Loading...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="container mx-auto p-6 mt-16">
-        <div className="w-full max-w-4xl mx-auto bg-card shadow-sm rounded-lg p-6">
-          <div className="mb-8">
-            <ProfileHeader 
-              profile={profile} 
-              handlePhotoClick={handlePhotoClick} 
-              fileInputRef={fileInputRef} 
-              handlePhotoChange={handlePhotoChange} 
-            />
-          </div>
+        <div className="w-full max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {profile ? (
-              <>
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Personal Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Name</p>
-                      <p className="font-medium">{profile.name || 'Not set'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{profile.email || 'Not set'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Gender</p>
-                      <p className="font-medium">{profile.gender || 'Not set'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Birth Date</p>
-                      <p className="font-medium">
-                        {profile.birthDate ? new Date(profile.birthDate).toLocaleDateString() : 'Not set'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Health Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Height</p>
-                      <p className="font-medium">
-                        {profile.height ? `${profile.height} ${profile.measurementUnit === 'imperial' ? 'in' : 'cm'}` : 'Not set'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Current Weight</p>
-                      <p className="font-medium">
-                        {profile.currentWeight ? `${profile.currentWeight} ${profile.measurementUnit === 'imperial' ? 'lbs' : 'kg'}` : 'Not set'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Target Weight</p>
-                      <p className="font-medium">
-                        {profile.targetWeight ? `${profile.targetWeight} ${profile.measurementUnit === 'imperial' ? 'lbs' : 'kg'}` : 'Not set'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Fitness Level</p>
-                      <p className="font-medium">{profile.fitnessLevel || 'Not set'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="col-span-1 md:col-span-2 space-y-4">
-                  <h3 className="text-lg font-semibold">Goals</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Weight Loss per Week</p>
-                      <p className="font-medium">
-                        {profile.weightLossPerWeek ? `${profile.weightLossPerWeek} ${profile.measurementUnit === 'imperial' ? 'lbs' : 'kg'}` : 'Not set'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Exercise Minutes per Day</p>
-                      <p className="font-medium">
-                        {profile.exerciseMinutesPerDay ? `${profile.exerciseMinutesPerDay} minutes` : 'Not set'}
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">Health Goals</p>
-                      <p className="font-medium">{profile.healthGoals || 'Not set'}</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="col-span-2 text-center py-8">
-                <p className="text-muted-foreground">Loading profile information...</p>
-              </div>
-            )}
+          {periods.length === 0 ? (
+            <NoPeriodAlert onCreatePeriod={() => {}} />
+          ) : (
+            <>
+              {!currentPeriod && <NoActivePeriodAlert />}
+
+              {currentPeriod && currentMetrics && (
+                <PeriodMetricsCards
+                  weightProgress={currentMetrics.weightProgress}
+                  timeProgress={currentMetrics.timeProgress}
+                  timeRemaining={currentMetrics.timeRemaining}
+                  daysRemaining={currentMetrics.daysRemaining}
+                  totalWeeks={currentMetrics.totalWeeks}
+                  totalMonths={currentMetrics.totalMonths}
+                  weightChange={currentMetrics.weightChange}
+                  weightDirection={currentMetrics.weightDirection}
+                  weightUnit={weightUnit}
+                />
+              )}
+            </>
+          )}
+          
+          <div className="mt-8 bg-card shadow-sm rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Activity Summary</h2>
+            <p className="text-muted-foreground">
+              Welcome to your dashboard! Here you can see an overview of your progress.
+            </p>
           </div>
         </div>
       </div>
