@@ -15,7 +15,6 @@ interface PeriodMetricsCardsProps {
   weightChange: number;
   weightDirection: 'lost' | 'gained';
   weightUnit: string;
-  exerciseLogs?: any[];
   weighIns: WeighIn[];
   currentPeriod?: Period;
   isImperial: boolean;

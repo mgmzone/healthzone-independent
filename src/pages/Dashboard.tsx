@@ -4,13 +4,10 @@ import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
-import { useExerciseData } from '@/hooks/useExerciseData';
-import { useFastingData } from '@/hooks/useFastingData';
 import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
-import ActivitySummarySection from '@/components/dashboard/ActivitySummarySection';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -24,8 +21,6 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const { periods, isLoading: periodsLoading, getCurrentPeriod } = usePeriodsData();
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
-  const { exerciseLogs } = useExerciseData('week');
-  const { fastingLogs } = useFastingData();
   
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
@@ -80,8 +75,8 @@ const Dashboard = () => {
             latestWeight={latestWeight}
             weightUnit={weightUnit}
             currentPeriod={currentPeriod}
-            exerciseLogs={exerciseLogs}
-            fastingLogs={fastingLogs}
+            exerciseLogs={[]}
+            fastingLogs={[]}
             getDaysRemaining={getDaysRemaining}
           />
 
@@ -108,11 +103,6 @@ const Dashboard = () => {
               )}
             </>
           )}
-          
-          <ActivitySummarySection 
-            exerciseLogs={exerciseLogs}
-            fastingLogs={fastingLogs}
-          />
         </div>
       </div>
     </Layout>

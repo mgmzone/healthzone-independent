@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { WeighIn, Period } from '@/lib/types';
-import { addWeeks, format, startOfWeek, endOfWeek, isWithinInterval, differenceInWeeks } from 'date-fns';
+import { addWeeks, format, startOfWeek, endOfWeek, differenceInWeeks } from 'date-fns';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -75,19 +75,29 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     // Sort data chronologically
     weeklyData.sort((a, b) => a.week - b.week);
     
-    // If we have at least 2 weeks of data, calculate weekly rate of change
+    // If we have at least 2 weeks of data, calculate weight loss projection
     if (weeklyData.length >= 2) {
       const lastRealDataPoint = weeklyData[weeklyData.length - 1];
       const firstDataPoint = weeklyData[0];
       
-      // Calculate average weekly weight change
+      // Calculate average weekly weight change from real data
       const totalChange = lastRealDataPoint.weight - firstDataPoint.weight;
       const weeksPassed = lastRealDataPoint.week - firstDataPoint.week || 1; // Avoid division by zero
-      const weeklyRate = totalChange / weeksPassed;
+      const initialWeeklyRate = totalChange / weeksPassed;
       
-      // Project future weeks
+      // Project future weeks with decreasing rate of change
       for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
-        const projectedWeight = lastRealDataPoint.weight + (weeklyRate * (week - lastRealDataPoint.week));
+        // Calculate a diminishing rate factor (starts at 1.0 and gradually decreases)
+        // The rate drops by 10% every 4 weeks
+        const weeksFromLastReal = week - lastRealDataPoint.week;
+        const diminishingFactor = Math.pow(0.9, weeksFromLastReal / 4);
+        
+        // Apply the diminishing factor to the weekly rate
+        const adjustedWeeklyRate = initialWeeklyRate * diminishingFactor;
+        
+        // Calculate the projected weight for this week
+        const projectedWeight = lastRealDataPoint.weight + 
+          (adjustedWeeklyRate * weeksFromLastReal);
         
         weeklyData.push({
           week,
@@ -113,9 +123,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 
   const today = new Date();
   
-  // Find the index where projection starts
-  const projectionStartIndex = chartData.findIndex(d => d.isProjected);
-
   // Custom Tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -148,10 +155,14 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     dateValue: item.date.getTime() // Convert Date to number timestamp for XAxis
   }));
 
+  // Split data into actual and projected for different line styles
+  const actualData = formattedData.filter(d => !d.isProjected);
+  const projectedData = formattedData.filter(d => d.isProjected);
+
   return (
     <div className="w-full h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={formattedData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+        <LineChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
           <XAxis 
             dataKey="dateValue" 
@@ -160,6 +171,10 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             axisLine={false}
             tick={{ fontSize: 12 }}
             minTickGap={30}
+            domain={['dataMin', 'dataMax']}
+            type="number"
+            allowDataOverflow={true}
+            data={formattedData}
           />
           <YAxis 
             domain={[minWeight, maxWeight]} 
@@ -170,10 +185,14 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           />
           <Tooltip content={<CustomTooltip />} />
           
+          {/* Reference line for today */}
+          <ReferenceLine x={today.getTime()} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" />
+          
           {/* Actual weight line */}
           <Line
             type="monotone"
             dataKey="weight"
+            data={actualData}
             stroke="#6366F1"
             strokeWidth={2}
             dot={{ stroke: '#6366F1', strokeWidth: 2, r: 4, fill: 'white' }}
@@ -181,13 +200,15 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             connectNulls={true}
             isAnimationActive={true}
             animationDuration={1000}
+            name="Actual"
           />
           
-          {/* If we have projection data, add a dashed line for projected data */}
-          {projectionStartIndex > 0 && (
+          {/* Projected weight line (dashed) */}
+          {projectedData.length > 0 && (
             <Line
               type="monotone"
               dataKey="weight"
+              data={projectedData}
               stroke="#3B82F6"
               strokeWidth={2}
               strokeDasharray="5 5"
@@ -195,12 +216,10 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
               activeDot={{ r: 6, fill: '#3B82F6' }}
               isAnimationActive={true}
               animationDuration={1000}
-              data={formattedData.filter(d => d.isProjected)}
+              name="Projected"
+              connectNulls={true}
             />
           )}
-          
-          {/* Reference line for today */}
-          <ReferenceLine x={today.getTime()} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" />
         </LineChart>
       </ResponsiveContainer>
     </div>
