@@ -68,13 +68,13 @@ const Fasting = () => {
                   <TabsTrigger value="year" onClick={() => setTimeFilter('year')}>Year</TabsTrigger>
                 </TabsList>
                 <div className="flex-1 flex flex-col">
-                  <TabsContent value="week" className="mt-0 flex-1">
+                  <TabsContent value="week" className="mt-0 flex-1 h-full">
                     <FastingStats fastingLogs={fastingLogs} timeFilter="week" />
                   </TabsContent>
-                  <TabsContent value="month" className="mt-0 flex-1">
+                  <TabsContent value="month" className="mt-0 flex-1 h-full">
                     <FastingStats fastingLogs={fastingLogs} timeFilter="month" />
                   </TabsContent>
-                  <TabsContent value="year" className="mt-0 flex-1">
+                  <TabsContent value="year" className="mt-0 flex-1 h-full">
                     <FastingStats fastingLogs={fastingLogs} timeFilter="year" />
                   </TabsContent>
                 </div>
