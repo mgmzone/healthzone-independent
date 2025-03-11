@@ -4,7 +4,7 @@ import { Edit } from "lucide-react";
 
 const FastingTips: React.FC = () => {
   return (
-    <div className="w-full mt-3 text-xs text-center">
+    <div className="w-full mt-2 text-xs text-center">
       <div className="flex items-center justify-center gap-1 text-muted-foreground">
         <Edit className="h-3 w-3" />
         <span>Tips</span>
