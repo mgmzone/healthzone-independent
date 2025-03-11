@@ -72,52 +72,67 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   }
 
   // Calculate angles for the progress circle
-  const circumference = 2 * Math.PI * 45; // radius is 45
-  const offset = circumference - (progress / 100) * circumference;
+  const radius = 45;
+  const circumference = 2 * Math.PI * radius;
+  const dashArray = circumference;
+  const dashOffset = circumference - (progress / 100) * circumference;
   
-  // Determine color based on progress
-  const getColor = (progress: number) => {
-    if (progress < 25) return "#a855f7"; // purple-500
-    if (progress < 50) return "#3b82f6"; // blue-500
-    if (progress < 75) return "#f97316"; // orange-500
-    return "#10b981"; // emerald-500
-  };
-  
-  const progressColor = getColor(progress);
+  // Create marker positions every 6 hours (90 degrees)
+  const markers = [0, 6, 12, 18].map(hour => {
+    const angle = (hour / 24) * 360 - 90; // -90 to start at top
+    const x = 50 + radius * Math.cos((angle * Math.PI) / 180);
+    const y = 50 + radius * Math.sin((angle * Math.PI) / 180);
+    return { x, y, hour };
+  });
 
   return (
     <Card className="p-6 h-full flex flex-col items-center justify-center relative">
       <div className="relative flex items-center justify-center mb-6">
-        {/* Background circle */}
         <svg className="w-64 h-64 -rotate-90">
+          {/* Background circle */}
           <circle
             cx="50%"
             cy="50%"
-            r="45%"
+            r={radius}
             fill="transparent"
-            stroke="#1e293b" // slate-800
+            stroke="#1e293b"
             strokeWidth="8"
+            className="opacity-20"
           />
-          {/* Progress circle */}
+          {/* Progress circle - gradient */}
+          <defs>
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#0EA5E9" />
+              <stop offset="50%" stopColor="#8B5CF6" />
+              <stop offset="100%" stopColor="#F97316" />
+            </linearGradient>
+          </defs>
           <circle
             cx="50%"
             cy="50%"
-            r="45%"
+            r={radius}
             fill="transparent"
-            stroke={progressColor}
+            stroke="url(#progressGradient)"
             strokeWidth="8"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
+            strokeDasharray={dashArray}
+            strokeDashoffset={dashOffset}
             strokeLinecap="round"
+            className="transition-all duration-500"
           />
-          {/* Markers */}
-          <circle cx="50%" cy="5%" r="3%" fill="#3b82f6" /> {/* 0 hours */}
-          <circle cx="95%" cy="50%" r="3%" fill="#f97316" /> {/* 6 hours */}
-          <circle cx="50%" cy="95%" r="3%" fill="#10b981" /> {/* 12 hours */}
-          <circle cx="5%" cy="50%" r="3%" fill="#a855f7" /> {/* 18 hours */}
+          {/* Hour markers */}
+          {markers.map(({ x, y, hour }) => (
+            <circle
+              key={hour}
+              cx={`${x}%`}
+              cy={`${y}%`}
+              r="2.5%"
+              fill={hour === 0 ? '#0EA5E9' : hour === 6 ? '#8B5CF6' : hour === 12 ? '#F97316' : '#0EA5E9'}
+              className="transition-all duration-300"
+            />
+          ))}
         </svg>
         
-        {/* Flame icon in center */}
+        {/* Center content */}
         <div className="absolute flex flex-col items-center">
           <Flame className="w-8 h-8 text-orange-500 mb-2" />
           <div className="text-center">
@@ -129,6 +144,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         </div>
       </div>
       
+      {/* Start/End time display */}
       <div className="grid grid-cols-2 w-full gap-4 mt-2">
         <div className="text-sm">
           <div className="text-muted-foreground">Start</div>
