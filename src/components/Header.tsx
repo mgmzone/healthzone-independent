@@ -35,9 +35,9 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: BarChart },
     { name: 'Weight', path: '/weight', icon: BarChart },
-    { name: 'Periods', path: '/periods', icon: Calendar },
     { name: 'Fasting', path: '/fasting', icon: Clock },
     { name: 'Exercise', path: '/exercise', icon: Dumbbell },
+    { name: 'Periods', path: '/periods', icon: Calendar },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 
