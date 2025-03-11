@@ -56,10 +56,20 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
 
   // If using imperial, convert km to miles for display
   const displayDistance = () => {
+    if (formData.distance === undefined) return '';
     if (isImperial && formData.distance) {
-      return formData.distance * 0.621371;
+      return (formData.distance * 0.621371).toFixed(2);
     }
-    return formData.distance;
+    return formData.distance.toFixed(2);
+  };
+
+  const handleDistanceChange = (value: string) => {
+    // Parse the input value, limiting to 2 decimal places
+    const parsedValue = parseFloat(parseFloat(value).toFixed(2));
+    setFormData({ 
+      ...formData, 
+      distance: isNaN(parsedValue) ? undefined : parsedValue
+    });
   };
 
   return (
@@ -136,11 +146,8 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
                   id="distance"
                   type="number"
                   step="0.01"
-                  value={displayDistance() || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    distance: parseFloat(e.target.value) || undefined 
-                  })}
+                  value={displayDistance()}
+                  onChange={(e) => handleDistanceChange(e.target.value)}
                 />
               </div>
               
