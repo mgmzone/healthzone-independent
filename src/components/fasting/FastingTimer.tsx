@@ -15,6 +15,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   const [timeElapsed, setTimeElapsed] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
   const [timeRemaining, setTimeRemaining] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
   const [progress, setProgress] = useState(0);
+  const [rotations, setRotations] = useState(0);
 
   // Calculate time elapsed and time remaining
   useEffect(() => {
@@ -52,9 +53,15 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         seconds: secondsRemaining
       });
       
-      // Calculate progress percentage (0-100)
-      const progressPercentage = Math.min(100, (totalSecondsElapsed / totalFastingSeconds) * 100);
-      setProgress(progressPercentage);
+      // Calculate progress percentage (can exceed 100% for fasts > 24 hours)
+      const progressPercentage = (totalSecondsElapsed / totalFastingSeconds) * 100;
+      
+      // Calculate number of complete rotations (only for visual effect)
+      const completeRotations = Math.floor(progressPercentage / 100);
+      setRotations(completeRotations);
+      
+      // The circle progress should be the remainder after full rotations (0-100)
+      setProgress(progressPercentage % 100);
       
     }, 1000);
     
@@ -71,7 +78,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
     );
   }
 
-  // Calculate angles for the progress circle - increase radius for larger circle
+  // Calculate angles for the progress circle
   const radius = 80; 
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
@@ -138,6 +145,11 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
           <div className="text-center">
             <div className="text-sm text-muted-foreground">Fasting for</div>
             <div className="text-4xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
+            {rotations > 0 && (
+              <div className="text-sm text-emerald-500 font-medium mt-1">
+                +{rotations} full rotation{rotations > 1 ? 's' : ''}
+              </div>
+            )}
             <div className="text-sm text-muted-foreground mt-1">Remaining</div>
             <div className="text-lg font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div>
           </div>

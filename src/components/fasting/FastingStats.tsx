@@ -32,10 +32,11 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
     
     // Calculate total fasting time in hours
     const totalFastingHours = filteredLogs.reduce((total, log) => {
-      if (!log.endTime) return total;
+      if (!log.endTime && log !== fastingLogs[0]) return total;
       
       const startTime = new Date(log.startTime);
-      const endTime = new Date(log.endTime);
+      // For active fast, use current time as end time
+      const endTime = log.endTime ? new Date(log.endTime) : new Date();
       const fastDurationInSeconds = differenceInSeconds(endTime, startTime);
       return total + (fastDurationInSeconds / 3600);
     }, 0);
@@ -43,10 +44,11 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
     // Find longest fast
     let longestFastHours = 0;
     filteredLogs.forEach(log => {
-      if (!log.endTime) return;
+      if (!log.endTime && log !== fastingLogs[0]) return;
       
       const startTime = new Date(log.startTime);
-      const endTime = new Date(log.endTime);
+      // For active fast, use current time as end time
+      const endTime = log.endTime ? new Date(log.endTime) : new Date();
       const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
       
       if (fastDurationInHours > longestFastHours) {
@@ -204,7 +206,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-slate-800 rounded-md p-4">
           <div className="text-sm text-slate-400">Fasts</div>
-          <div className="text-2xl font-bold">{stats.totalFasts}</div>
+          <div className="text-2xl font-bold">{stats.totalFasts || 0}</div>
         </div>
         <div className="bg-slate-800 rounded-md p-4">
           <div className="text-sm text-slate-400">Longest fast</div>
@@ -216,7 +218,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         </div>
         <div className="bg-slate-800 rounded-md p-4">
           <div className="text-sm text-slate-400">Days with fast</div>
-          <div className="text-2xl font-bold">{stats.daysWithFast}</div>
+          <div className="text-2xl font-bold">{stats.daysWithFast || 0}</div>
         </div>
       </div>
       
