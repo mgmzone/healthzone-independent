@@ -13,27 +13,27 @@ const FastingTimeInfo: React.FC<FastingTimeInfoProps> = ({
   onEndFast 
 }) => {
   return (
-    <>
-      <div className="grid grid-cols-2 w-full gap-2 mt-1">
-        <div className="text-xs">
-          <div className="text-muted-foreground">Start</div>
-          <div className="font-medium">{format(new Date(startTime), 'E dd MMM')}</div>
+    <div className="w-full">
+      <div className="grid grid-cols-2 w-full mb-4">
+        <div className="text-sm">
+          <div className="text-muted-foreground text-xs">Start</div>
+          <div>{format(new Date(startTime), 'E dd MMM')}</div>
           <div>{format(new Date(startTime), 'h:mm a')}</div>
         </div>
-        <div className="text-xs text-right">
-          <div className="text-muted-foreground">End</div>
-          <div className="font-medium">Today</div>
+        <div className="text-sm text-right">
+          <div className="text-muted-foreground text-xs">End</div>
+          <div>Today</div>
           <div>{format(new Date(), 'h:mm a')}</div>
         </div>
       </div>
       
       <Button 
-        className="w-full mt-2 text-sm py-1 h-8" 
+        className="w-full bg-blue-500 hover:bg-blue-600" 
         onClick={onEndFast}
       >
         End Fast
       </Button>
-    </>
+    </div>
   );
 };
 

@@ -75,8 +75,8 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   }
 
   return (
-    <Card className="p-4 h-[70%] flex flex-col items-center justify-between overflow-hidden">
-      <div className="flex-1 flex items-center justify-center">
+    <Card className="p-6 h-[80%] flex flex-col items-center overflow-hidden">
+      <div className="flex-1 flex items-center justify-center mb-3">
         <FastingProgressCircle 
           progress={progress} 
           rotations={rotations} 
@@ -85,7 +85,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         />
       </div>
       
-      <div className="mt-auto">
+      <div className="w-full mt-auto">
         <FastingTimeInfo 
           startTime={activeFast.startTime} 
           onEndFast={onEndFast} 
