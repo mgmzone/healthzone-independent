@@ -40,6 +40,10 @@ export const useExerciseGoals = () => {
         ...goal,
         created_at: new Date(goal.created_at),
         updated_at: new Date(goal.updated_at),
+        // Cast type to the specific string literal union type
+        type: goal.type as 'steps' | 'distance' | 'minutes' | 'calories' | 'other',
+        // Cast period to the specific string literal union type
+        period: goal.period as 'daily' | 'weekly' | 'monthly',
         current: 0 // Will be calculated later
       }));
     },
@@ -71,6 +75,8 @@ export const useExerciseGoals = () => {
         ...data,
         created_at: new Date(data.created_at),
         updated_at: new Date(data.updated_at),
+        type: data.type as 'steps' | 'distance' | 'minutes' | 'calories' | 'other',
+        period: data.period as 'daily' | 'weekly' | 'monthly',
         current: 0
       };
     },
@@ -94,7 +100,7 @@ export const useExerciseGoals = () => {
           unit: goal.unit,
           type: goal.type,
           period: goal.period,
-          updated_at: new Date()
+          updated_at: new Date().toISOString() // Convert Date to string for Supabase
         })
         .eq('id', goal.id);
 
