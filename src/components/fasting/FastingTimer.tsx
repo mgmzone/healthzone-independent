@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { differenceInSeconds } from 'date-fns';
 import { Card } from "@/components/ui/card";
@@ -19,7 +18,6 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   const [progress, setProgress] = useState(0);
   const [rotations, setRotations] = useState(0);
 
-  // Calculate time elapsed and time remaining
   useEffect(() => {
     if (!activeFast) return;
 
@@ -28,11 +26,9 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
       const startTime = new Date(activeFast.startTime);
       const fastingHours = activeFast.fastingHours || 16; // Default to 16 hours if not specified
       
-      // Calculate total seconds elapsed
       const totalSecondsElapsed = differenceInSeconds(now, startTime);
       const totalFastingSeconds = fastingHours * 3600;
       
-      // Calculate hours, minutes, seconds elapsed
       const hoursElapsed = Math.floor(totalSecondsElapsed / 3600);
       const minutesElapsed = Math.floor((totalSecondsElapsed % 3600) / 60);
       const secondsElapsed = totalSecondsElapsed % 60;
@@ -43,7 +39,6 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         seconds: secondsElapsed
       });
       
-      // Calculate remaining time
       const remainingSeconds = Math.max(0, totalFastingSeconds - totalSecondsElapsed);
       const hoursRemaining = Math.floor(remainingSeconds / 3600);
       const minutesRemaining = Math.floor((remainingSeconds % 3600) / 60);
@@ -55,14 +50,11 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         seconds: secondsRemaining
       });
       
-      // Calculate progress percentage (can exceed 100% for fasts > 24 hours)
       const progressPercentage = (totalSecondsElapsed / totalFastingSeconds) * 100;
       
-      // Calculate number of complete rotations (only for visual effect)
       const completeRotations = Math.floor(progressPercentage / 100);
       setRotations(completeRotations);
       
-      // The circle progress should be the remainder after full rotations (0-100)
       setProgress(progressPercentage % 100);
       
     }, 1000);
@@ -75,7 +67,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   }
 
   return (
-    <Card className="p-6 h-[85%] flex flex-col items-center">
+    <Card className="p-6 h-[100%] flex flex-col items-center">
       <div className="flex-1 flex items-center justify-center mb-2">
         <FastingProgressCircle 
           progress={progress} 
