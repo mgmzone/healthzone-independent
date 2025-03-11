@@ -56,6 +56,11 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const actualData = formattedData.filter(d => !d.isProjected);
   const projectedData = formattedData.filter(d => d.isProjected);
 
+  // Only display the target date if it's within the period end date
+  const displayTargetDate = targetDate && currentPeriod.endDate ? 
+    (targetDate <= new Date(currentPeriod.endDate) ? targetDate : null) : 
+    targetDate;
+
   return (
     <>
       <div className="w-full h-[220px]">
@@ -102,9 +107,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             )}
             
             {/* Target date vertical reference line (if projection reaches target) */}
-            {targetDate && (
+            {displayTargetDate && (
               <ReferenceLine 
-                x={targetDate.getTime()} 
+                x={displayTargetDate.getTime()} 
                 stroke="#F59E0B" 
                 strokeWidth={1} 
                 strokeDasharray="3 3" 
@@ -112,6 +117,22 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                   value: 'Target date', 
                   position: 'insideTopRight', 
                   fill: '#F59E0B',
+                  fontSize: 10
+                }} 
+              />
+            )}
+            
+            {/* Period end date vertical reference line */}
+            {currentPeriod.endDate && (
+              <ReferenceLine 
+                x={new Date(currentPeriod.endDate).getTime()} 
+                stroke="#64748B" 
+                strokeWidth={1} 
+                strokeDasharray="3 3" 
+                label={{ 
+                  value: 'Period end', 
+                  position: 'insideTopLeft', 
+                  fill: '#64748B',
                   fontSize: 10
                 }} 
               />
@@ -153,9 +174,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         </ResponsiveContainer>
       </div>
       
-      {targetDate && (
+      {displayTargetDate && (
         <div className="text-xs text-muted-foreground mt-2 text-center">
-          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateForDisplay(targetDate)}</span>
+          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateForDisplay(displayTargetDate)}</span>
         </div>
       )}
     </>

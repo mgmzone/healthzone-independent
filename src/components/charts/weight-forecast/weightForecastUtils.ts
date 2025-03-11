@@ -110,11 +110,11 @@ export const calculateChartData = (
       : (lastRealDataPoint.weight - firstDataPoint.weight) / 
         (lastRealDataPoint.week - firstDataPoint.week || 1);
     
-    // Project future weeks with adaptive rate of change
+    // Project future weeks with adaptive rate of change - but limit to the period end date
     const now = new Date();
     let targetWeightFound = false;
     
-    for (let week = lastRealDataPoint.week + 1; week < totalWeeks + 26; week++) { // Allow up to 26 weeks beyond the period
+    for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
       // Calculate a diminishing factor (starts at 1.0 and gradually decreases)
       // The rate drops by 10% every 4 weeks, but at a decreasing rate over time
       const weeksFromLastReal = week - lastRealDataPoint.week;
@@ -127,9 +127,10 @@ export const calculateChartData = (
       const projectedWeight = lastRealDataPoint.weight + 
         (adjustedWeeklyRate * weeksFromLastReal);
       
-      // Only add projection points for the defined period plus 26 weeks
-      if (week < totalWeeks + 26) {
-        const projectionDate = addWeeks(startDate, week);
+      const projectionDate = addWeeks(startDate, week);
+      
+      // Only add projection points up to the end date of the period
+      if (projectionDate <= endDate) {
         weeklyData.push({
           week,
           date: projectionDate,
