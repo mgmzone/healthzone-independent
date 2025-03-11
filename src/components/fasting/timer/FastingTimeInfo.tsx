@@ -14,7 +14,7 @@ const FastingTimeInfo: React.FC<FastingTimeInfoProps> = ({
 }) => {
   return (
     <>
-      <div className="grid grid-cols-2 w-full gap-4 mt-2">
+      <div className="grid grid-cols-2 w-full gap-2 mt-1">
         <div className="text-sm">
           <div className="text-muted-foreground">Start</div>
           <div className="font-medium">{format(new Date(startTime), 'E dd MMM')}</div>
@@ -28,7 +28,7 @@ const FastingTimeInfo: React.FC<FastingTimeInfoProps> = ({
       </div>
       
       <Button 
-        className="w-full mt-4" 
+        className="w-full mt-2" 
         onClick={onEndFast}
       >
         End Fast

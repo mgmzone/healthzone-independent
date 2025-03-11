@@ -75,20 +75,24 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   }
 
   return (
-    <Card className="p-6 h-[70%] flex flex-col items-center justify-center relative">
-      <FastingProgressCircle 
-        progress={progress} 
-        rotations={rotations} 
-        timeElapsed={timeElapsed} 
-        timeRemaining={timeRemaining} 
-      />
+    <Card className="p-4 h-[70%] flex flex-col items-center justify-between relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-center w-full">
+        <FastingProgressCircle 
+          progress={progress} 
+          rotations={rotations} 
+          timeElapsed={timeElapsed} 
+          timeRemaining={timeRemaining} 
+        />
+      </div>
       
-      <FastingTimeInfo 
-        startTime={activeFast.startTime} 
-        onEndFast={onEndFast} 
-      />
-      
-      <FastingTips />
+      <div className="w-full">
+        <FastingTimeInfo 
+          startTime={activeFast.startTime} 
+          onEndFast={onEndFast} 
+        />
+        
+        <FastingTips />
+      </div>
     </Card>
   );
 };
