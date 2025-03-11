@@ -97,6 +97,7 @@ export function useWeightData() {
     }
   });
 
+  // Fixed: Changed to accept a combined object parameter rather than separate parameters
   const updateWeighIn = useMutation({
     mutationFn: async ({ 
       id,
@@ -149,6 +150,22 @@ export function useWeightData() {
     }
   });
 
+  // Create a wrapper function to match the expected TypeScript interface
+  const updateWeighInWrapper = (
+    id: string,
+    weight: number,
+    date: Date,
+    additionalMetrics: {
+      bmi?: number;
+      bodyFatPercentage?: number;
+      skeletalMuscleMass?: number;
+      boneMass?: number;
+      bodyWaterPercentage?: number;
+    }
+  ) => {
+    updateWeighIn.mutate({ id, weight, date, additionalMetrics });
+  };
+
   const deleteWeighIn = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -179,7 +196,7 @@ export function useWeightData() {
     weighIns,
     isLoading,
     addWeighIn: addWeighIn.mutate,
-    updateWeighIn: updateWeighIn.mutate,
+    updateWeighIn: updateWeighInWrapper, // Use the wrapper function
     deleteWeighIn: deleteWeighIn.mutate
   };
 }
