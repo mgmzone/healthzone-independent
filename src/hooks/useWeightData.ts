@@ -26,9 +26,18 @@ export function useWeightData() {
         return [];
       }
 
+      // Properly map database fields to our TypeScript interface
       return data.map(item => ({
-        ...item,
-        date: new Date(item.date)
+        id: item.id,
+        userId: item.user_id,
+        periodId: item.period_id,
+        date: new Date(item.date),
+        weight: item.weight,
+        bmi: item.bmi,
+        bodyFatPercentage: item.body_fat_percentage,
+        skeletalMuscleMass: item.skeletal_muscle_mass,
+        boneMass: item.bone_mass,
+        bodyWaterPercentage: item.body_water_percentage
       })) as WeighIn[];
     }
   });
