@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { FastingLog } from '@/lib/types';
 import { differenceInSeconds, subDays, subMonths, subYears, startOfDay } from 'date-fns';
@@ -81,18 +82,20 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         ...days.slice(0, dayOfWeek + 1)
       ];
       
-      // Initialize data with 0 hours for fasting only
+      // Initialize data with 0 hours for fasting
       const data = orderedDays.map(day => ({ 
         day, 
-        fasting: 0
+        fasting: 0,
+        eating: 0
       }));
       
       // Fill in actual hours from logs
       fastingLogs.forEach(log => {
-        if (!log.endTime) return;
+        if (!log.endTime && log !== fastingLogs[0]) return; // Skip non-completed fasts except the current one
         
         const startTime = new Date(log.startTime);
-        const endTime = new Date(log.endTime);
+        // For active fast, use current time as end time
+        const endTime = log.endTime ? new Date(log.endTime) : new Date();
         
         // Only include logs from the past week
         if (startTime < subDays(now, 7)) return;
@@ -100,7 +103,13 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         const dayIndex = data.findIndex(d => d.day === days[startTime.getDay()]);
         if (dayIndex !== -1) {
           const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
-          data[dayIndex].fasting = Math.min(fastDurationInHours, 24);
+          const cappedFastingHours = Math.min(fastDurationInHours, 24);
+          data[dayIndex].fasting = cappedFastingHours;
+          
+          // Only add eating time for completed fasts
+          if (log.endTime) {
+            data[dayIndex].eating = Math.max(24 - cappedFastingHours, 0);
+          }
         }
       });
       
@@ -109,16 +118,18 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
       const data = weeks.map(week => ({ 
         day: week, 
-        fasting: 0
+        fasting: 0,
+        eating: 0
       }));
       
       // Fill in actual hours from logs
       const now = new Date();
       fastingLogs.forEach(log => {
-        if (!log.endTime) return;
+        if (!log.endTime && log !== fastingLogs[0]) return; // Skip non-completed fasts except the current one
         
         const startTime = new Date(log.startTime);
-        const endTime = new Date(log.endTime);
+        // For active fast, use current time as end time
+        const endTime = log.endTime ? new Date(log.endTime) : new Date();
         
         // Only include logs from the past month
         if (startTime < subMonths(now, 1)) return;
@@ -129,6 +140,12 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
         data[weekIndex].fasting += fastDurationInHours;
+        
+        // Only add eating time for completed fasts
+        if (log.endTime) {
+          const eatingHours = 24 - (data[weekIndex].fasting % 24);
+          data[weekIndex].eating += eatingHours > 0 ? eatingHours : 0;
+        }
       });
       
       return data;
@@ -136,16 +153,18 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const data = months.map(month => ({ 
         day: month, 
-        fasting: 0
+        fasting: 0,
+        eating: 0
       }));
       
       // Fill in actual hours from logs
       const now = new Date();
       fastingLogs.forEach(log => {
-        if (!log.endTime) return;
+        if (!log.endTime && log !== fastingLogs[0]) return; // Skip non-completed fasts except the current one
         
         const startTime = new Date(log.startTime);
-        const endTime = new Date(log.endTime);
+        // For active fast, use current time as end time
+        const endTime = log.endTime ? new Date(log.endTime) : new Date();
         
         // Only include logs from the past year
         if (startTime < subYears(now, 1)) return;
@@ -153,6 +172,14 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         const monthIndex = startTime.getMonth();
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
         data[monthIndex].fasting += fastDurationInHours;
+        
+        // Only add eating time for completed fasts
+        if (log.endTime) {
+          const daysInMonth = new Date(startTime.getFullYear(), startTime.getMonth() + 1, 0).getDate();
+          const totalHoursInMonth = daysInMonth * 24;
+          const eatingHours = Math.min(totalHoursInMonth - data[monthIndex].fasting, totalHoursInMonth / 2);
+          data[monthIndex].eating = Math.max(eatingHours, 0);
+        }
       });
       
       return data;
@@ -161,6 +188,8 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
 
   // Format durations
   const formatDuration = (hours: number) => {
+    if (hours === 0) return '0h';
+    
     const days = Math.floor(hours / 24);
     const remainingHours = Math.floor(hours % 24);
     
@@ -215,7 +244,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
             <Tooltip 
               formatter={(value, name) => [
                 `${Math.round(Number(value))} hours`, 
-                name === 'fasting' ? 'Fasting Time' : ''
+                name === 'fasting' ? 'Fasting Time' : 'Eating Time'
               ]}
               labelFormatter={(label) => `${label}`}
             />
@@ -223,8 +252,16 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
             <Bar 
               dataKey="fasting" 
               name="Fasting Time"
+              stackId="a"
               fill="#3b82f6" 
-              radius={[4, 4, 4, 4]}
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar 
+              dataKey="eating" 
+              name="Eating Time"
+              stackId="a"
+              fill="#ef4444"
+              radius={[0, 0, 4, 4]}
             />
           </BarChart>
         </ResponsiveContainer>

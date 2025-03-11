@@ -44,3 +44,49 @@ export const groupLogsByWeek = (fastingLogs: FastingLog[]) => {
   
   return weeks;
 };
+
+// Format duration for display
+export const formatFastingDuration = (hours: number) => {
+  if (hours === 0) return '0h';
+  
+  const days = Math.floor(hours / 24);
+  const remainingHours = Math.floor(hours % 24);
+  
+  if (days > 0) {
+    return `${days}d ${remainingHours}h`;
+  }
+  return `${remainingHours}h`;
+};
+
+// Calculate fasting statistics for a time period
+export const calculateFastingStats = (fastingLogs: FastingLog[]) => {
+  // Calculate total fasting time in hours
+  const totalFastingHours = fastingLogs.reduce((total, log) => {
+    if (!log.endTime) return total;
+    
+    const startTime = new Date(log.startTime);
+    const endTime = new Date(log.endTime);
+    const fastDurationInSeconds = differenceInSeconds(endTime, startTime);
+    return total + (fastDurationInSeconds / 3600);
+  }, 0);
+  
+  // Find longest fast
+  let longestFastHours = 0;
+  fastingLogs.forEach(log => {
+    if (!log.endTime) return;
+    
+    const startTime = new Date(log.startTime);
+    const endTime = new Date(log.endTime);
+    const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
+    
+    if (fastDurationInHours > longestFastHours) {
+      longestFastHours = fastDurationInHours;
+    }
+  });
+  
+  return {
+    totalFastingTime: totalFastingHours,
+    longestFast: longestFastHours,
+    totalFasts: fastingLogs.filter(log => log.endTime).length
+  };
+};
