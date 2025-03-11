@@ -59,35 +59,33 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
   };
 
   const handleDistanceChange = (value: string) => {
+    // Allow empty input or just a decimal point
+    if (value === '' || value === '.') {
+      setFormData({
+        ...formData,
+        distance: undefined
+      });
+      return;
+    }
+    
     // Remove any non-numeric characters except decimal point
+    // This allows entering values like "3.10"
     const numericValue = value.replace(/[^0-9.]/g, '');
     
-    // Don't attempt to parse empty strings
-    if (numericValue === '' || numericValue === '.') {
-      setFormData({
-        ...formData,
-        distance: undefined
-      });
-      return;
+    // Only attempt to parse if we have a valid numeric string
+    // This prevents issues with multiple decimal points
+    if (/^\d*\.?\d*$/.test(numericValue)) {
+      const parsedValue = parseFloat(numericValue);
+      
+      if (!isNaN(parsedValue)) {
+        setFormData({
+          ...formData,
+          distance: isImperial 
+            ? parsedValue / 0.621371 // Store as km internally
+            : parsedValue
+        });
+      }
     }
-    
-    // Parse the numeric value
-    const parsedValue = parseFloat(numericValue);
-    
-    if (isNaN(parsedValue)) {
-      setFormData({
-        ...formData,
-        distance: undefined
-      });
-      return;
-    }
-    
-    setFormData({
-      ...formData,
-      distance: isImperial 
-        ? parsedValue / 0.621371 // Store as km internally
-        : parsedValue
-    });
   };
 
   return (
