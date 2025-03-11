@@ -1,9 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ExerciseLog, TimeFilter } from '@/lib/types';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
-import { getExerciseLogs, addExerciseLog as addExerciseLogService, deleteExerciseLog as deleteExerciseLogService } from '@/lib/services/exerciseService';
+import { 
+  getExerciseLogs, 
+  addExerciseLog as addExerciseLogService, 
+  deleteExerciseLog as deleteExerciseLogService,
+  updateExerciseLog as updateExerciseLogService 
+} from '@/lib/services/exerciseService';
 
 export function useExerciseData(timeFilter: TimeFilter = 'week') {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>([]);
@@ -69,6 +75,32 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
     }
   };
 
+  const handleUpdateExerciseLog = async (id: string, data: Partial<ExerciseLog>) => {
+    try {
+      const updatedLog = await updateExerciseLogService(id, data);
+      
+      // Update the log in the current state
+      setExerciseLogs(prev => prev.map(log => 
+        log.id === id ? { ...log, ...updatedLog } : log
+      ));
+      
+      toast({
+        title: 'Success',
+        description: 'Exercise activity updated successfully',
+      });
+      
+      return updatedLog;
+    } catch (error) {
+      console.error('Error updating exercise log:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update exercise activity',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   const handleDeleteExerciseLog = async (id: string) => {
     try {
       await deleteExerciseLogService(id);
@@ -96,6 +128,7 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
     exerciseLogs,
     isLoading,
     addExerciseLog: handleAddExerciseLog,
+    updateExerciseLog: handleUpdateExerciseLog,
     deleteExerciseLog: handleDeleteExerciseLog,
   };
 }

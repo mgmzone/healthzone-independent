@@ -19,6 +19,7 @@ const Exercise = () => {
     exerciseLogs, 
     isLoading, 
     addExerciseLog,
+    updateExerciseLog,
     deleteExerciseLog
   } = useExerciseData(timeFilter);
 
@@ -55,6 +56,7 @@ const Exercise = () => {
               exerciseLogs={exerciseLogs} 
               isLoading={isLoading}
               onDelete={deleteExerciseLog}
+              onUpdate={updateExerciseLog}
               timeFilter={timeFilter}
               onTimeFilterChange={setTimeFilter}
             />

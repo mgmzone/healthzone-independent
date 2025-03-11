@@ -2,7 +2,7 @@
 import React from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import { format } from 'date-fns';
 import ExerciseActivityIcon from './ExerciseActivityIcon';
@@ -12,9 +12,10 @@ import { useAuth } from '@/lib/AuthContext';
 interface ExerciseTableRowProps {
   log: ExerciseLog;
   onDelete: (id: string) => void;
+  onEdit: (log: ExerciseLog) => void;
 }
 
-const ExerciseTableRow: React.FC<ExerciseTableRowProps> = ({ log, onDelete }) => {
+const ExerciseTableRow: React.FC<ExerciseTableRowProps> = ({ log, onDelete, onEdit }) => {
   const { profile } = useAuth();
   const isImperial = profile?.measurementUnit === 'imperial';
 
@@ -38,16 +39,28 @@ const ExerciseTableRow: React.FC<ExerciseTableRowProps> = ({ log, onDelete }) =>
       <TableCell>{formatDistance()}</TableCell>
       <TableCell><ExerciseIntensityBadge intensity={log.intensity} /></TableCell>
       <TableCell className="text-right">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(log.id);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(log);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(log.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   );

@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { ExerciseLog } from '@/lib/types';
 import ExerciseWeekHeader from './ExerciseWeekHeader';
 import ExerciseTableRow from './ExerciseTableRow';
+import { ExerciseLog } from '@/lib/types';
 
 interface ExerciseWeekGroupProps {
   weekKey: string;
@@ -10,6 +10,7 @@ interface ExerciseWeekGroupProps {
   expandedWeeks: Record<string, boolean>;
   onToggleWeek: (weekKey: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (log: ExerciseLog) => void;
 }
 
 const ExerciseWeekGroup: React.FC<ExerciseWeekGroupProps> = ({
@@ -17,27 +18,29 @@ const ExerciseWeekGroup: React.FC<ExerciseWeekGroupProps> = ({
   entries,
   expandedWeeks,
   onToggleWeek,
-  onDelete
+  onDelete,
+  onEdit
 }) => {
-  const isExpanded = expandedWeeks[weekKey] !== false;
+  const isExpanded = expandedWeeks[weekKey] || false;
   
   return (
-    <React.Fragment>
-      <ExerciseWeekHeader 
-        weekKey={weekKey} 
-        entries={entries} 
+    <>
+      <ExerciseWeekHeader
+        weekKey={weekKey}
+        entries={entries}
         isExpanded={isExpanded}
         onToggle={() => onToggleWeek(weekKey)}
       />
       
-      {isExpanded && entries.map((log) => (
-        <ExerciseTableRow 
-          key={log.id} 
-          log={log} 
-          onDelete={onDelete} 
+      {isExpanded && entries.map(log => (
+        <ExerciseTableRow
+          key={log.id}
+          log={log}
+          onDelete={onDelete}
+          onEdit={onEdit}
         />
       ))}
-    </React.Fragment>
+    </>
   );
 };
 

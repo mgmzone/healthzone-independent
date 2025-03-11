@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { ExerciseLog } from "@/lib/types";
 
@@ -65,6 +64,78 @@ export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
 
   if (error) {
     console.error('Error adding exercise log:', error);
+    throw error;
+  }
+
+  // Transform the response to our frontend type
+  return {
+    id: data.id,
+    userId: data.user_id,
+    date: new Date(data.date),
+    type: data.type as 'walk' | 'run' | 'bike' | 'elliptical' | 'other',
+    minutes: data.minutes,
+    intensity: data.intensity as 'low' | 'medium' | 'high',
+    steps: data.steps || undefined,
+    distance: data.distance || undefined,
+    lowestHeartRate: data.lowest_heart_rate || undefined,
+    highestHeartRate: data.highest_heart_rate || undefined,
+    averageHeartRate: data.average_heart_rate || undefined
+  };
+}
+
+export async function updateExerciseLog(id: string, exerciseData: Partial<ExerciseLog>) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  // Convert camelCase to snake_case for DB
+  const dbData: Record<string, any> = {};
+  
+  if (exerciseData.date) {
+    dbData.date = exerciseData.date.toISOString();
+  }
+  
+  if (exerciseData.type) {
+    dbData.type = exerciseData.type;
+  }
+  
+  if (exerciseData.minutes !== undefined) {
+    dbData.minutes = exerciseData.minutes;
+  }
+  
+  if (exerciseData.intensity) {
+    dbData.intensity = exerciseData.intensity;
+  }
+  
+  if (exerciseData.steps !== undefined) {
+    dbData.steps = exerciseData.steps;
+  }
+  
+  if (exerciseData.distance !== undefined) {
+    dbData.distance = exerciseData.distance;
+  }
+  
+  if (exerciseData.lowestHeartRate !== undefined) {
+    dbData.lowest_heart_rate = exerciseData.lowestHeartRate;
+  }
+  
+  if (exerciseData.highestHeartRate !== undefined) {
+    dbData.highest_heart_rate = exerciseData.highestHeartRate;
+  }
+  
+  if (exerciseData.averageHeartRate !== undefined) {
+    dbData.average_heart_rate = exerciseData.averageHeartRate;
+  }
+
+  const { data, error } = await supabase
+    .from('exercise_logs')
+    .update(dbData)
+    .eq('id', id)
+    .eq('user_id', session.user.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating exercise log:', error);
     throw error;
   }
 

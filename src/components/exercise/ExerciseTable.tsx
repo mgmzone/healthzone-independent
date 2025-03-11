@@ -14,11 +14,13 @@ import ExerciseEmptyState from './ExerciseEmptyState';
 import ExerciseLoadingState from './ExerciseLoadingState';
 import ExerciseWeekGroup from './ExerciseWeekGroup';
 import { groupLogsByWeek } from './utils/exerciseUtils';
+import ExerciseEntryModal from './ExerciseEntryModal';
 
 interface ExerciseTableProps {
   exerciseLogs: ExerciseLog[];
   isLoading: boolean;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, data: Partial<ExerciseLog>) => void;
   timeFilter: TimeFilter;
   onTimeFilterChange: (filter: TimeFilter) => void;
   showTimeFilter?: boolean;
@@ -28,11 +30,13 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
   exerciseLogs, 
   isLoading, 
   onDelete,
+  onUpdate,
   timeFilter,
   onTimeFilterChange,
   showTimeFilter = true
 }) => {
   const [expandedWeeks, setExpandedWeeks] = useState<Record<string, boolean>>({});
+  const [editingLog, setEditingLog] = useState<ExerciseLog | null>(null);
   
   const groupedByWeek = groupLogsByWeek(exerciseLogs);
   
@@ -41,6 +45,17 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
       ...prev,
       [weekKey]: !prev[weekKey]
     }));
+  };
+
+  const handleEdit = (log: ExerciseLog) => {
+    setEditingLog(log);
+  };
+
+  const handleSave = (data: Partial<ExerciseLog>) => {
+    if (editingLog) {
+      onUpdate(editingLog.id, data);
+      setEditingLog(null);
+    }
   };
   
   return (
@@ -82,6 +97,7 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                     expandedWeeks={expandedWeeks}
                     onToggleWeek={toggleWeekExpansion}
                     onDelete={onDelete}
+                    onEdit={handleEdit}
                   />
                 ))
               )}
@@ -89,6 +105,15 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
           </Table>
         </CardContent>
       </Card>
+
+      {editingLog && (
+        <ExerciseEntryModal
+          isOpen={!!editingLog}
+          onClose={() => setEditingLog(null)}
+          onSave={handleSave}
+          initialData={editingLog}
+        />
+      )}
     </div>
   );
 };
