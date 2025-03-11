@@ -33,12 +33,12 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">Weight Progress</CardTitle>
         </CardHeader>
-        <CardContent className="flex justify-center pt-0">
+        <CardContent className="flex flex-col items-center pt-0">
           <ProgressCircle 
             value={weightProgress}
             size={120}
@@ -46,6 +46,11 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
             showPercentage={true}
             valueLabel={weightProgress >= 100 ? "Goal Reached!" : "of target"}
           />
+          <div className="mt-3 text-center">
+            <span className="text-sm text-muted-foreground">
+              {formatWeight(weightChange)} {weightUnit} {weightDirection}
+            </span>
+          </div>
         </CardContent>
       </Card>
       
@@ -61,26 +66,6 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
             showPercentage={true}
             valueLabel={`${daysRemaining} days left`}
           />
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Period Duration</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-2 gap-2">
-            <WeightStatsCard 
-              value={totalWeeks} 
-              label="Weeks" 
-              isCompact={true} 
-            />
-            <WeightStatsCard 
-              value={totalMonths} 
-              label="Months" 
-              isCompact={true} 
-            />
-          </div>
         </CardContent>
       </Card>
       
