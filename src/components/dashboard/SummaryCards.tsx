@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { ExerciseLog, FastingLog } from '@/lib/types';
-import { isWithinInterval, subWeeks } from 'date-fns';
+import { isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 
 interface SummaryCardProps {
   title: string;
@@ -30,24 +29,22 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   fastingLogs,
   getDaysRemaining
 }) => {
-  // Calculate average weekly exercise minutes
-  const calculateAverageWeeklyExercise = () => {
+  // Calculate current week's exercise minutes
+  const calculateCurrentWeekExercise = () => {
     if (exerciseLogs.length === 0) return 0;
     
     const now = new Date();
-    const fourWeeksAgo = subWeeks(now, 4);
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
     
-    // Filter logs from the last 4 weeks
-    const recentLogs = exerciseLogs.filter(log => {
+    // Filter logs from the current week
+    const currentWeekLogs = exerciseLogs.filter(log => {
       const logDate = new Date(log.date);
-      return isWithinInterval(logDate, { start: fourWeeksAgo, end: now });
+      return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
     });
     
-    // Calculate total minutes
-    const totalMinutes = recentLogs.reduce((sum, log) => sum + log.minutes, 0);
-    
-    // Calculate weekly average (divide by 4 weeks)
-    return Math.round(totalMinutes / 4);
+    // Calculate total minutes for the current week
+    return currentWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
   };
 
   const summaryCards: SummaryCardProps[] = [
@@ -64,8 +61,8 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       color: "#f5a742"
     },
     {
-      title: "Average Weekly Exercise",
-      value: `${calculateAverageWeeklyExercise()} mins`,
+      title: "Current Week Exercise",
+      value: `${calculateCurrentWeekExercise()} mins`,
       icon: Activity,
       color: "#42f5ad"
     },
