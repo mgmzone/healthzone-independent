@@ -80,7 +80,7 @@ const Periods = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Periods</h1>
           <Button onClick={() => setIsModalOpen(true)}>
