@@ -26,30 +26,42 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   allowExceedGoal = true, // Default to true to allow exceeding 100%
 }) => {
   const circleRef = useRef<SVGCircleElement>(null);
+  const overflowCircleRef = useRef<SVGCircleElement>(null);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
-  // Calculate the dashOffset based on the value, possibly exceeding 100%
-  const progressValue = allowExceedGoal ? value : Math.min(value, 100);
-  const dashOffset = circumference - (progressValue / 100) * circumference;
+  // Calculate the dashOffset based on the value
+  // For values <= 100%, we'll use this calculation
+  const normalizedValue = Math.min(value, 100);
+  const dashOffset = circumference - (normalizedValue / 100) * circumference;
+
+  // For values > 100%, we'll show the overflow with a different color
+  const hasOverflow = value > 100;
+  const overflowValue = hasOverflow ? value - 100 : 0;
+  const overflowDasharray = hasOverflow ? 
+    `${(overflowValue / 100) * circumference} ${circumference}` : 
+    "0 100%";
 
   useEffect(() => {
     if (circleRef.current && animate) {
-      circleRef.current.style.setProperty('--progress', progressValue.toString());
+      circleRef.current.style.setProperty('--progress', normalizedValue.toString());
       circleRef.current.style.strokeDashoffset = dashOffset.toString();
     }
-  }, [progressValue, dashOffset, animate]);
+    
+    if (overflowCircleRef.current && animate && hasOverflow) {
+      overflowCircleRef.current.style.setProperty('--overflow-progress', overflowValue.toString());
+    }
+  }, [normalizedValue, overflowValue, dashOffset, animate, hasOverflow]);
 
-  // For display purposes, we might want to show the actual value, even if it exceeds 100%
+  // For display purposes, we show the actual value, even if it exceeds 100%
   const displayValue = Math.round(value);
-  // Only clamp the value when we don't want to exceed goals
-  const clampedValue = allowExceedGoal ? displayValue : Math.min(displayValue, 100);
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
       {label && <div className="text-sm font-medium text-muted-foreground mb-2">{label}</div>}
       <div className="relative flex items-center justify-center">
         <svg width={size} height={size} className="transform -rotate-90">
+          {/* Background circle */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -58,6 +70,8 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             stroke="hsl(var(--secondary))"
             strokeWidth={strokeWidth}
           />
+          
+          {/* Main progress circle (0-100%) */}
           <circle
             ref={circleRef}
             cx={size / 2}
@@ -75,10 +89,30 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
               transition: animate ? 'stroke-dashoffset 1s ease-out' : undefined
             }}
           />
+          
+          {/* Overflow progress circle (>100%) */}
+          {allowExceedGoal && hasOverflow && (
+            <circle
+              ref={overflowCircleRef}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="hsl(var(--accent))"
+              strokeWidth={strokeWidth}
+              strokeDasharray={overflowDasharray}
+              strokeDashoffset={0}
+              strokeLinecap="round"
+              className={animate ? "transition-all duration-1000 ease-out" : ""}
+              style={{
+                transition: animate ? 'stroke-dasharray 1s ease-out' : undefined
+              }}
+            />
+          )}
         </svg>
         {showPercentage && (
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold">{clampedValue}%</span>
+            <span className="text-2xl font-bold">{displayValue}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
           </div>
         )}
