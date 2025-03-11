@@ -12,8 +12,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import ProgressCircle from '@/components/ProgressCircle';
+import WeightStatsCard from '@/components/weight/WeightStatsCard';
 import { getProgressPercentage } from '@/lib/types';
-import { getWeeksInPeriod, getMonthsInPeriod, getTimeProgressPercentage } from '@/lib/utils/dateUtils';
+import { 
+  getWeeksInPeriod, 
+  getMonthsInPeriod, 
+  getTimeProgressPercentage,
+  getRemainingTimePercentage,
+  getDaysRemaining 
+} from '@/lib/utils/dateUtils';
 
 const Periods = () => {
   const { profile } = useAuth();
@@ -86,6 +93,24 @@ const Periods = () => {
     );
   }
 
+  // Calculate metrics for current period (if exists)
+  const currentMetrics = currentPeriod ? {
+    weightProgress: latestWeight
+      ? getProgressPercentage(latestWeight, convertWeight(currentPeriod.startWeight), convertWeight(currentPeriod.targetWeight))
+      : 0,
+    timeProgress: getTimeProgressPercentage(currentPeriod.startDate, currentPeriod.endDate),
+    timeRemaining: getRemainingTimePercentage(currentPeriod.startDate, currentPeriod.endDate),
+    daysRemaining: getDaysRemaining(currentPeriod.endDate),
+    totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
+    totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
+    weightChange: latestWeight 
+      ? Math.abs(convertWeight(currentPeriod.startWeight) - latestWeight)
+      : 0,
+    weightDirection: latestWeight && latestWeight < convertWeight(currentPeriod.startWeight) 
+      ? 'lost' 
+      : 'gained'
+  } : null;
+
   return (
     <Layout>
       <div className="container mx-auto px-4 pt-24 pb-12">
@@ -124,6 +149,73 @@ const Periods = () => {
               </Alert>
             )}
 
+            {/* Current Period Metrics Cards */}
+            {currentPeriod && currentMetrics && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Weight Progress</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex justify-center pt-0">
+                    <ProgressCircle 
+                      value={currentMetrics.weightProgress}
+                      size={120}
+                      strokeWidth={10}
+                      showPercentage={true}
+                      valueLabel={currentMetrics.weightProgress >= 100 ? "Goal Reached!" : "of target"}
+                    />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Time Progress</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex justify-center pt-0">
+                    <ProgressCircle 
+                      value={currentMetrics.timeProgress}
+                      size={120}
+                      strokeWidth={10}
+                      showPercentage={true}
+                      valueLabel={`${currentMetrics.daysRemaining} days left`}
+                    />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Period Duration</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-2 gap-2">
+                      <WeightStatsCard 
+                        value={currentMetrics.totalWeeks} 
+                        label="Weeks" 
+                        isCompact={true} 
+                      />
+                      <WeightStatsCard 
+                        value={currentMetrics.totalMonths} 
+                        label="Months" 
+                        isCompact={true} 
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Weight Change</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex flex-col items-center justify-center h-full">
+                      <div className="text-3xl font-bold">{formatWeight(currentMetrics.weightChange)}</div>
+                      <div className="text-sm text-muted-foreground">{weightUnit} {currentMetrics.weightDirection}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
@@ -135,7 +227,6 @@ const Periods = () => {
                     <th className="px-4 py-3 text-center">Current Weight</th>
                     <th className="px-4 py-3 text-center">Fasting</th>
                     <th className="px-4 py-3 text-center">Duration</th>
-                    <th className="px-4 py-3 text-center">Progress</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,18 +236,13 @@ const Periods = () => {
                       ? format(new Date(period.endDate), "MMM d, yyyy")
                       : "Present";
                     
-                    const weightProgress = latestWeight
-                      ? getProgressPercentage(latestWeight, period.startWeight, period.targetWeight)
-                      : 0;
-                      
-                    const timeProgress = getTimeProgressPercentage(period.startDate, period.endDate);
                     const weeks = getWeeksInPeriod(period.startDate, period.endDate);
                     const months = getMonthsInPeriod(period.startDate, period.endDate);
                     
                     const weightChange = latestWeight 
-                      ? Math.abs(period.startWeight - latestWeight)
+                      ? Math.abs(convertWeight(period.startWeight) - latestWeight)
                       : 0;
-                    const weightDirection = latestWeight && latestWeight < period.startWeight 
+                    const weightDirection = latestWeight && latestWeight < convertWeight(period.startWeight) 
                       ? 'lost' 
                       : 'gained';
                       
@@ -197,30 +283,6 @@ const Periods = () => {
                           <div className="flex flex-col items-center">
                             <div className="text-sm">{weeks} weeks</div>
                             <div className="text-xs text-muted-foreground">{months} months</div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center justify-center gap-4">
-                            <div className="w-12 h-12">
-                              <ProgressCircle 
-                                value={weightProgress}
-                                size={48}
-                                strokeWidth={5}
-                                showPercentage={true}
-                              />
-                            </div>
-                            <div className="w-12 h-12">
-                              <ProgressCircle 
-                                value={timeProgress}
-                                size={48}
-                                strokeWidth={5}
-                                showPercentage={true}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex text-xs text-center mt-1 justify-center gap-4">
-                            <div>Weight</div>
-                            <div>Time</div>
                           </div>
                         </td>
                       </tr>

@@ -23,3 +23,19 @@ export const getTimeProgressPercentage = (startDate: Date, endDate: Date | undef
   
   return Math.round((daysPassed / totalDays) * 100);
 };
+
+export const getRemainingTimePercentage = (startDate: Date, endDate: Date | undefined): number => {
+  if (!endDate) return 100;
+  
+  const timeProgress = getTimeProgressPercentage(startDate, endDate);
+  return 100 - timeProgress;
+};
+
+export const getDaysRemaining = (endDate: Date | undefined): number => {
+  if (!endDate) return 0;
+  
+  const today = new Date();
+  if (today > endDate) return 0;
+  
+  return differenceInDays(endDate, today);
+};
