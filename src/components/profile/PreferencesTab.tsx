@@ -7,7 +7,7 @@ import { TabsContent } from '@/components/ui/tabs';
 
 interface PreferencesTabProps {
   formData: {
-    measurementUnit: string;
+    measurementUnit?: string;
   };
   handleSelectChange: (name: string, value: string) => void;
 }
@@ -20,7 +20,7 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({
     <TabsContent value="preferences" className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="measurementUnit">Measurement Unit</Label>
-        <Select name="measurementUnit" value={formData.measurementUnit} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
+        <Select name="measurementUnit" value={formData.measurementUnit || 'metric'} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select measurement unit" />
           </SelectTrigger>

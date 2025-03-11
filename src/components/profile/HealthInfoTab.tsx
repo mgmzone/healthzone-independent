@@ -8,14 +8,14 @@ import { TabsContent } from '@/components/ui/tabs';
 
 interface HealthInfoTabProps {
   formData: {
-    height: number;
-    currentWeight: number;
-    targetWeight: number;
-    fitnessLevel: string;
-    weightLossPerWeek: number;
-    exerciseMinutesPerDay: number;
-    healthGoals: string;
-    measurementUnit: string;
+    height?: number;
+    currentWeight?: number;
+    targetWeight?: number;
+    fitnessLevel?: string;
+    weightLossPerWeek?: number;
+    exerciseMinutesPerDay?: number;
+    healthGoals?: string;
+    measurementUnit?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -28,11 +28,13 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   handleSelectChange,
   handleNumberChange
 }) => {
+  const unit = formData.measurementUnit || 'metric';
+  
   return (
     <TabsContent value="health" className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="height">Height ({formData.measurementUnit === 'metric' ? 'cm' : 'in'})</Label>
+          <Label htmlFor="height">Height ({unit === 'metric' ? 'cm' : 'in'})</Label>
           <Input
             id="height"
             name="height"
@@ -43,7 +45,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="currentWeight">Current Weight ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
+          <Label htmlFor="currentWeight">Current Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
           <Input
             id="currentWeight"
             name="currentWeight"
@@ -55,7 +57,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="targetWeight">Target Weight ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
+        <Label htmlFor="targetWeight">Target Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
         <Input
           id="targetWeight"
           name="targetWeight"
@@ -67,7 +69,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="fitnessLevel">Fitness Level</Label>
-        <Select name="fitnessLevel" value={formData.fitnessLevel} onValueChange={(value) => handleSelectChange('fitnessLevel', value)}>
+        <Select name="fitnessLevel" value={formData.fitnessLevel || ''} onValueChange={(value) => handleSelectChange('fitnessLevel', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select fitness level" />
           </SelectTrigger>
@@ -80,7 +82,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="weightLossPerWeek">Target Weight Loss Per Week ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
+        <Label htmlFor="weightLossPerWeek">Target Weight Loss Per Week ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
         <Input
           id="weightLossPerWeek"
           name="weightLossPerWeek"

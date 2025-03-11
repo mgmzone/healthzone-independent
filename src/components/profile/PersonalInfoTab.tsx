@@ -7,11 +7,11 @@ import { TabsContent } from '@/components/ui/tabs';
 
 interface PersonalInfoTabProps {
   formData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    birthDate: Date;
-    gender: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    birthDate?: Date;
+    gender?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -32,7 +32,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           <Input
             id="firstName"
             name="firstName"
-            value={formData.firstName}
+            value={formData.firstName || ''}
             onChange={handleInputChange}
             placeholder="First Name"
           />
@@ -42,7 +42,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           <Input
             id="lastName"
             name="lastName"
-            value={formData.lastName}
+            value={formData.lastName || ''}
             onChange={handleInputChange}
             placeholder="Last Name"
           />
@@ -53,7 +53,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         <Input
           id="email"
           name="email"
-          value={formData.email}
+          value={formData.email || ''}
           onChange={handleInputChange}
           placeholder="Email"
           disabled
@@ -71,7 +71,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="gender">Gender</Label>
-        <Select name="gender" value={formData.gender} onValueChange={(value) => handleSelectChange('gender', value)}>
+        <Select name="gender" value={formData.gender || ''} onValueChange={(value) => handleSelectChange('gender', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select gender" />
           </SelectTrigger>
