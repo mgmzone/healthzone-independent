@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Period } from '@/lib/types';
@@ -26,7 +25,6 @@ export function usePeriodsData() {
         return [];
       }
 
-      // Map database fields to our TypeScript interface
       return data.map(item => ({
         id: item.id,
         userId: item.user_id,
@@ -35,7 +33,7 @@ export function usePeriodsData() {
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
-        fastingSchedule: item.fasting_schedule || '16:8' // Use default value if not set
+        fastingSchedule: item.fasting_schedule || '16:8'
       })) as Period[];
     }
   });
@@ -81,6 +79,65 @@ export function usePeriodsData() {
     }
   });
 
+  const updatePeriod = useMutation({
+    mutationFn: async (period: Period) => {
+      const { data, error } = await supabase
+        .from('periods')
+        .update({
+          start_weight: period.startWeight,
+          target_weight: period.targetWeight,
+          type: period.type,
+          start_date: period.startDate.toISOString(),
+          end_date: period.endDate ? period.endDate.toISOString() : null,
+          fasting_schedule: period.fastingSchedule
+        })
+        .eq('id', period.id)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['periods'] });
+      toast({
+        title: 'Period updated',
+        description: 'Your period has been updated successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error updating period',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const deletePeriod = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('periods')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['periods'] });
+      toast({
+        title: 'Period deleted',
+        description: 'Your period has been deleted successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error deleting period',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
   const getCurrentPeriod = () => {
     const today = new Date();
     return periods.find(period => {
@@ -95,6 +152,8 @@ export function usePeriodsData() {
     periods,
     isLoading,
     addPeriod: addPeriod.mutate,
+    updatePeriod: updatePeriod.mutate,
+    deletePeriod: deletePeriod.mutate,
     getCurrentPeriod
   };
 }

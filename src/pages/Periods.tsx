@@ -21,7 +21,7 @@ import PeriodsTable from '@/components/periods/PeriodsTable';
 
 const Periods = () => {
   const { profile } = useAuth();
-  const { periods, isLoading: periodsLoading, addPeriod, getCurrentPeriod } = usePeriodsData();
+  const { periods, isLoading: periodsLoading, addPeriod, getCurrentPeriod, updatePeriod, deletePeriod } = usePeriodsData();
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [needsFirstPeriod, setNeedsFirstPeriod] = useState(false);
@@ -106,9 +106,7 @@ const Periods = () => {
           </Button>
         </div>
 
-        {needsFirstPeriod ? (
-          <NoPeriodAlert onCreatePeriod={() => setIsModalOpen(true)} />
-        ) : (
+        {!needsFirstPeriod && (
           <>
             {!currentPeriod && <NoActivePeriodAlert />}
 
@@ -131,6 +129,8 @@ const Periods = () => {
               currentPeriodId={currentPeriod?.id}
               latestWeight={latestWeight}
               weightUnit={weightUnit}
+              onUpdatePeriod={updatePeriod}
+              onDeletePeriod={deletePeriod}
             />
           </>
         )}
