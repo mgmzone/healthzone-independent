@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -121,6 +122,9 @@ const Periods = () => {
                 weightChange={currentMetrics.weightChange}
                 weightDirection={currentMetrics.weightDirection}
                 weightUnit={weightUnit}
+                weighIns={weighIns}
+                currentPeriod={currentPeriod}
+                isImperial={isImperial}
               />
             )}
 

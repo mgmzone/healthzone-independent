@@ -123,7 +123,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
       return (
         <div className="bg-white p-2 border border-gray-200 rounded shadow-sm">
           <p className="font-medium">{`${payload[0].value.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}`}</p>
-          <p className="text-xs text-gray-500">{format(new Date(label), 'MMM d, yyyy')}</p>
+          <p className="text-xs text-gray-500">{format(new Date(data.date), 'MMM d, yyyy')}</p>
           {data.isProjected && (
             <p className="text-xs text-blue-500">Projected</p>
           )}
@@ -141,14 +141,21 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     );
   }
 
+  // Convert Date objects to timestamps for the chart
+  const formattedData = chartData.map(item => ({
+    ...item,
+    formattedDate: format(item.date, 'MMM d, yyyy'),
+    dateValue: item.date.getTime() // Convert Date to number timestamp for XAxis
+  }));
+
   return (
     <div className="w-full h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+        <LineChart data={formattedData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
           <XAxis 
-            dataKey="date" 
-            tickFormatter={(date) => format(new Date(date), 'MMM d')}
+            dataKey="dateValue" 
+            tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
             tickLine={false}
             axisLine={false}
             tick={{ fontSize: 12 }}
@@ -188,12 +195,12 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
               activeDot={{ r: 6, fill: '#3B82F6' }}
               isAnimationActive={true}
               animationDuration={1000}
-              data={chartData.filter(d => d.isProjected)}
+              data={formattedData.filter(d => d.isProjected)}
             />
           )}
           
           {/* Reference line for today */}
-          <ReferenceLine x={today} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" />
+          <ReferenceLine x={today.getTime()} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" />
         </LineChart>
       </ResponsiveContainer>
     </div>
