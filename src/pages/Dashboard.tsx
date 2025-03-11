@@ -103,6 +103,7 @@ const Dashboard = () => {
                   weighIns={weighIns}
                   currentPeriod={currentPeriod}
                   isImperial={isImperial}
+                  singleRow={true} // Add this prop to indicate we want a single row layout
                 />
               )}
             </>
