@@ -53,7 +53,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Activity Minutes</h2>
-        <div className="h-64">
+        <div className="h-72"> {/* Increased height from h-64 to h-72 (approximately 10% taller) */}
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -114,7 +114,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
       
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Fasting Progress</h2>
-        <div className="h-64">
+        <div className="h-72"> {/* Increased height from h-64 to h-72 to match the activity card (approximately 10% taller) */}
           <FastingStats 
             fastingLogs={fastingLogs}
             timeFilter="week"
