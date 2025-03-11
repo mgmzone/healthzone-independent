@@ -82,13 +82,10 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
           
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <DatePickerField
-                  date={formData.date || new Date()}
-                  onChange={(date) => setFormData({ ...formData, date })}
-                />
-              </div>
+              <DatePickerField
+                date={formData.date || new Date()}
+                onChange={(date) => setFormData({ ...formData, date })}
+              />
               
               <div className="space-y-2">
                 <Label htmlFor="type">Activity Type</Label>
