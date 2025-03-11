@@ -6,7 +6,7 @@ import { FastingLog } from '@/lib/types';
 import { 
   getFastingLogs, 
   getCurrentFasting
-} from '@/lib/services/fastingService';
+} from '@/lib/services/fasting';
 
 export const useFastingQueries = () => {
   const { user } = useAuth();

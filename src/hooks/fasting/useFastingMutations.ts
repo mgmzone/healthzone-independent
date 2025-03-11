@@ -9,7 +9,7 @@ import {
   addFastingLog,
   updateFastingLog,
   deleteFastingLog
-} from '@/lib/services/fastingService';
+} from '@/lib/services/fasting';
 
 export const useFastingMutations = (activeFast: FastingLog | null) => {
   const { toast } = useToast();
