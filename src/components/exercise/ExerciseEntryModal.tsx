@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExerciseLog } from '@/lib/types';
 import DatePickerField from '@/components/weight/DatePickerField';
+import { useAuth } from '@/lib/AuthContext';
 
 interface ExerciseEntryModalProps {
   isOpen: boolean;
@@ -20,6 +22,10 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
   onSave,
   initialData
 }) => {
+  const { profile } = useAuth();
+  const isImperial = profile?.measurementUnit === 'imperial';
+  const distanceUnit = isImperial ? 'mi' : 'km';
+
   const [formData, setFormData] = useState<Partial<ExerciseLog>>(
     initialData || {
       date: new Date(),
@@ -36,8 +42,24 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // If using imperial, convert miles to km for storage
+    if (isImperial && formData.distance) {
+      const distanceInKm = formData.distance / 0.621371;
+      onSave({...formData, distance: distanceInKm});
+    } else {
+      onSave(formData);
+    }
+    
     onClose();
+  };
+
+  // If using imperial, convert km to miles for display
+  const displayDistance = () => {
+    if (isImperial && formData.distance) {
+      return formData.distance * 0.621371;
+    }
+    return formData.distance;
   };
 
   return (
@@ -109,13 +131,16 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="distance">Distance (km)</Label>
+                <Label htmlFor="distance">Distance ({distanceUnit})</Label>
                 <Input
                   id="distance"
                   type="number"
                   step="0.01"
-                  value={formData.distance || ''}
-                  onChange={(e) => setFormData({ ...formData, distance: parseFloat(e.target.value) || undefined })}
+                  value={displayDistance() || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    distance: parseFloat(e.target.value) || undefined 
+                  })}
                 />
               </div>
               

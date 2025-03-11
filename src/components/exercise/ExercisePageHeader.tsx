@@ -4,8 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { differenceInDays } from 'date-fns';
 import { mockExerciseLogs } from '@/lib/types';
 import { Activity, Bike, Footprints } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 const ExercisePageHeader = () => {
+  const { profile } = useAuth();
+  const isImperial = profile?.measurementUnit === 'imperial';
+
   // Placeholder data until we connect to the Strava API
   const lastActivities = [
     { type: 'Walking', count: mockExerciseLogs.filter(e => e.type === 'walk').length, icon: Footprints },
@@ -14,6 +18,15 @@ const ExercisePageHeader = () => {
   ];
   
   const today = new Date();
+  
+  const formatDistance = (distance: number): string => {
+    if (isImperial) {
+      // Convert km to miles
+      const miles = distance * 0.621371;
+      return `${miles.toFixed(1)} mi`;
+    }
+    return `${distance.toFixed(1)} km`;
+  };
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -53,7 +66,7 @@ const ExercisePageHeader = () => {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total Distance</p>
-                  <p className="font-medium">{totalDistance.toFixed(1)} km</p>
+                  <p className="font-medium">{formatDistance(totalDistance)}</p>
                 </div>
               </div>
             </CardContent>
