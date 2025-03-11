@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +25,7 @@ const Exercise = () => {
   return (
     <Layout>
       <div className="container max-w-7xl py-6 space-y-6 mt-16">
-        <ExercisePageHeader />
+        <ExercisePageHeader exerciseLogs={exerciseLogs} isLoading={isLoading} />
         
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Exercise Tracker</h1>

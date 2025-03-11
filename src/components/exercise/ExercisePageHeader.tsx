@@ -2,19 +2,28 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { differenceInDays } from 'date-fns';
-import { mockExerciseLogs } from '@/lib/types';
 import { Activity, Bike, Footprints } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { ExerciseLog } from '@/lib/types';
 
-const ExercisePageHeader = () => {
+interface ExercisePageHeaderProps {
+  exerciseLogs: ExerciseLog[];
+  isLoading: boolean;
+}
+
+const ExercisePageHeader: React.FC<ExercisePageHeaderProps> = ({ exerciseLogs, isLoading }) => {
   const { profile } = useAuth();
   const isImperial = profile?.measurementUnit === 'imperial';
 
-  // Placeholder data until we connect to the Strava API
-  const lastActivities = [
-    { type: 'Walking', count: mockExerciseLogs.filter(e => e.type === 'walk').length, icon: Footprints },
-    { type: 'Running', count: mockExerciseLogs.filter(e => e.type === 'run').length, icon: Activity },
-    { type: 'Cycling', count: mockExerciseLogs.filter(e => e.type === 'bike').length, icon: Bike }
+  // Group activities by type
+  const walkingActivities = exerciseLogs.filter(e => e.type === 'walk');
+  const runningActivities = exerciseLogs.filter(e => e.type === 'run');
+  const cyclingActivities = exerciseLogs.filter(e => e.type === 'bike');
+  
+  const activityGroups = [
+    { type: 'Walking', activities: walkingActivities, icon: Footprints },
+    { type: 'Running', activities: runningActivities, icon: Activity },
+    { type: 'Cycling', activities: cyclingActivities, icon: Bike }
   ];
   
   const today = new Date();
@@ -28,19 +37,30 @@ const ExercisePageHeader = () => {
     return `${distance.toFixed(1)} km`;
   };
   
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="border-t-4 animate-pulse">
+            <CardContent className="pt-6 h-40"></CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      {lastActivities.map((activity, index) => {
+      {activityGroups.map((activity, index) => {
         // Find the most recent activity of this type
-        const filtered = mockExerciseLogs.filter(e => 
-          e.type === activity.type.toLowerCase().substring(0, 4)
+        const sortedActivities = [...activity.activities].sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
         );
         
-        // Calculate stats for this activity type
-        const lastActivity = filtered.length > 0 ? filtered[0] : null;
-        const daysAgo = lastActivity ? differenceInDays(today, lastActivity.date) : null;
-        const totalTime = filtered.reduce((sum, e) => sum + e.minutes, 0);
-        const totalDistance = filtered.reduce((sum, e) => sum + (e.distance || 0), 0);
+        const lastActivity = sortedActivities.length > 0 ? sortedActivities[0] : null;
+        const daysAgo = lastActivity ? differenceInDays(today, new Date(lastActivity.date)) : null;
+        const totalTime = activity.activities.reduce((sum, e) => sum + e.minutes, 0);
+        const totalDistance = activity.activities.reduce((sum, e) => sum + (e.distance || 0), 0);
         
         return (
           <Card key={index} className="border-t-4" style={{ borderTopColor: getActivityColor(activity.type) }}>
@@ -51,14 +71,22 @@ const ExercisePageHeader = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">{activity.type} Activities</h3>
-                  <p className="text-sm text-muted-foreground">{activity.count}</p>
+                  <p className="text-sm text-muted-foreground">{activity.activities.length}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Last {activity.count > 0 ? daysAgo : '-'}</p>
-                  <p className="font-medium">{activity.count > 0 ? (daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo} days ago`) : 'N/A'}</p>
+                  <p className="text-muted-foreground">Last Activity</p>
+                  <p className="font-medium">
+                    {activity.activities.length > 0 
+                      ? (daysAgo === 0 
+                        ? 'Today' 
+                        : daysAgo === 1 
+                          ? 'Yesterday' 
+                          : `${daysAgo} days ago`) 
+                      : 'N/A'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total Time</p>
