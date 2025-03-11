@@ -151,7 +151,7 @@ const Dashboard = () => {
                     size={140} 
                     label="PROGRESS"
                     valueLabel={profile?.currentWeight && profile?.targetWeight
-                      ? `-${(Number(profile.currentWeight) + 10 - Number(profile.currentWeight)).toFixed(1)} kg`
+                      ? `-${(10).toFixed(1)} kg`
                       : 'No data'
                     }
                   />
