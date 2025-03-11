@@ -8,9 +8,12 @@ import { useAuth } from '@/lib/AuthContext';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
-import PeriodCard from '@/components/periods/PeriodCard';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useNavigate } from 'react-router-dom';
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import ProgressCircle from '@/components/ProgressCircle';
+import { getProgressPercentage } from '@/lib/types';
+import { getWeeksInPeriod, getMonthsInPeriod, getTimeProgressPercentage } from '@/lib/utils/dateUtils';
 
 const Periods = () => {
   const { profile } = useAuth();
@@ -18,7 +21,6 @@ const Periods = () => {
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [needsFirstPeriod, setNeedsFirstPeriod] = useState(false);
-  const navigate = useNavigate();
 
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
@@ -51,6 +53,7 @@ const Periods = () => {
     targetWeight: number,
     type: 'weightLoss' | 'maintenance',
     startDate: Date,
+    endDate?: Date,
     fastingSchedule: string
   }) => {
     // Convert from imperial to metric if necessary
@@ -65,6 +68,11 @@ const Periods = () => {
     
     setIsModalOpen(false);
     setNeedsFirstPeriod(false);
+  };
+
+  // Format weight with 1 decimal place
+  const formatWeight = (weight: number): string => {
+    return weight.toFixed(1);
   };
 
   // Show loading state
@@ -116,16 +124,110 @@ const Periods = () => {
               </Alert>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {periods.map(period => (
-                <PeriodCard
-                  key={period.id}
-                  period={period}
-                  isActive={currentPeriod?.id === period.id}
-                  weightUnit={weightUnit}
-                  latestWeight={latestWeight || undefined}
-                />
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-muted/50">
+                    <th className="px-4 py-3 text-left">Period</th>
+                    <th className="px-4 py-3 text-left">Type</th>
+                    <th className="px-4 py-3 text-center">Start Weight</th>
+                    <th className="px-4 py-3 text-center">Target Weight</th>
+                    <th className="px-4 py-3 text-center">Current Weight</th>
+                    <th className="px-4 py-3 text-center">Fasting</th>
+                    <th className="px-4 py-3 text-center">Duration</th>
+                    <th className="px-4 py-3 text-center">Progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {periods.map(period => {
+                    const formattedStartDate = format(new Date(period.startDate), "MMM d, yyyy");
+                    const formattedEndDate = period.endDate 
+                      ? format(new Date(period.endDate), "MMM d, yyyy")
+                      : "Present";
+                    
+                    const weightProgress = latestWeight
+                      ? getProgressPercentage(latestWeight, period.startWeight, period.targetWeight)
+                      : 0;
+                      
+                    const timeProgress = getTimeProgressPercentage(period.startDate, period.endDate);
+                    const weeks = getWeeksInPeriod(period.startDate, period.endDate);
+                    const months = getMonthsInPeriod(period.startDate, period.endDate);
+                    
+                    const weightChange = latestWeight 
+                      ? Math.abs(period.startWeight - latestWeight)
+                      : 0;
+                    const weightDirection = latestWeight && latestWeight < period.startWeight 
+                      ? 'lost' 
+                      : 'gained';
+                      
+                    return (
+                      <tr 
+                        key={period.id} 
+                        className={`border-b ${currentPeriod?.id === period.id ? 'bg-blue-50 dark:bg-blue-900/10' : ''}`}
+                      >
+                        <td className="px-4 py-4">
+                          <div className="font-medium">{formattedStartDate} - {formattedEndDate}</div>
+                          {currentPeriod?.id === period.id && (
+                            <span className="inline-block px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full mt-1">
+                              Active
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
+                          <Badge variant={period.type === 'weightLoss' ? 'default' : 'secondary'}>
+                            {period.type === 'weightLoss' ? 'Weight Loss' : 'Maintenance'}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-4 text-center">{formatWeight(convertWeight(period.startWeight))} {weightUnit}</td>
+                        <td className="px-4 py-4 text-center">{formatWeight(convertWeight(period.targetWeight))} {weightUnit}</td>
+                        <td className="px-4 py-4">
+                          {latestWeight ? (
+                            <div className="flex flex-col items-center">
+                              <div className="font-medium">{formatWeight(latestWeight)} {weightUnit}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {formatWeight(weightChange)} {weightUnit} {weightDirection}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center">-</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-center">{period.fastingSchedule}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-col items-center">
+                            <div className="text-sm">{weeks} weeks</div>
+                            <div className="text-xs text-muted-foreground">{months} months</div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-center gap-4">
+                            <div className="w-12 h-12">
+                              <ProgressCircle 
+                                value={weightProgress}
+                                size={48}
+                                strokeWidth={5}
+                                showPercentage={true}
+                              />
+                            </div>
+                            <div className="w-12 h-12">
+                              <ProgressCircle 
+                                value={timeProgress}
+                                size={48}
+                                strokeWidth={5}
+                                showPercentage={true}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex text-xs text-center mt-1 justify-center gap-4">
+                            <div>Weight</div>
+                            <div>Time</div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </>
         )}

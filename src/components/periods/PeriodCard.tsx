@@ -33,6 +33,11 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
   const statusText = period.type === 'weightLoss' ? 'Weight Loss' : 'Maintenance';
   const statusVariant = period.type === 'weightLoss' ? 'default' : 'secondary';
   
+  // Format weight with 1 decimal place
+  const formatWeight = (weight: number): string => {
+    return weight.toFixed(1);
+  };
+  
   return (
     <Card className={cn("overflow-hidden", isActive && "border-primary border-2")}>
       <CardHeader className="bg-muted/50 pb-4">
@@ -45,12 +50,12 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Start</p>
-            <p className="text-xl font-semibold">{period.startWeight} {weightUnit}</p>
+            <p className="text-xl font-semibold">{formatWeight(period.startWeight)} {weightUnit}</p>
           </div>
           
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Target</p>
-            <p className="text-xl font-semibold">{period.targetWeight} {weightUnit}</p>
+            <p className="text-xl font-semibold">{formatWeight(period.targetWeight)} {weightUnit}</p>
           </div>
           
           <div className="text-center">
@@ -70,8 +75,8 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
             </div>
             <div className="ml-4">
               <p className="text-sm text-muted-foreground">Current</p>
-              <p className="text-xl font-semibold">{latestWeight} {weightUnit}</p>
-              <p className="text-sm">{Math.abs(period.startWeight - latestWeight).toFixed(1)} {weightUnit} {latestWeight < period.startWeight ? 'lost' : 'gained'}</p>
+              <p className="text-xl font-semibold">{formatWeight(latestWeight)} {weightUnit}</p>
+              <p className="text-sm">{formatWeight(Math.abs(period.startWeight - latestWeight))} {weightUnit} {latestWeight < period.startWeight ? 'lost' : 'gained'}</p>
             </div>
           </div>
         )}
