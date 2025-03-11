@@ -2,7 +2,16 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { format } from 'date-fns';
-import { FastingLog, TimeFilter } from '@/lib/types';
+import { TimeFilter } from '@/lib/types';
+
+interface FastingLog {
+  id: string;
+  user_id: string;
+  start_time: Date | string;
+  end_time?: Date | string;
+  fasting_hours?: number;
+  eating_window_hours?: number;
+}
 
 interface FastingChartProps {
   data: FastingLog[];
@@ -16,15 +25,18 @@ const FastingChart: React.FC<FastingChartProps> = ({
   className
 }) => {
   // Format data for the chart
-  const chartData = data.map(fastingLog => {
-    const startDate = new Date(fastingLog.startTime);
-    return {
-      date: format(startDate, 'EEE dd'),
-      fasting: fastingLog.fastingHours || 0,
-      eating: fastingLog.eatingWindowHours || 0,
-      fullDate: startDate,
-    };
-  });
+  const chartData = data
+    .filter(fastingLog => fastingLog.end_time) // Only use completed fasts
+    .map(fastingLog => {
+      const startDate = new Date(fastingLog.start_time);
+      return {
+        date: format(startDate, 'EEE dd'),
+        fasting: fastingLog.fasting_hours || 0,
+        eating: fastingLog.eating_window_hours || 0,
+        fullDate: startDate,
+      };
+    })
+    .sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime());
 
   return (
     <div className={`chart-container ${className}`}>

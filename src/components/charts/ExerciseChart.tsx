@@ -2,7 +2,21 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
-import { ExerciseLog, TimeFilter } from '@/lib/types';
+import { TimeFilter } from '@/lib/types';
+
+interface ExerciseLog {
+  id: string;
+  user_id: string;
+  date: Date | string;
+  type: 'walk' | 'run' | 'bike' | 'elliptical' | 'other';
+  minutes: number;
+  intensity: 'low' | 'medium' | 'high';
+  steps?: number;
+  distance?: number;
+  lowest_heart_rate?: number;
+  highest_heart_rate?: number;
+  average_heart_rate?: number;
+}
 
 interface ExerciseChartProps {
   data: ExerciseLog[];
@@ -26,10 +40,10 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({
       type: exercise.type,
       minutes: exercise.minutes,
       distance: exercise.distance || 0,
-      heartRate: exercise.highestHeartRate || 0,
+      heartRate: exercise.highest_heart_rate || 0,
       color: getExerciseColor(exercise.type),
     };
-  });
+  }).sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime());
 
   const getYAxisLabel = () => {
     switch (metricType) {
@@ -41,6 +55,19 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({
         return 'Heart Rate (bpm)';
       default:
         return '';
+    }
+  };
+
+  const getDataKey = () => {
+    switch (metricType) {
+      case 'minutes':
+        return 'minutes';
+      case 'distance':
+        return 'distance';
+      case 'heartRate':
+        return 'heartRate';
+      default:
+        return 'minutes';
     }
   };
 
@@ -95,7 +122,7 @@ const ExerciseChart: React.FC<ExerciseChartProps> = ({
             formatter={(value) => capitalizeFirstLetter(value)}
           />
           <Bar 
-            dataKey={metricType} 
+            dataKey={getDataKey()} 
             name={metricType}
             radius={[4, 4, 0, 0]}
             fill="hsl(var(--primary))"

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart, Clock, Dumbbell, Info, ArrowRight, Calendar, Weight, Heart } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -9,39 +10,135 @@ import ProgressCircle from '@/components/ui/ProgressCircle';
 import WeightChart from '@/components/charts/WeightChart';
 import FastingChart from '@/components/charts/FastingChart';
 import ExerciseChart from '@/components/charts/ExerciseChart';
-import { mockUser, mockWeighIns, mockExerciseLogs, mockFastingLogs, getProgressPercentage } from '@/lib/types';
-import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/lib/AuthContext';
+import { getProgressPercentage, TimeFilter } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { getWeighIns } from '@/lib/services/weighInsService';
+import { getExerciseLogs } from '@/lib/services/exerciseService';
+import { getFastingLogs, getCurrentFasting, startFasting, endFasting } from '@/lib/services/fastingService';
 
 const Dashboard = () => {
-  const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'period'>('week');
-  
-  // Calculate progress percentage
-  const weightProgress = getProgressPercentage(
-    mockUser.currentWeight,
-    mockUser.currentWeight + 10, // assuming starting weight was 10 more
-    mockUser.targetWeight
-  );
+  const { profile, profileLoading } = useAuth();
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
+  const [weighIns, setWeighIns] = useState([]);
+  const [exerciseLogs, setExerciseLogs] = useState([]);
+  const [fastingLogs, setFastingLogs] = useState([]);
+  const [currentFasting, setCurrentFasting] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!profileLoading) {
+      fetchData();
+    }
+  }, [profileLoading, timeFilter]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [weighInData, exerciseData, fastingData, currentFastingData] = await Promise.all([
+        getWeighIns(),
+        getExerciseLogs(),
+        getFastingLogs(),
+        getCurrentFasting()
+      ]);
+      
+      setWeighIns(weighInData);
+      setExerciseLogs(exerciseData);
+      setFastingLogs(fastingData);
+      setCurrentFasting(currentFastingData);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Could not fetch your health data. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartFasting = async () => {
+    try {
+      await startFasting();
+      toast({
+        title: "Fasting started",
+        description: "Your fasting period has begun!",
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Error starting fasting:', error);
+      toast({
+        title: "Error",
+        description: "Could not start fasting period. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEndFasting = async () => {
+    if (!currentFasting) return;
+    
+    try {
+      await endFasting(currentFasting.id);
+      toast({
+        title: "Fasting ended",
+        description: "Your fasting period has been recorded!",
+      });
+      fetchData();
+    } catch (error) {
+      console.error('Error ending fasting:', error);
+      toast({
+        title: "Error",
+        description: "Could not end fasting period. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading || profileLoading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 pt-24 pb-12">
+          <div className="flex items-center justify-center h-[60vh]">
+            <div className="animate-pulse">Loading dashboard data...</div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Calculate progress percentage if we have the data
+  const weightProgress = profile?.current_weight && profile?.target_weight
+    ? getProgressPercentage(
+        profile.current_weight,
+        profile.current_weight + 10, // assuming starting weight was 10 more
+        profile.target_weight
+      )
+    : 0;
 
   // Get latest weigh-in data
-  const latestWeighIn = mockWeighIns[mockWeighIns.length - 1];
+  const latestWeighIn = weighIns.length > 0 ? weighIns[0] : null;
   
-  // Get latest fasting data
-  const latestFasting = mockFastingLogs[mockFastingLogs.length - 1];
-  const isFasting = !latestFasting.endTime;
+  // Check if user is currently fasting
+  const isFasting = !!currentFasting;
   
   // Count exercise stats
-  const totalExerciseMinutes = mockExerciseLogs.reduce((total, log) => total + log.minutes, 0);
-  const exerciseTypes = mockExerciseLogs.reduce((acc, log) => {
+  const totalExerciseMinutes = exerciseLogs.reduce((total, log) => total + log.minutes, 0);
+  const exerciseTypes = exerciseLogs.reduce((acc, log) => {
     acc[log.type] = (acc[log.type] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
-  const mostFrequentExercise = Object.entries(exerciseTypes).sort((a, b) => b[1] - a[1])[0]?.[0] || 'walk';
+  }, {});
+  const mostFrequentExercise = Object.entries(exerciseTypes).length > 0
+    ? Object.entries(exerciseTypes).sort((a, b) => b[1] - a[1])[0][0]
+    : 'walk';
 
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 pt-24 pb-12">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold">Hello, {mockUser.name}</h1>
+          <h1 className="text-3xl font-bold">Hello, {profile?.first_name || 'there'}</h1>
           <p className="text-muted-foreground">Here's an overview of your health journey</p>
         </header>
 
@@ -59,27 +156,35 @@ const Dashboard = () => {
                     percentage={weightProgress} 
                     size={140} 
                     label="PROGRESS"
-                    valueLabel={`-${(mockUser.currentWeight + 10 - mockUser.currentWeight).toFixed(1)} kg`}
+                    valueLabel={profile?.current_weight && profile?.target_weight
+                      ? `-${(profile.current_weight + 10 - profile.current_weight).toFixed(1)} kg`
+                      : 'No data'
+                    }
                   />
                 </div>
                 <div className="flex flex-col justify-center">
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground mb-1">CURRENT WEIGHT</div>
-                    <div className="text-4xl font-bold">{mockUser.currentWeight}</div>
+                    <div className="text-4xl font-bold">{profile?.current_weight || '?'}</div>
                     <div className="text-xs text-muted-foreground mt-1">kg</div>
                   </div>
                 </div>
                 <div className="flex flex-col justify-center">
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground mb-1">TARGET WEIGHT</div>
-                    <div className="text-4xl font-bold">{mockUser.targetWeight}</div>
+                    <div className="text-4xl font-bold">{profile?.target_weight || '?'}</div>
                     <div className="text-xs text-muted-foreground mt-1">kg</div>
                   </div>
                 </div>
                 <div className="flex flex-col justify-center">
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground mb-1">REMAINING</div>
-                    <div className="text-4xl font-bold">{(mockUser.currentWeight - mockUser.targetWeight).toFixed(1)}</div>
+                    <div className="text-4xl font-bold">
+                      {profile?.current_weight && profile?.target_weight
+                        ? (profile.current_weight - profile.target_weight).toFixed(1)
+                        : '?'
+                      }
+                    </div>
                     <div className="text-xs text-muted-foreground mt-1">kg to lose</div>
                   </div>
                 </div>
@@ -117,7 +222,7 @@ const Dashboard = () => {
                   <div className="text-xs text-muted-foreground">Current plan</div>
                 </div>
               </div>
-              <Button variant="default" className="w-full">
+              <Button variant="default" className="w-full" onClick={isFasting ? handleEndFasting : handleStartFasting}>
                 {isFasting ? "End Fast" : "Start Fast"}
               </Button>
             </CardContent>
@@ -140,7 +245,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Latest Weight</div>
-                <div className="text-2xl font-bold">{latestWeighIn.weight} kg</div>
+                <div className="text-2xl font-bold">{latestWeighIn ? `${latestWeighIn.weight} kg` : 'No data'}</div>
               </div>
             </CardContent>
           </Card>
@@ -151,7 +256,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Weight Log Streak</div>
-                <div className="text-2xl font-bold">8 weeks</div>
+                <div className="text-2xl font-bold">{weighIns.length > 0 ? `${Math.min(weighIns.length, 8)} days` : 'No data'}</div>
               </div>
             </CardContent>
           </Card>
@@ -162,7 +267,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Exercise This Week</div>
-                <div className="text-2xl font-bold">{totalExerciseMinutes} min</div>
+                <div className="text-2xl font-bold">{totalExerciseMinutes > 0 ? `${totalExerciseMinutes} min` : 'No data'}</div>
               </div>
             </CardContent>
           </Card>
@@ -173,7 +278,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Fasting Streak</div>
-                <div className="text-2xl font-bold">7 days</div>
+                <div className="text-2xl font-bold">{fastingLogs.length > 0 ? `${Math.min(fastingLogs.length, 7)} days` : 'No data'}</div>
               </div>
             </CardContent>
           </Card>
@@ -231,11 +336,17 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[350px]">
-                    <WeightChart 
-                      data={mockWeighIns} 
-                      timeFilter={timeFilter} 
-                      targetWeight={mockUser.targetWeight}
-                    />
+                    {weighIns.length > 0 ? (
+                      <WeightChart 
+                        data={weighIns} 
+                        timeFilter={timeFilter} 
+                        targetWeight={profile?.target_weight}
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <p className="text-muted-foreground">No weight data yet. Start logging your weight!</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -255,10 +366,16 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[350px]">
-                    <FastingChart 
-                      data={mockFastingLogs} 
-                      timeFilter={timeFilter}
-                    />
+                    {fastingLogs.length > 0 ? (
+                      <FastingChart 
+                        data={fastingLogs} 
+                        timeFilter={timeFilter}
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <p className="text-muted-foreground">No fasting data yet. Start tracking your fasts!</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter>
@@ -278,11 +395,17 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[350px]">
-                    <ExerciseChart 
-                      data={mockExerciseLogs} 
-                      timeFilter={timeFilter}
-                      metricType="minutes"
-                    />
+                    {exerciseLogs.length > 0 ? (
+                      <ExerciseChart 
+                        data={exerciseLogs} 
+                        timeFilter={timeFilter}
+                        metricType="minutes"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <p className="text-muted-foreground">No exercise data yet. Start logging your workouts!</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter>

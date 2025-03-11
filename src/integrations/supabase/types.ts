@@ -9,32 +9,250 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      exercise_logs: {
+        Row: {
+          average_heart_rate: number | null
+          created_at: string
+          date: string
+          distance: number | null
+          highest_heart_rate: number | null
+          id: string
+          intensity: string
+          lowest_heart_rate: number | null
+          minutes: number
+          steps: number | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          average_heart_rate?: number | null
+          created_at?: string
+          date?: string
+          distance?: number | null
+          highest_heart_rate?: number | null
+          id?: string
+          intensity: string
+          lowest_heart_rate?: number | null
+          minutes: number
+          steps?: number | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          average_heart_rate?: number | null
+          created_at?: string
+          date?: string
+          distance?: number | null
+          highest_heart_rate?: number | null
+          id?: string
+          intensity?: string
+          lowest_heart_rate?: number | null
+          minutes?: number
+          steps?: number | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fasting_logs: {
+        Row: {
+          created_at: string
+          eating_window_hours: number | null
+          end_time: string | null
+          fasting_hours: number | null
+          id: string
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          eating_window_hours?: number | null
+          end_time?: string | null
+          fasting_hours?: number | null
+          id?: string
+          start_time?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          eating_window_hours?: number | null
+          end_time?: string | null
+          fasting_hours?: number | null
+          id?: string
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_stats: {
+        Row: {
+          blood_pressure_diastolic: number | null
+          blood_pressure_systolic: number | null
+          created_at: string
+          date: string
+          id: string
+          resting_heart_rate: number | null
+          user_id: string
+        }
+        Insert: {
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          resting_heart_rate?: number | null
+          user_id: string
+        }
+        Update: {
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          resting_heart_rate?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      periods: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          start_date: string
+          start_weight: number
+          target_weight: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string
+          start_weight: number
+          target_weight: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string
+          start_weight?: number
+          target_weight?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_date: string | null
           created_at: string
+          current_weight: number | null
+          exercise_minutes_per_day: number | null
           first_name: string | null
+          fitness_level: string | null
+          gender: string | null
+          health_goals: string | null
+          height: number | null
           id: string
           last_name: string | null
+          measurement_unit: string | null
+          target_weight: number | null
           updated_at: string
+          weight_loss_per_week: number | null
         }
         Insert: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
+          current_weight?: number | null
+          exercise_minutes_per_day?: number | null
           first_name?: string | null
+          fitness_level?: string | null
+          gender?: string | null
+          health_goals?: string | null
+          height?: number | null
           id: string
           last_name?: string | null
+          measurement_unit?: string | null
+          target_weight?: number | null
           updated_at?: string
+          weight_loss_per_week?: number | null
         }
         Update: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string
+          current_weight?: number | null
+          exercise_minutes_per_day?: number | null
           first_name?: string | null
+          fitness_level?: string | null
+          gender?: string | null
+          health_goals?: string | null
+          height?: number | null
           id?: string
           last_name?: string | null
+          measurement_unit?: string | null
+          target_weight?: number | null
           updated_at?: string
+          weight_loss_per_week?: number | null
         }
         Relationships: []
+      }
+      weigh_ins: {
+        Row: {
+          bmi: number | null
+          body_fat_percentage: number | null
+          body_water_percentage: number | null
+          bone_mass: number | null
+          created_at: string
+          date: string
+          id: string
+          period_id: string | null
+          skeletal_muscle_mass: number | null
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          bmi?: number | null
+          body_fat_percentage?: number | null
+          body_water_percentage?: number | null
+          bone_mass?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          period_id?: string | null
+          skeletal_muscle_mass?: number | null
+          user_id: string
+          weight: number
+        }
+        Update: {
+          bmi?: number | null
+          body_fat_percentage?: number | null
+          body_water_percentage?: number | null
+          bone_mass?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          period_id?: string | null
+          skeletal_muscle_mass?: number | null
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weigh_ins_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "periods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

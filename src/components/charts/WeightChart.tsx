@@ -2,7 +2,20 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
-import { WeighIn, TimeFilter } from '@/lib/types';
+import { TimeFilter } from '@/lib/types';
+
+interface WeighIn {
+  id: string;
+  user_id: string;
+  period_id?: string;
+  date: Date | string;
+  weight: number;
+  bmi?: number;
+  body_fat_percentage?: number;
+  skeletal_muscle_mass?: number;
+  bone_mass?: number;
+  body_water_percentage?: number;
+}
 
 interface WeightChartProps {
   data: WeighIn[];
@@ -22,7 +35,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
     date: format(new Date(weighIn.date), 'MMM dd'),
     weight: weighIn.weight,
     fullDate: weighIn.date,
-  }));
+  })).sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
 
   return (
     <div className={`chart-container ${className}`}>
