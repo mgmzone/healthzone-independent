@@ -118,6 +118,7 @@ export type Database = {
         Row: {
           created_at: string
           end_date: string | null
+          fasting_schedule: string | null
           id: string
           start_date: string
           start_weight: number
@@ -128,6 +129,7 @@ export type Database = {
         Insert: {
           created_at?: string
           end_date?: string | null
+          fasting_schedule?: string | null
           id?: string
           start_date?: string
           start_weight: number
@@ -138,6 +140,7 @@ export type Database = {
         Update: {
           created_at?: string
           end_date?: string | null
+          fasting_schedule?: string | null
           id?: string
           start_date?: string
           start_weight?: number
