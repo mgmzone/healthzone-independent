@@ -1,12 +1,14 @@
 
+import { convertWeight as convertWeightUtil } from '@/lib/weight/convertWeight';
+
 export const convertWeight = (weight: number | undefined, isImperial: boolean) => {
   if (!weight) return '-';
-  return isImperial ? (weight * 2.20462).toFixed(1) : weight.toFixed(1);
+  return convertWeightUtil(weight, isImperial).toFixed(1);
 };
 
 export const convertMuscleOrBoneMass = (mass: number | undefined, isImperial: boolean) => {
   if (!mass) return '-';
-  return isImperial ? (mass * 2.20462).toFixed(1) : mass.toFixed(1);
+  return convertWeightUtil(mass, isImperial).toFixed(1);
 };
 
 export const formatPercentage = (value: number | undefined) => {
