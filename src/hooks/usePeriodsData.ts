@@ -35,7 +35,7 @@ export function usePeriodsData() {
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
-        fastingSchedule: item.fasting_schedule
+        fastingSchedule: item.fasting_schedule || '16:8' // Use default value if not set
       })) as Period[];
     }
   });
