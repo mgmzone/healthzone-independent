@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { differenceInSeconds } from 'date-fns';
 import { Card } from "@/components/ui/card";
@@ -67,7 +68,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   }
 
   return (
-    <Card className="p-6 h-[100%] flex flex-col items-center">
+    <Card className="p-6 w-full flex flex-col">
       <div className="flex-1 flex items-center justify-center mb-2">
         <FastingProgressCircle 
           progress={progress} 
@@ -77,7 +78,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         />
       </div>
       
-      <div className="w-full mt-auto">
+      <div className="mt-auto w-full">
         <FastingTimeInfo 
           startTime={activeFast.startTime} 
           onEndFast={onEndFast} 
