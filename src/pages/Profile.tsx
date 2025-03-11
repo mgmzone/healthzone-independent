@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -165,184 +164,185 @@ const Profile = () => {
                 <TabsTrigger value="health">Health</TabsTrigger>
                 <TabsTrigger value="preferences">Preferences</TabsTrigger>
               </TabsList>
+            
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <TabsContent value="personal" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          placeholder="First Name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          placeholder="Last Name"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Email"
+                        disabled
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthDate">Birth Date</Label>
+                      <Input
+                        id="birthDate"
+                        name="birthDate"
+                        type="date"
+                        value={formData.birthDate ? formData.birthDate.toISOString().split('T')[0] : ''}
+                        onChange={(e) => handleDateChange('birthDate', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <Select name="gender" value={formData.gender} onValueChange={(value) => handleSelectChange('gender', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="health" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="height">Height ({formData.measurementUnit === 'metric' ? 'cm' : 'in'})</Label>
+                        <Input
+                          id="height"
+                          name="height"
+                          type="number"
+                          value={formData.height || ''}
+                          onChange={(e) => handleNumberChange('height', e.target.value)}
+                          placeholder="Height"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="currentWeight">Current Weight ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
+                        <Input
+                          id="currentWeight"
+                          name="currentWeight"
+                          type="number"
+                          value={formData.currentWeight || ''}
+                          onChange={(e) => handleNumberChange('currentWeight', e.target.value)}
+                          placeholder="Current Weight"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="targetWeight">Target Weight ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
+                      <Input
+                        id="targetWeight"
+                        name="targetWeight"
+                        type="number"
+                        value={formData.targetWeight || ''}
+                        onChange={(e) => handleNumberChange('targetWeight', e.target.value)}
+                        placeholder="Target Weight"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fitnessLevel">Fitness Level</Label>
+                      <Select name="fitnessLevel" value={formData.fitnessLevel} onValueChange={(value) => handleSelectChange('fitnessLevel', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select fitness level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sedentary">Sedentary</SelectItem>
+                          <SelectItem value="light">Light Activity</SelectItem>
+                          <SelectItem value="moderate">Moderate Activity</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="weightLossPerWeek">Target Weight Loss Per Week ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
+                      <Input
+                        id="weightLossPerWeek"
+                        name="weightLossPerWeek"
+                        type="number"
+                        step="0.1"
+                        value={formData.weightLossPerWeek || ''}
+                        onChange={(e) => handleNumberChange('weightLossPerWeek', e.target.value)}
+                        placeholder="Weight Loss Per Week"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="exerciseMinutesPerDay">Exercise Minutes Per Day</Label>
+                      <Input
+                        id="exerciseMinutesPerDay"
+                        name="exerciseMinutesPerDay"
+                        type="number"
+                        value={formData.exerciseMinutesPerDay || ''}
+                        onChange={(e) => handleNumberChange('exerciseMinutesPerDay', e.target.value)}
+                        placeholder="Exercise Minutes Per Day"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="healthGoals">Health Goals</Label>
+                      <Textarea
+                        id="healthGoals"
+                        name="healthGoals"
+                        value={formData.healthGoals || ''}
+                        onChange={handleInputChange}
+                        placeholder="Describe your health goals..."
+                        rows={4}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="preferences" className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="measurementUnit">Measurement Unit</Label>
+                      <Select name="measurementUnit" value={formData.measurementUnit} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select measurement unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="metric">Metric (kg, cm)</SelectItem>
+                          <SelectItem value="imperial">Imperial (lbs, in)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Separator className="my-4" />
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium">App Settings</h3>
+                      <p className="text-sm text-muted-foreground">
+                        More app settings will be added in future updates.
+                      </p>
+                    </div>
+                  </TabsContent>
+
+                  <div className="pt-4">
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
             </Tabs>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <TabsContent value="personal" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      placeholder="First Name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      placeholder="Last Name"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Email"
-                    disabled
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate">Birth Date</Label>
-                  <Input
-                    id="birthDate"
-                    name="birthDate"
-                    type="date"
-                    value={formData.birthDate ? formData.birthDate.toISOString().split('T')[0] : ''}
-                    onChange={(e) => handleDateChange('birthDate', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select name="gender" value={formData.gender} onValueChange={(value) => handleSelectChange('gender', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="health" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Height ({formData.measurementUnit === 'metric' ? 'cm' : 'in'})</Label>
-                    <Input
-                      id="height"
-                      name="height"
-                      type="number"
-                      value={formData.height || ''}
-                      onChange={(e) => handleNumberChange('height', e.target.value)}
-                      placeholder="Height"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="currentWeight">Current Weight ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
-                    <Input
-                      id="currentWeight"
-                      name="currentWeight"
-                      type="number"
-                      value={formData.currentWeight || ''}
-                      onChange={(e) => handleNumberChange('currentWeight', e.target.value)}
-                      placeholder="Current Weight"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="targetWeight">Target Weight ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
-                  <Input
-                    id="targetWeight"
-                    name="targetWeight"
-                    type="number"
-                    value={formData.targetWeight || ''}
-                    onChange={(e) => handleNumberChange('targetWeight', e.target.value)}
-                    placeholder="Target Weight"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fitnessLevel">Fitness Level</Label>
-                  <Select name="fitnessLevel" value={formData.fitnessLevel} onValueChange={(value) => handleSelectChange('fitnessLevel', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select fitness level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sedentary">Sedentary</SelectItem>
-                      <SelectItem value="light">Light Activity</SelectItem>
-                      <SelectItem value="moderate">Moderate Activity</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="weightLossPerWeek">Target Weight Loss Per Week ({formData.measurementUnit === 'metric' ? 'kg' : 'lbs'})</Label>
-                  <Input
-                    id="weightLossPerWeek"
-                    name="weightLossPerWeek"
-                    type="number"
-                    step="0.1"
-                    value={formData.weightLossPerWeek || ''}
-                    onChange={(e) => handleNumberChange('weightLossPerWeek', e.target.value)}
-                    placeholder="Weight Loss Per Week"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="exerciseMinutesPerDay">Exercise Minutes Per Day</Label>
-                  <Input
-                    id="exerciseMinutesPerDay"
-                    name="exerciseMinutesPerDay"
-                    type="number"
-                    value={formData.exerciseMinutesPerDay || ''}
-                    onChange={(e) => handleNumberChange('exerciseMinutesPerDay', e.target.value)}
-                    placeholder="Exercise Minutes Per Day"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="healthGoals">Health Goals</Label>
-                  <Textarea
-                    id="healthGoals"
-                    name="healthGoals"
-                    value={formData.healthGoals || ''}
-                    onChange={handleInputChange}
-                    placeholder="Describe your health goals..."
-                    rows={4}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="preferences" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="measurementUnit">Measurement Unit</Label>
-                  <Select name="measurementUnit" value={formData.measurementUnit} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select measurement unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="metric">Metric (kg, cm)</SelectItem>
-                      <SelectItem value="imperial">Imperial (lbs, in)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Separator className="my-4" />
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">App Settings</h3>
-                  <p className="text-sm text-muted-foreground">
-                    More app settings will be added in future updates.
-                  </p>
-                </div>
-              </TabsContent>
-
-              <div className="pt-4">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
         </Card>
       </div>
     </Layout>
