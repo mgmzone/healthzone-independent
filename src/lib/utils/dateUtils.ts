@@ -21,7 +21,8 @@ export const getTimeProgressPercentage = (startDate: Date, endDate: Date | undef
   const totalDays = differenceInDays(endDate, startDate);
   const daysPassed = differenceInDays(today, startDate);
   
-  return Math.round((daysPassed / totalDays) * 100);
+  // Ensure we don't return negative values or values over 100
+  return Math.min(Math.max(Math.round((daysPassed / totalDays) * 100), 0), 100);
 };
 
 export const getRemainingTimePercentage = (startDate: Date, endDate: Date | undefined): number => {

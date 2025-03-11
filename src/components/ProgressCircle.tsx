@@ -35,6 +35,9 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
     }
   }, [value, dashOffset, animate]);
 
+  // Ensure value is between 0 and 100
+  const clampedValue = Math.min(Math.max(value, 0), 100);
+
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
       {label && <div className="text-sm font-medium text-muted-foreground mb-2">{label}</div>}
@@ -59,13 +62,16 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             strokeDasharray={circumference}
             strokeDashoffset={animate ? circumference : dashOffset}
             strokeLinecap="round"
-            className={animate ? "animate-progress-circular progress-circle" : ""}
-            style={!animate ? { strokeDashoffset: dashOffset } : {}}
+            className={animate ? "transition-all duration-1000 ease-out" : ""}
+            style={{
+              strokeDashoffset: animate ? dashOffset : undefined,
+              transition: animate ? 'stroke-dashoffset 1s ease-out' : undefined
+            }}
           />
         </svg>
         {showPercentage && (
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold">{Math.round(value)}%</span>
+            <span className="text-2xl font-bold">{Math.round(clampedValue)}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
           </div>
         )}
