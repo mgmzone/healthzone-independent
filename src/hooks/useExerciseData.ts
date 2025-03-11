@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { ExerciseLog, TimeFilter, mockExerciseLogs } from '@/lib/types';
+import { ExerciseLog, TimeFilter } from '@/lib/types';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
-import { getExerciseLogs, addExerciseLog, deleteExerciseLog } from '@/lib/services/exerciseService';
+import { getExerciseLogs, addExerciseLog as addExerciseLogService, deleteExerciseLog as deleteExerciseLogService } from '@/lib/services/exerciseService';
 
 export function useExerciseData(timeFilter: TimeFilter = 'week') {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>([]);
@@ -15,16 +15,12 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
     const fetchExerciseLogs = async () => {
       setIsLoading(true);
       try {
-        // Uncomment this when the service is ready
-        // const logs = await getExerciseLogs();
-        
-        // For now, use mock data
-        let logs = [...mockExerciseLogs];
+        const logs = await getExerciseLogs();
         
         // Filter logs based on timeFilter
-        logs = filterLogsByTimeFilter(logs, timeFilter);
+        const filteredLogs = filterLogsByTimeFilter(logs, timeFilter);
         
-        setExerciseLogs(logs);
+        setExerciseLogs(filteredLogs);
       } catch (error) {
         console.error('Error fetching exercise logs:', error);
         toast({
@@ -37,42 +33,31 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
       }
     };
 
-    fetchExerciseLogs();
-  }, [timeFilter, toast]);
+    if (user) {
+      fetchExerciseLogs();
+    } else {
+      setExerciseLogs([]);
+      setIsLoading(false);
+    }
+  }, [timeFilter, toast, user]);
 
   const handleAddExerciseLog = async (data: Partial<ExerciseLog>) => {
     try {
-      // Uncomment this when the service is ready
-      // const newLog = await addExerciseLog(data);
+      const newLog = await addExerciseLogService(data);
       
-      // For now, use mock data
-      const newLog: ExerciseLog = {
-        id: Math.random().toString(),
-        userId: user?.id || '1',
-        date: data.date || new Date(),
-        type: data.type || 'walk',
-        minutes: data.minutes || 0,
-        intensity: data.intensity || 'medium',
-        steps: data.steps,
-        distance: data.distance,
-        lowestHeartRate: data.lowestHeartRate,
-        highestHeartRate: data.highestHeartRate,
-        averageHeartRate: data.averageHeartRate,
-      };
+      // Only add to the current state if it matches the timeFilter
+      const filtered = filterLogsByTimeFilter([newLog], timeFilter);
       
-      setExerciseLogs(prev => {
-        // Only add if it fits the current time filter
-        const filtered = filterLogsByTimeFilter([newLog], timeFilter);
-        if (filtered.length > 0) {
-          return [...prev, newLog];
-        }
-        return prev;
-      });
+      if (filtered.length > 0) {
+        setExerciseLogs(prev => [newLog, ...prev]);
+      }
       
       toast({
         title: 'Success',
         description: 'Exercise activity added successfully',
       });
+      
+      return newLog;
     } catch (error) {
       console.error('Error adding exercise log:', error);
       toast({
@@ -80,13 +65,13 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
         description: 'Failed to add exercise activity',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
   const handleDeleteExerciseLog = async (id: string) => {
     try {
-      // Uncomment this when the service is ready
-      // await deleteExerciseLog(id);
+      await deleteExerciseLogService(id);
       
       setExerciseLogs(prev => prev.filter(log => log.id !== id));
       
@@ -94,6 +79,8 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
         title: 'Success',
         description: 'Exercise activity deleted successfully',
       });
+      
+      return true;
     } catch (error) {
       console.error('Error deleting exercise log:', error);
       toast({
@@ -101,6 +88,7 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
         description: 'Failed to delete exercise activity',
         variant: 'destructive',
       });
+      throw error;
     }
   };
 
