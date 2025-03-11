@@ -16,7 +16,7 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   timeRemaining
 }) => {
   // Calculate angles for the progress circle
-  const radius = 90; // Increased from 80 to 90
+  const radius = 85; // Using a slightly larger radius
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
   const dashOffset = circumference - (progress / 100) * circumference;
@@ -31,7 +31,7 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
 
   return (
     <div className="relative flex items-center justify-center mb-4">
-      <svg className="w-[320px] h-[320px] -rotate-90">
+      <svg className="w-[300px] h-[300px] -rotate-90">
         {/* Background circle */}
         <circle
           cx="50%"
@@ -77,10 +77,10 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
       
       {/* Center content */}
       <div className="absolute flex flex-col items-center">
-        <Flame className="w-14 h-14 text-orange-500 mb-2" />
+        <Flame className="w-12 h-12 text-orange-500 mb-2" />
         <div className="text-center">
           <div className="text-sm text-muted-foreground">Fasting for</div>
-          <div className="text-4xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
+          <div className="text-3xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
           {rotations > 0 && (
             <div className="text-sm text-emerald-500 font-medium mt-1">
               +{rotations} full rotation{rotations > 1 ? 's' : ''}
