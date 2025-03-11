@@ -1,6 +1,6 @@
 
 import { FastingLog } from '@/lib/types';
-import { differenceInSeconds, subDays, subMonths, subYears, startOfDay } from 'date-fns';
+import { differenceInSeconds, subMonths, subYears, startOfDay, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 
 /**
  * Calculate statistics based on fasting logs and time filter
@@ -8,13 +8,26 @@ import { differenceInSeconds, subDays, subMonths, subYears, startOfDay } from 'd
 export const calculateStats = (fastingLogs: FastingLog[], timeFilter: 'week' | 'month' | 'year') => {
   // Filter logs based on time filter
   const now = new Date();
-  const filterDate = timeFilter === 'week' 
-    ? subDays(now, 7) 
-    : timeFilter === 'month' 
-      ? subMonths(now, 1) 
-      : subYears(now, 1);
+  let filteredLogs = fastingLogs;
   
-  const filteredLogs = fastingLogs.filter(log => new Date(log.startTime) >= filterDate);
+  if (timeFilter === 'week') {
+    // Use current week (Sunday to Saturday)
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
+    filteredLogs = fastingLogs.filter(log => 
+      isWithinInterval(new Date(log.startTime), { start: weekStart, end: weekEnd })
+    );
+  } else if (timeFilter === 'month') {
+    // Use last month
+    filteredLogs = fastingLogs.filter(log => 
+      new Date(log.startTime) >= subMonths(now, 1)
+    );
+  } else {
+    // Use last year
+    filteredLogs = fastingLogs.filter(log => 
+      new Date(log.startTime) >= subYears(now, 1)
+    );
+  }
   
   // Calculate total fasting time in hours
   const totalFastingHours = filteredLogs.reduce((total, log) => {

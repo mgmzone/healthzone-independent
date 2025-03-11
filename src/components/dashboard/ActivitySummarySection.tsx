@@ -29,10 +29,11 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
   const dailyTarget = 30; // Placeholder - this would come from user settings
   const weeklyMinutesTarget = dailyTarget * 7;
   
+  const weekStart = startOfWeek(today);
+  const weekEnd = endOfWeek(today);
+  
   const weeklyMinutesAchieved = exerciseLogs.filter(log => {
     const logDate = new Date(log.date);
-    const weekStart = startOfWeek(today);
-    const weekEnd = endOfWeek(today);
     return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
   }).reduce((sum, log) => sum + log.minutes, 0);
   

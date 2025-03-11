@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { FastingLog } from '@/lib/types';
-import { subDays, subMonths, subYears, startOfDay } from 'date-fns';
+import { subMonths, subYears, startOfDay, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import FastingEntryModal from './FastingEntryModal';
 import DeleteFastingConfirmDialog from './DeleteFastingConfirmDialog';
 import FastingWeekGroup from './table/FastingWeekGroup';
@@ -64,17 +64,24 @@ const FastingTable: React.FC<FastingTableProps> = ({
   };
 
   // Filter logs based on timeFilter
-  const filterDate = startOfDay(
-    timeFilter === 'week'
-      ? subDays(new Date(), 7)
-      : timeFilter === 'month'
-      ? subMonths(new Date(), 1)
-      : subYears(new Date(), 1)
-  );
-
-  const filteredLogs = fastingLogs.filter(
-    log => new Date(log.startTime) >= filterDate
-  );
+  const now = new Date();
+  
+  const filteredLogs = fastingLogs.filter(log => {
+    const logDate = new Date(log.startTime);
+    
+    if (timeFilter === 'week') {
+      // Filter for current week (Sunday to Saturday)
+      const weekStart = startOfWeek(now);
+      const weekEnd = endOfWeek(now);
+      return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
+    } else if (timeFilter === 'month') {
+      // Filter for last month
+      return logDate >= subMonths(now, 1);
+    } else {
+      // Filter for last year
+      return logDate >= subYears(now, 1);
+    }
+  });
 
   const weeks = groupLogsByWeek(filteredLogs);
   const editingFast = editingId ? fastingLogs.find(f => f.id === editingId) : null;
