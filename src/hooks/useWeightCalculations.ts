@@ -1,4 +1,3 @@
-
 import { WeighIn } from '@/lib/types';
 import { isWithinInterval, startOfWeek, startOfMonth, subDays } from 'date-fns';
 
@@ -46,6 +45,15 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     
     // For 'period' or any other value, return all weighIns
     return [...weighIns];
+  };
+
+  const getStartingWeight = (timeFilter: 'week' | 'month' | 'period') => {
+    const filteredEntries = filterWeighInsByTimePeriod(timeFilter);
+    if (filteredEntries.length === 0) return null;
+    
+    // Get the earliest entry in the filtered range
+    const earliestEntry = filteredEntries[filteredEntries.length - 1];
+    return convertWeight(earliestEntry.weight);
   };
 
   const calculateWeightChange = (days: number) => {
@@ -126,6 +134,7 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     calculateTotalChange,
     formatWeightValue,
     filterWeighInsByTimePeriod,
-    calculateFilteredWeightChange
+    calculateFilteredWeightChange,
+    getStartingWeight
   };
 };

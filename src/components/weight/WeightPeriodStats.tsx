@@ -17,9 +17,6 @@ const WeightPeriodStats: React.FC<WeightPeriodStatsProps> = ({
   isWeightLoss,
   weightUnit
 }) => {
-  // Use the raw number values since they've already been consistently formatted
-  const formattedChange = Math.abs(parseFloat(totalPeriodChange));
-  
   return (
     <div className="grid grid-cols-3 gap-4 mb-6">
       <WeightStatsCard 
@@ -33,7 +30,7 @@ const WeightPeriodStats: React.FC<WeightPeriodStatsProps> = ({
         unit={weightUnit}
       />
       <WeightStatsCard 
-        value={formattedChange}
+        value={Math.abs(parseFloat(totalPeriodChange))}
         label={`${isWeightLoss ? 'Lost' : 'Gained'} This Period`}
         unit={weightUnit}
         isNegative={!isWeightLoss}
@@ -43,3 +40,4 @@ const WeightPeriodStats: React.FC<WeightPeriodStatsProps> = ({
 };
 
 export default WeightPeriodStats;
+

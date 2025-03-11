@@ -34,7 +34,8 @@ const Weight = () => {
     getLatestWeight, 
     formatWeightValue,
     filterWeighInsByTimePeriod,
-    calculateFilteredWeightChange
+    calculateFilteredWeightChange,
+    getStartingWeight
   } = useWeightCalculations(weighIns, isImperial);
 
   // Filter weighIns based on selected time period
@@ -44,7 +45,7 @@ const Weight = () => {
   const latestWeight = getLatestWeight();
   
   // Calculate weights and changes using consistent formatting
-  const periodStartWeight = currentPeriod ? Number(formatWeightValue(convertWeight(currentPeriod.startWeight))) : 0;
+  const periodStartWeight = getStartingWeight(timeFilter) || 0;
   const currentWeight = latestWeight ? Number(formatWeightValue(convertWeight(latestWeight.weight))) : 0;
   
   // Calculate weight change based on the selected time filter
