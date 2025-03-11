@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import { format, differenceInSeconds } from 'date-fns';
 import { FastingLog } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Edit, Trash2, Check, X } from "lucide-react";
+import { Edit, Trash2, Check, X, Loader2 } from "lucide-react";
 import FastingEntryModal from './FastingEntryModal';
 import DeleteFastingConfirmDialog from './DeleteFastingConfirmDialog';
+import { useMutation } from '@tanstack/react-query';
+import { deleteFastingLog } from '@/lib/services/fastingService';
 
 interface FastingTableProps {
   fastingLogs: FastingLog[];
+  isLoading?: boolean;
   onUpdateFast: (
     id: string,
     updatedFast: {
@@ -24,11 +26,13 @@ interface FastingTableProps {
 
 const FastingTable: React.FC<FastingTableProps> = ({ 
   fastingLogs,
+  isLoading = false,
   onUpdateFast,
   onDeleteFast
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = (fastId: string) => {
     setEditingId(fastId);
@@ -45,6 +49,15 @@ const FastingTable: React.FC<FastingTableProps> = ({
     if (editingId) {
       onUpdateFast(editingId, updatedFast);
       setEditingId(null);
+    }
+  };
+
+  const handleDelete = () => {
+    if (deleteConfirmId) {
+      setIsDeleting(true);
+      onDeleteFast(deleteConfirmId);
+      setIsDeleting(false);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -93,12 +106,23 @@ const FastingTable: React.FC<FastingTableProps> = ({
   const weeks = groupByWeek();
   const editingFast = editingId ? fastingLogs.find(f => f.id === editingId) : null;
 
+  if (isLoading) {
+    return (
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4">Fasting History</h2>
+        <div className="flex justify-center items-center p-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Fasting History</h2>
         
-        {Object.entries(weeks).length === 0 ? (
+        {(fastingLogs.length === 0 || Object.entries(weeks).length === 0) ? (
           <div className="p-8 text-center border rounded-lg">
             <p className="text-gray-500">No fasting logs yet. Start a fast to begin tracking.</p>
           </div>
@@ -193,12 +217,8 @@ const FastingTable: React.FC<FastingTableProps> = ({
       <DeleteFastingConfirmDialog
         isOpen={!!deleteConfirmId}
         onOpenChange={(open) => !open && setDeleteConfirmId(null)}
-        onConfirmDelete={() => {
-          if (deleteConfirmId) {
-            onDeleteFast(deleteConfirmId);
-            setDeleteConfirmId(null);
-          }
-        }}
+        onConfirmDelete={handleDelete}
+        isDeleting={isDeleting}
       />
     </>
   );

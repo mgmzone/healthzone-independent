@@ -10,17 +10,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface DeleteFastingConfirmDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmDelete: () => void;
+  isDeleting?: boolean;
 }
 
 const DeleteFastingConfirmDialog: React.FC<DeleteFastingConfirmDialogProps> = ({
   isOpen,
   onOpenChange,
   onConfirmDelete,
+  isDeleting = false
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
@@ -32,10 +36,19 @@ const DeleteFastingConfirmDialog: React.FC<DeleteFastingConfirmDialogProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirmDelete} className="bg-destructive text-destructive-foreground">
-            Delete
-          </AlertDialogAction>
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <Button 
+            onClick={onConfirmDelete} 
+            disabled={isDeleting}
+            variant="destructive"
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : 'Delete'}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

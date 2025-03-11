@@ -10,6 +10,7 @@ import FastingPageHeader from '@/components/fasting/FastingPageHeader';
 import FastingEntryModal from '@/components/fasting/FastingEntryModal';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 const Fasting = () => {
   const { profile } = useAuth();
@@ -31,7 +32,10 @@ const Fasting = () => {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12">
-          <div className="text-center">Loading...</div>
+          <div className="flex flex-col items-center justify-center p-12">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <div className="text-xl">Loading your fasting data...</div>
+          </div>
         </div>
       </Layout>
     );
@@ -75,7 +79,8 @@ const Fasting = () => {
         </div>
 
         <FastingTable 
-          fastingLogs={fastingLogs} 
+          fastingLogs={fastingLogs}
+          isLoading={isLoading}
           onUpdateFast={updateFast}
           onDeleteFast={deleteFast}
         />

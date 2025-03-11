@@ -65,15 +65,19 @@ export async function getCurrentFasting() {
   };
 }
 
-export async function startFasting() {
+export async function startFasting(fastingHours: number = 16, eatingWindowHours: number = 8) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  const now = new Date();
+  
   const { data, error } = await supabase
     .from('fasting_logs')
     .insert({
       user_id: session.user.id,
-      start_time: new Date().toISOString()
+      start_time: now.toISOString(),
+      fasting_hours: fastingHours,
+      eating_window_hours: eatingWindowHours
     })
     .select()
     .single();
@@ -98,24 +102,27 @@ export async function endFasting(fastingId: string) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
-  const endTime = new Date();
+  const now = new Date();
+  
   const { data: fastingData } = await supabase
     .from('fasting_logs')
-    .select('start_time')
+    .select('start_time, fasting_hours')
     .eq('id', fastingId)
     .single();
 
   if (!fastingData) throw new Error('Fasting log not found');
 
   const startTime = new Date(fastingData.start_time);
-  const fastingHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-  const eatingWindowHours = 24 - fastingHours;
+  const durationInHours = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+  const eatingWindowHours = fastingData.fasting_hours 
+    ? 24 - durationInHours 
+    : 24 - durationInHours;
 
   const { data, error } = await supabase
     .from('fasting_logs')
     .update({
-      end_time: endTime.toISOString(),
-      fasting_hours: parseFloat(fastingHours.toFixed(2)),
+      end_time: now.toISOString(),
+      fasting_hours: parseFloat(durationInHours.toFixed(2)),
       eating_window_hours: parseFloat(eatingWindowHours.toFixed(2))
     })
     .eq('id', fastingId)
@@ -137,4 +144,98 @@ export async function endFasting(fastingId: string) {
     fastingHours: data.fasting_hours || undefined,
     eatingWindowHours: data.eating_window_hours || undefined
   };
+}
+
+export async function addFastingLog(fastData: {
+  startTime: Date;
+  endTime?: Date;
+  fastingHours?: number;
+  eatingWindowHours?: number;
+}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('fasting_logs')
+    .insert({
+      user_id: session.user.id,
+      start_time: fastData.startTime.toISOString(),
+      end_time: fastData.endTime?.toISOString(),
+      fasting_hours: fastData.fastingHours,
+      eating_window_hours: fastData.eatingWindowHours
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding fasting log:', error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    startTime: new Date(data.start_time),
+    endTime: data.end_time ? new Date(data.end_time) : undefined,
+    fastingHours: data.fasting_hours || undefined,
+    eatingWindowHours: data.eating_window_hours || undefined
+  };
+}
+
+export async function updateFastingLog(
+  id: string,
+  fastData: {
+    startTime: Date;
+    endTime?: Date;
+    fastingHours?: number;
+    eatingWindowHours?: number;
+  }
+) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('fasting_logs')
+    .update({
+      start_time: fastData.startTime.toISOString(),
+      end_time: fastData.endTime?.toISOString(),
+      fasting_hours: fastData.fastingHours,
+      eating_window_hours: fastData.eatingWindowHours
+    })
+    .eq('id', id)
+    .eq('user_id', session.user.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating fasting log:', error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    startTime: new Date(data.start_time),
+    endTime: data.end_time ? new Date(data.end_time) : undefined,
+    fastingHours: data.fasting_hours || undefined,
+    eatingWindowHours: data.eating_window_hours || undefined
+  };
+}
+
+export async function deleteFastingLog(id: string) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('fasting_logs')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', session.user.id);
+
+  if (error) {
+    console.error('Error deleting fasting log:', error);
+    throw error;
+  }
+
+  return true;
 }
