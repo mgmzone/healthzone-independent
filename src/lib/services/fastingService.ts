@@ -155,15 +155,18 @@ export async function addFastingLog(fastData: {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  const insertData = {
+    user_id: session.user.id,
+    start_time: fastData.startTime.toISOString(),
+    end_time: fastData.endTime?.toISOString(),
+    fasting_hours: fastData.fastingHours,
+    // Only set eating_window_hours if explicitly provided
+    ...(fastData.eatingWindowHours && { eating_window_hours: fastData.eatingWindowHours })
+  };
+
   const { data, error } = await supabase
     .from('fasting_logs')
-    .insert({
-      user_id: session.user.id,
-      start_time: fastData.startTime.toISOString(),
-      end_time: fastData.endTime?.toISOString(),
-      fasting_hours: fastData.fastingHours,
-      eating_window_hours: fastData.eatingWindowHours
-    })
+    .insert(insertData)
     .select()
     .single();
 
