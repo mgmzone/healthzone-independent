@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import MetricSelector from '@/components/weight/MetricSelector';
 const Weight = () => {
   const { profile } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { weighIns, isLoading, addWeighIn } = useWeightData();
+  const { weighIns, isLoading, addWeighIn, updateWeighIn, deleteWeighIn } = useWeightData();
   const { getCurrentPeriod, isLoading: periodsLoading } = usePeriodsData();
   const navigate = useNavigate();
   const [selectedMetric, setSelectedMetric] = useState('weight');
@@ -88,6 +89,30 @@ const Weight = () => {
       additionalMetrics: convertedMetrics 
     });
     setIsModalOpen(false);
+  };
+
+  const handleUpdateWeighIn = (
+    id: string,
+    weight: number,
+    date: Date,
+    additionalMetrics?: {
+      bmi?: number;
+      bodyFatPercentage?: number;
+      skeletalMuscleMass?: number;
+      boneMass?: number;
+      bodyWaterPercentage?: number;
+    }
+  ) => {
+    updateWeighIn({
+      id,
+      weight,
+      date,
+      additionalMetrics
+    });
+  };
+
+  const handleDeleteWeighIn = (id: string) => {
+    deleteWeighIn(id);
   };
 
   if (isLoading || periodsLoading) {
@@ -171,6 +196,8 @@ const Weight = () => {
             <WeightTable 
               weighIns={weighIns} 
               isImperial={isImperial}
+              onUpdateWeighIn={handleUpdateWeighIn}
+              onDeleteWeighIn={handleDeleteWeighIn}
             />
           </>
         )}

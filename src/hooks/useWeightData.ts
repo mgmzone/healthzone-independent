@@ -97,9 +97,89 @@ export function useWeightData() {
     }
   });
 
+  const updateWeighIn = useMutation({
+    mutationFn: async ({ 
+      id,
+      weight, 
+      date, 
+      additionalMetrics 
+    }: { 
+      id: string,
+      weight: number, 
+      date: Date, 
+      additionalMetrics?: {
+        bmi?: number;
+        bodyFatPercentage?: number;
+        skeletalMuscleMass?: number;
+        boneMass?: number;
+        bodyWaterPercentage?: number;
+      } 
+    }) => {
+      const { data, error } = await supabase
+        .from('weigh_ins')
+        .update({
+          weight,
+          date: date.toISOString(),
+          bmi: additionalMetrics?.bmi || null,
+          body_fat_percentage: additionalMetrics?.bodyFatPercentage || null,
+          skeletal_muscle_mass: additionalMetrics?.skeletalMuscleMass || null,
+          bone_mass: additionalMetrics?.boneMass || null,
+          body_water_percentage: additionalMetrics?.bodyWaterPercentage || null
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weighIns'] });
+      toast({
+        title: 'Weight updated',
+        description: 'Your weight record has been updated successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error updating weight',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const deleteWeighIn = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('weigh_ins')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weighIns'] });
+      toast({
+        title: 'Weight deleted',
+        description: 'Your weight record has been deleted successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error deleting weight',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
   return {
     weighIns,
     isLoading,
-    addWeighIn: addWeighIn.mutate
+    addWeighIn: addWeighIn.mutate,
+    updateWeighIn: updateWeighIn.mutate,
+    deleteWeighIn: deleteWeighIn.mutate
   };
 }
