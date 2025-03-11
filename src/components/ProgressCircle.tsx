@@ -11,6 +11,7 @@ interface ProgressCircleProps {
   label?: string;
   valueLabel?: string;
   animate?: boolean;
+  allowExceedGoal?: boolean; // New prop to allow showing > 100%
 }
 
 const ProgressCircle: React.FC<ProgressCircleProps> = ({
@@ -22,21 +23,27 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   label,
   valueLabel,
   animate = true,
+  allowExceedGoal = true, // Default to true to allow exceeding 100%
 }) => {
   const circleRef = useRef<SVGCircleElement>(null);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const dashOffset = circumference - (value / 100) * circumference;
+  
+  // Calculate the dashOffset based on the value, possibly exceeding 100%
+  const progressValue = allowExceedGoal ? value : Math.min(value, 100);
+  const dashOffset = circumference - (progressValue / 100) * circumference;
 
   useEffect(() => {
     if (circleRef.current && animate) {
-      circleRef.current.style.setProperty('--progress', value.toString());
+      circleRef.current.style.setProperty('--progress', progressValue.toString());
       circleRef.current.style.strokeDashoffset = dashOffset.toString();
     }
-  }, [value, dashOffset, animate]);
+  }, [progressValue, dashOffset, animate]);
 
-  // Ensure value is between 0 and 100
-  const clampedValue = Math.min(Math.max(value, 0), 100);
+  // For display purposes, we might want to show the actual value, even if it exceeds 100%
+  const displayValue = Math.round(value);
+  // Only clamp the value when we don't want to exceed goals
+  const clampedValue = allowExceedGoal ? displayValue : Math.min(displayValue, 100);
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
@@ -71,7 +78,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
         </svg>
         {showPercentage && (
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold">{Math.round(clampedValue)}%</span>
+            <span className="text-2xl font-bold">{clampedValue}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
           </div>
         )}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
@@ -35,7 +34,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
     return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
   }).reduce((sum, log) => sum + log.minutes, 0);
   
-  const weeklyProgress = Math.min((weeklyMinutesAchieved / weeklyMinutesTarget) * 100, 100);
+  const weeklyProgress = (weeklyMinutesAchieved / weeklyMinutesTarget) * 100;
   
   // Calculate steps data
   const stepsGoal = 8000; // Placeholder - would come from user settings
@@ -43,7 +42,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
     .filter(log => log.steps && isToday(new Date(log.date)))
     .reduce((sum, log) => sum + (log.steps || 0), 0);
   
-  const stepsProgress = Math.min((stepsAchieved / stepsGoal) * 100, 100);
+  const stepsProgress = (stepsAchieved / stepsGoal) * 100;
   
   return (
     <div className="space-y-6">
@@ -94,6 +93,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
               strokeWidth={10}
               showPercentage={true}
               valueLabel={`${weeklyMinutesAchieved}/${weeklyMinutesTarget} min`}
+              allowExceedGoal={true}
             />
           </CardContent>
         </Card>
@@ -110,6 +110,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
               strokeWidth={10}
               showPercentage={true}
               valueLabel={`${stepsAchieved}/${stepsGoal}`}
+              allowExceedGoal={true}
             />
           </CardContent>
         </Card>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import FastingStats from '@/components/fasting/FastingStats';
@@ -37,7 +36,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
     return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
   }).reduce((sum, log) => sum + log.minutes, 0);
   
-  const weeklyProgress = Math.min((weeklyMinutesAchieved / weeklyMinutesTarget) * 100, 100);
+  const weeklyProgress = (weeklyMinutesAchieved / weeklyMinutesTarget) * 100;
   
   // Calculate steps data
   const stepsGoal = 8000; // Placeholder - would come from user settings
@@ -45,7 +44,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
     .filter(log => log.steps && isToday(new Date(log.date)))
     .reduce((sum, log) => sum + (log.steps || 0), 0);
   
-  const stepsProgress = Math.min((stepsAchieved / stepsGoal) * 100, 100);
+  const stepsProgress = (stepsAchieved / stepsGoal) * 100;
   
   const totalActivities = exerciseLogs.length;
   const totalMinutes = exerciseLogs.reduce((sum, log) => sum + log.minutes, 0);
@@ -54,7 +53,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Activity Minutes</h2>
-        <div className="h-72"> {/* Increased height from h-64 to h-72 (approximately 10% taller) */}
+        <div className="h-72">
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -90,6 +89,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
                   strokeWidth={8}
                   showPercentage={true}
                   valueLabel={`${weeklyMinutesAchieved}/${weeklyMinutesTarget} min`}
+                  allowExceedGoal={true}
                 />
               </CardContent>
             </Card>
@@ -106,6 +106,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
                   strokeWidth={8}
                   showPercentage={true}
                   valueLabel={`${stepsAchieved}/${stepsGoal}`}
+                  allowExceedGoal={true}
                 />
               </CardContent>
             </Card>
@@ -115,7 +116,7 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
       
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Fasting Progress</h2>
-        <div className="h-72"> {/* Increased height from h-64 to h-72 to match the activity card (approximately 10% taller) */}
+        <div className="h-72">
           <FastingStats 
             fastingLogs={fastingLogs}
             timeFilter="week"

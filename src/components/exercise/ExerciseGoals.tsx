@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,12 +37,10 @@ const ExerciseGoals = () => {
   });
   const [isAddingNew, setIsAddingNew] = useState(false);
 
-  // Calculate current progress for each goal
   const goalsWithProgress = goals.map(goal => {
     let current = 0;
     const now = new Date();
     
-    // Define the time period based on goal period
     let periodStart, periodEnd;
     
     switch(goal.period) {
@@ -61,13 +58,11 @@ const ExerciseGoals = () => {
         break;
     }
     
-    // Filter logs that are within the time period
     const logsInPeriod = exerciseLogs.filter(log => {
       const logDate = new Date(log.date);
       return isWithinInterval(logDate, { start: periodStart, end: periodEnd });
     });
     
-    // Calculate sum based on goal type
     switch(goal.type) {
       case 'steps':
         current = logsInPeriod.reduce((sum, log) => sum + (log.steps || 0), 0);
@@ -78,7 +73,6 @@ const ExerciseGoals = () => {
       case 'minutes':
         current = logsInPeriod.reduce((sum, log) => sum + log.minutes, 0);
         break;
-      // For calories and other, we would need to add additional data to logs
       default:
         current = 0;
     }
@@ -275,11 +269,10 @@ const ExerciseGoals = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {goalsWithProgress.map(goal => {
-            const progress = Math.min(Math.round((goal.current / goal.target) * 100), 100);
+            const progress = Math.round((goal.current / goal.target) * 100);
             const isEditing = editingId === goal.id;
             
             if (isEditing) {
-              // Edit mode for the goal
               return (
                 <Card key={goal.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -380,7 +373,6 @@ const ExerciseGoals = () => {
               );
             }
             
-            // Display mode for the goal
             return (
               <Card key={goal.id}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -402,6 +394,7 @@ const ExerciseGoals = () => {
                       strokeWidth={12}
                       showPercentage={true}
                       valueLabel={`${goal.current.toLocaleString()} / ${goal.target.toLocaleString()} ${goal.unit}`}
+                      allowExceedGoal={true}
                     />
                   </div>
                   <div className="text-center mt-2">
