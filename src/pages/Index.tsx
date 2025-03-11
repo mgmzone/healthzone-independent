@@ -1,12 +1,29 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Activity, BarChart, Clock, Heart, Dumbbell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/AuthContext';
 
 const Index = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect logged-in users to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // If user is logged in, don't render the landing page content
+  if (user) {
+    return null; // Return null while redirecting
+  }
+
   return (
     <Layout transparentHeader hideFooter>
       {/* Hero Section */}
