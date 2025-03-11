@@ -45,7 +45,21 @@ export function useWeightData() {
   });
 
   const addWeighIn = useMutation({
-    mutationFn: async ({ weight, date }: { weight: number, date: Date }) => {
+    mutationFn: async ({ 
+      weight, 
+      date, 
+      additionalMetrics 
+    }: { 
+      weight: number, 
+      date: Date, 
+      additionalMetrics?: {
+        bmi?: number;
+        bodyFatPercentage?: number;
+        skeletalMuscleMass?: number;
+        boneMass?: number;
+        bodyWaterPercentage?: number;
+      } 
+    }) => {
       const currentPeriod = getCurrentPeriod();
       
       const { data, error } = await supabase
@@ -54,7 +68,12 @@ export function useWeightData() {
           weight,
           date: date.toISOString(),
           user_id: (await supabase.auth.getUser()).data.user?.id,
-          period_id: currentPeriod?.id || null
+          period_id: currentPeriod?.id || null,
+          bmi: additionalMetrics?.bmi || null,
+          body_fat_percentage: additionalMetrics?.bodyFatPercentage || null,
+          skeletal_muscle_mass: additionalMetrics?.skeletalMuscleMass || null,
+          bone_mass: additionalMetrics?.boneMass || null,
+          body_water_percentage: additionalMetrics?.bodyWaterPercentage || null
         }])
         .select()
         .single();

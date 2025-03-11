@@ -52,9 +52,38 @@ const Weight = () => {
     } : null
   };
 
-  const onAddWeight = (weight: number, date: Date) => {
+  const onAddWeight = (
+    weight: number, 
+    date: Date, 
+    additionalMetrics?: {
+      bmi?: number;
+      bodyFatPercentage?: number;
+      skeletalMuscleMass?: number;
+      boneMass?: number;
+      bodyWaterPercentage?: number;
+    }
+  ) => {
     const weightInKg = isImperial ? weight / 2.20462 : weight;
-    addWeighIn({ weight: weightInKg, date });
+    
+    // Convert additional metrics if needed
+    let convertedMetrics = additionalMetrics;
+    if (isImperial && additionalMetrics) {
+      convertedMetrics = {
+        ...additionalMetrics,
+        skeletalMuscleMass: additionalMetrics.skeletalMuscleMass 
+          ? additionalMetrics.skeletalMuscleMass / 2.20462 
+          : undefined,
+        boneMass: additionalMetrics.boneMass 
+          ? additionalMetrics.boneMass / 2.20462 
+          : undefined
+      };
+    }
+    
+    addWeighIn({ 
+      weight: weightInKg, 
+      date, 
+      additionalMetrics: convertedMetrics 
+    });
     setIsModalOpen(false);
   };
 
