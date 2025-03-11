@@ -101,7 +101,9 @@ const Dashboard = () => {
                   weightChange={currentMetrics.weightChange}
                   weightDirection={currentMetrics.weightDirection}
                   weightUnit={weightUnit}
-                  exerciseLogs={exerciseLogs}
+                  weighIns={weighIns}
+                  currentPeriod={currentPeriod}
+                  isImperial={isImperial}
                 />
               )}
             </>
