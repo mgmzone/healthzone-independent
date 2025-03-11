@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, Scale, Timer, Calendar, Footprints } from 'lucide-react';
+import { Activity, Scale, Timer, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { ExerciseLog, FastingLog } from '@/lib/types';
-import { isWithinInterval, subWeeks, startOfWeek, endOfWeek, isToday } from 'date-fns';
-import ProgressCircle from '@/components/ProgressCircle';
+import { isWithinInterval, subWeeks } from 'date-fns';
 
 interface SummaryCardProps {
   title: string;
@@ -50,44 +49,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     // Calculate weekly average (divide by 4 weeks)
     return Math.round(totalMinutes / 4);
   };
-
-  // Calculate weekly goal progress
-  const calculateWeeklyGoalProgress = () => {
-    const today = new Date();
-    const dailyTarget = 30; // Placeholder - this would come from user settings
-    const weeklyMinutesTarget = dailyTarget * 7;
-    
-    const weekStart = startOfWeek(today);
-    const weekEnd = endOfWeek(today);
-    
-    const weeklyMinutesAchieved = exerciseLogs.filter(log => {
-      const logDate = new Date(log.date);
-      return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
-    }).reduce((sum, log) => sum + log.minutes, 0);
-    
-    return {
-      progress: (weeklyMinutesAchieved / weeklyMinutesTarget) * 100,
-      achieved: weeklyMinutesAchieved,
-      target: weeklyMinutesTarget
-    };
-  };
-  
-  // Calculate steps progress
-  const calculateStepsProgress = () => {
-    const stepsGoal = 8000; // Placeholder - would come from user settings
-    const stepsAchieved = exerciseLogs
-      .filter(log => log.steps && isToday(new Date(log.date)))
-      .reduce((sum, log) => sum + (log.steps || 0), 0);
-    
-    return {
-      progress: (stepsAchieved / stepsGoal) * 100,
-      achieved: stepsAchieved,
-      target: stepsGoal
-    };
-  };
-
-  const weeklyGoal = calculateWeeklyGoalProgress();
-  const stepsGoal = calculateStepsProgress();
 
   const summaryCards: SummaryCardProps[] = [
     {
@@ -134,50 +95,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-blue-500" />
-                <h3 className="font-semibold text-lg">Weekly Goal</h3>
-              </div>
-            </div>
-            <div className="flex items-center justify-center py-4">
-              <ProgressCircle 
-                value={weeklyGoal.progress} 
-                size={100} 
-                strokeWidth={10}
-                showPercentage={true}
-                valueLabel={`${weeklyGoal.achieved}/${weeklyGoal.target} min`}
-                allowExceedGoal={true}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Footprints className="h-5 w-5 text-green-500" />
-                <h3 className="font-semibold text-lg">Today's Steps</h3>
-              </div>
-            </div>
-            <div className="flex items-center justify-center py-4">
-              <ProgressCircle 
-                value={stepsGoal.progress} 
-                size={100} 
-                strokeWidth={10}
-                showPercentage={true}
-                valueLabel={`${stepsGoal.achieved}/${stepsGoal.target}`}
-                allowExceedGoal={true}
-              />
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

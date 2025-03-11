@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import ProgressCircle from '@/components/ProgressCircle';
@@ -36,41 +37,43 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Weight Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center pt-0">
-          <ProgressCircle 
-            value={weightProgress}
-            size={120}
-            strokeWidth={10}
-            showPercentage={true}
-            valueLabel={weightProgress >= 100 ? "Goal Reached!" : "of target"}
-          />
-          <div className="mt-3 text-center">
-            <span className="text-sm text-muted-foreground">
-              {formatWeight(weightChange)} {weightUnit} {weightDirection}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Time Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="flex justify-center pt-0">
-          <ProgressCircle 
-            value={timeProgress}
-            size={120}
-            strokeWidth={10}
-            showPercentage={true}
-            valueLabel={`${daysRemaining} days left`}
-          />
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Weight Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center pt-0">
+            <ProgressCircle 
+              value={weightProgress}
+              size={120}
+              strokeWidth={10}
+              showPercentage={true}
+              valueLabel={weightProgress >= 100 ? "Goal Reached!" : "of target"}
+            />
+            <div className="mt-3 text-center">
+              <span className="text-sm text-muted-foreground">
+                {formatWeight(weightChange)} {weightUnit} {weightDirection}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Time Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center pt-0">
+            <ProgressCircle 
+              value={timeProgress}
+              size={120}
+              strokeWidth={10}
+              showPercentage={true}
+              valueLabel={`${daysRemaining} days left`}
+            />
+          </CardContent>
+        </Card>
+      </div>
       
       <Card className="md:col-span-2">
         <CardHeader className="pb-2">
