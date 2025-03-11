@@ -72,7 +72,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   }
 
   // Calculate angles for the progress circle - increase radius for larger circle
-  const radius = 80; // Increased from 45
+  const radius = 80; 
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
   const dashOffset = circumference - (progress / 100) * circumference;
@@ -88,7 +88,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   return (
     <Card className="p-6 h-full flex flex-col items-center justify-center relative">
       <div className="relative flex items-center justify-center mb-6">
-        <svg className="w-96 h-96 -rotate-90"> {/* Increased from w-64 h-64 */}
+        <svg className="w-96 h-96 -rotate-90">
           {/* Background circle */}
           <circle
             cx="50%"
@@ -96,7 +96,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
             r={radius}
             fill="transparent"
             stroke="#1e293b"
-            strokeWidth="12" {/* Increased from 8 */}
+            strokeWidth="12"
             className="opacity-20"
           />
           {/* Progress circle - gradient */}
@@ -113,7 +113,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
             r={radius}
             fill="transparent"
             stroke="url(#progressGradient)"
-            strokeWidth="12" {/* Increased from 8 */}
+            strokeWidth="12"
             strokeDasharray={dashArray}
             strokeDashoffset={dashOffset}
             strokeLinecap="round"
@@ -134,12 +134,12 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         
         {/* Center content */}
         <div className="absolute flex flex-col items-center">
-          <Flame className="w-12 h-12 text-orange-500 mb-3" /> {/* Increased from w-8 h-8 */}
+          <Flame className="w-12 h-12 text-orange-500 mb-3" />
           <div className="text-center">
             <div className="text-sm text-muted-foreground">Fasting for</div>
-            <div className="text-4xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div> {/* Increased from text-3xl */}
+            <div className="text-4xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
             <div className="text-sm text-muted-foreground mt-1">Remaining</div>
-            <div className="text-lg font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div> {/* Increased from text-sm */}
+            <div className="text-lg font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div>
           </div>
         </div>
       </div>
