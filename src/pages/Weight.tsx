@@ -7,11 +7,12 @@ import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightCalculations } from '@/hooks/useWeightCalculations';
 import WeightEntryModal from '@/components/weight/WeightEntryModal';
 import WeightPeriodStats from '@/components/weight/WeightPeriodStats';
-import WeightChangeStats from '@/components/weight/WeightChangeStats';
 import WeightPageHeader from '@/components/weight/WeightPageHeader';
 import WeightEmptyState from '@/components/weight/WeightEmptyState';
 import ChartSection from '@/components/weight/ChartSection';
 import TableSection from '@/components/weight/TableSection';
+import WeightTimeFilter from '@/components/weight/WeightTimeFilter';
+import { TimeFilter } from '@/lib/types';
 
 const Weight = () => {
   const { profile } = useAuth();
@@ -19,6 +20,7 @@ const Weight = () => {
   const { weighIns, isLoading, addWeighIn, updateWeighIn, deleteWeighIn } = useWeightData();
   const { getCurrentPeriod, isLoading: periodsLoading } = usePeriodsData();
   const [selectedMetric, setSelectedMetric] = useState('weight');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('period');
 
   // Get the unit based on user preference
   const isImperial = profile?.measurementUnit === 'imperial';
@@ -27,29 +29,28 @@ const Weight = () => {
   // Check if there's an active period
   const currentPeriod = getCurrentPeriod();
 
-  const { convertWeight, getLatestWeight, calculateWeightChange, calculateTotalChange, formatWeightValue } = useWeightCalculations(weighIns, isImperial);
+  const { 
+    convertWeight, 
+    getLatestWeight, 
+    formatWeightValue,
+    filterWeighInsByTimePeriod,
+    calculateFilteredWeightChange
+  } = useWeightCalculations(weighIns, isImperial);
 
+  // Filter weighIns based on selected time period
+  const filteredWeighIns = filterWeighInsByTimePeriod(timeFilter);
+  
+  // Get latest weight from the original unfiltered data
   const latestWeight = getLatestWeight();
   
   // Calculate weights and changes using consistent formatting
   const periodStartWeight = currentPeriod ? Number(formatWeightValue(convertWeight(currentPeriod.startWeight))) : 0;
   const currentWeight = latestWeight ? Number(formatWeightValue(convertWeight(latestWeight.weight))) : 0;
   
-  // Format consistently with the same rounding logic
-  const totalPeriodChange = currentWeight && periodStartWeight
-    ? formatWeightValue(currentWeight - periodStartWeight)
-    : "0.0";
-  const isWeightLoss = Number(totalPeriodChange) < 0;
-
-  // Calculate changes for different time periods
-  const changes = {
-    days7: calculateWeightChange(7),
-    days30: calculateWeightChange(30),
-    days90: calculateWeightChange(90),
-    allTime: weighIns.length >= 2 ? {
-      value: calculateTotalChange()
-    } : null
-  };
+  // Calculate weight change based on the selected time filter
+  const filteredChange = calculateFilteredWeightChange(timeFilter);
+  const totalChange = Number(filteredChange.value || "0.0");
+  const isWeightLoss = totalChange <= 0;
 
   const onAddWeight = (
     weight: number, 
@@ -111,28 +112,28 @@ const Weight = () => {
           />
         ) : (
           <>
+            <WeightTimeFilter 
+              selectedFilter={timeFilter}
+              onFilterChange={setTimeFilter}
+            />
+            
             <WeightPeriodStats
               periodStartWeight={periodStartWeight}
               currentWeight={currentWeight}
-              totalPeriodChange={totalPeriodChange}
+              totalPeriodChange={filteredChange.value}
               isWeightLoss={isWeightLoss}
               weightUnit={weightUnit}
             />
 
-            <WeightChangeStats
-              changes={changes}
-              weightUnit={weightUnit}
-            />
-
             <ChartSection
-              weighIns={weighIns}
+              weighIns={filteredWeighIns}
               isImperial={isImperial}
               selectedMetric={selectedMetric}
               onSelectMetric={setSelectedMetric}
             />
 
             <TableSection
-              weighIns={weighIns}
+              weighIns={filteredWeighIns}
               isImperial={isImperial}
               onAddWeight={() => setIsModalOpen(true)}
               isPeriodActive={!!currentPeriod}

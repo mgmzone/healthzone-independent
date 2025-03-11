@@ -1,5 +1,6 @@
 
 import { WeighIn } from '@/lib/types';
+import { isWithinInterval, startOfWeek, startOfMonth, subDays } from 'date-fns';
 
 export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) => {
   // Convert weight if needed based on measurement unit
@@ -17,6 +18,34 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
   const formatWeightValue = (value: number): string => {
     // Round to exactly one decimal place
     return (Math.round(value * 10) / 10).toFixed(1);
+  };
+
+  // Filter weighIns by specified time period
+  const filterWeighInsByTimePeriod = (timePeriod: 'week' | 'month' | 'period') => {
+    if (weighIns.length === 0) return [];
+    
+    const today = new Date();
+    
+    if (timePeriod === 'week') {
+      const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Week starts on Monday
+      return weighIns.filter(entry => 
+        isWithinInterval(new Date(entry.date), { 
+          start: weekStart, 
+          end: today 
+        })
+      );
+    } else if (timePeriod === 'month') {
+      const monthStart = startOfMonth(today);
+      return weighIns.filter(entry => 
+        isWithinInterval(new Date(entry.date), { 
+          start: monthStart, 
+          end: today 
+        })
+      );
+    }
+    
+    // For 'period' or any other value, return all weighIns
+    return [...weighIns];
   };
 
   const calculateWeightChange = (days: number) => {
@@ -53,6 +82,26 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     };
   };
 
+  // Calculate weight change for filtered data
+  const calculateFilteredWeightChange = (timeFilter: 'week' | 'month' | 'period') => {
+    const filteredEntries = filterWeighInsByTimePeriod(timeFilter);
+    
+    if (filteredEntries.length < 2) return { value: "0.0" };
+    
+    const latestEntry = filteredEntries[0];
+    const earliestEntry = filteredEntries[filteredEntries.length - 1];
+    
+    const latestWeightConverted = convertWeight(latestEntry.weight);
+    const earliestWeightConverted = convertWeight(earliestEntry.weight);
+    
+    const changeValue = formatWeightValue(latestWeightConverted - earliestWeightConverted);
+    
+    return {
+      value: changeValue,
+      days: Math.round((new Date(latestEntry.date).getTime() - new Date(earliestEntry.date).getTime()) / (1000 * 60 * 60 * 24))
+    };
+  };
+
   // Calculate weight change between first and last weigh-ins
   const calculateTotalChange = () => {
     if (weighIns.length < 2) return "0.0";
@@ -75,6 +124,8 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     getLatestWeight,
     calculateWeightChange,
     calculateTotalChange,
-    formatWeightValue
+    formatWeightValue,
+    filterWeighInsByTimePeriod,
+    calculateFilteredWeightChange
   };
 };
