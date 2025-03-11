@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertCircle } from "lucide-react";
@@ -7,11 +7,13 @@ import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import WeightChart from '@/components/charts/WeightChart';
 import WeightEntryModal from '@/components/weight/WeightEntryModal';
-import WeightStatsCard from '@/components/weight/WeightStatsCard';
 import { useWeightData } from '@/hooks/useWeightData';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from 'react-router-dom';
+import WeightPeriodStats from '@/components/weight/WeightPeriodStats';
+import WeightChangeStats from '@/components/weight/WeightChangeStats';
+import { useWeightCalculations } from '@/hooks/useWeightCalculations';
 
 const Weight = () => {
   const { profile } = useAuth();
@@ -27,78 +29,34 @@ const Weight = () => {
   // Check if there's an active period
   const currentPeriod = getCurrentPeriod();
 
-  // Convert weight if needed based on measurement unit
-  const convertWeight = (weight: number) => {
-    if (!weight) return 0;
-    return isImperial ? weight * 2.20462 : weight;
-  };
-
-  const getLatestWeight = () => {
-    if (weighIns.length === 0) return null;
-    return weighIns[0];
-  };
-
-  const getLowestWeight = () => {
-    if (weighIns.length === 0) return null;
-    return weighIns.reduce((lowest, current) => 
-      current.weight < lowest.weight ? current : lowest
-    , weighIns[0]);
-  };
-
-  const calculateWeightChange = (days: number) => {
-    if (weighIns.length < 2) return null;
-    
-    const latestWeight = weighIns[0];
-    const latestDate = new Date(latestWeight.date);
-    
-    const targetDate = new Date(latestDate);
-    targetDate.setDate(targetDate.getDate() - days);
-    
-    let closestPreviousWeighIn = null;
-    
-    for (let i = 1; i < weighIns.length; i++) {
-      const weighInDate = new Date(weighIns[i].date);
-      if (weighInDate <= targetDate || i === weighIns.length - 1) {
-        closestPreviousWeighIn = weighIns[i];
-        break;
-      }
-    }
-    
-    if (!closestPreviousWeighIn) return null;
-    
-    return {
-      value: (convertWeight(latestWeight.weight) - convertWeight(closestPreviousWeighIn.weight)).toFixed(1),
-      days: Math.round((latestDate.getTime() - new Date(closestPreviousWeighIn.date).getTime()) / (1000 * 60 * 60 * 24))
-    };
-  };
-
-  const onAddWeight = (weight: number, date: Date) => {
-    // Convert from lbs to kg if using imperial
-    const weightInKg = isImperial ? weight / 2.20462 : weight;
-    addWeighIn({ weight: weightInKg, date });
-    setIsModalOpen(false);
-  };
+  const { convertWeight, getLatestWeight, calculateWeightChange } = useWeightCalculations(weighIns, isImperial);
 
   const latestWeight = getLatestWeight();
-  const lowestWeight = getLowestWeight();
   
-  // Get starting weight from current period
+  // Calculate weights and changes
   const periodStartWeight = currentPeriod ? convertWeight(currentPeriod.startWeight) : 0;
   const currentWeight = latestWeight ? convertWeight(latestWeight.weight) : 0;
   
-  // Calculate total change since period start
   const totalPeriodChange = currentWeight && periodStartWeight
     ? (currentWeight - periodStartWeight).toFixed(1)
     : "0.0";
   const isWeightLoss = Number(totalPeriodChange) < 0;
-  
-  // Previous change calculations
-  const change7Days = calculateWeightChange(7);
-  const change30Days = calculateWeightChange(30);
-  const change90Days = calculateWeightChange(90);
-  const changeAllTime = weighIns.length >= 2 ? {
-    value: (convertWeight(weighIns[0].weight) - convertWeight(weighIns[weighIns.length - 1].weight)).toFixed(1)
-  } : null;
+
+  // Calculate changes for different time periods
+  const changes = {
+    days7: calculateWeightChange(7),
+    days30: calculateWeightChange(30),
+    days90: calculateWeightChange(90),
+    allTime: weighIns.length >= 2 ? {
+      value: (convertWeight(weighIns[0].weight) - convertWeight(weighIns[weighIns.length - 1].weight)).toFixed(1)
+    } : null
+  };
+
+  const onAddWeight = (weight: number, date: Date) => {
+    const weightInKg = isImperial ? weight / 2.20462 : weight;
+    addWeighIn({ weight: weightInKg, date });
+    setIsModalOpen(false);
+  };
 
   if (isLoading || periodsLoading) {
     return (
@@ -135,59 +93,19 @@ const Weight = () => {
           </div>
         ) : (
           <>
-            {/* Top Stats Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <WeightStatsCard 
-                value={periodStartWeight}
-                label="Starting Weight"
-                unit={weightUnit}
-              />
-              <WeightStatsCard 
-                value={currentWeight}
-                label="Current Weight"
-                unit={weightUnit}
-              />
-              <WeightStatsCard 
-                value={Math.abs(Number(totalPeriodChange))}
-                label={`${isWeightLoss ? 'Lost' : 'Gained'} This Period`}
-                unit={weightUnit}
-                isNegative={!isWeightLoss}
-              />
-            </div>
+            <WeightPeriodStats
+              periodStartWeight={periodStartWeight}
+              currentWeight={currentWeight}
+              totalPeriodChange={totalPeriodChange}
+              isWeightLoss={isWeightLoss}
+              weightUnit={weightUnit}
+            />
 
-            {/* Middle Stats Cards */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              <WeightStatsCard 
-                value={change7Days ? Math.abs(Number(change7Days.value)) : 0}
-                label={`${Number(change7Days?.value || 0) < 0 ? 'Lost' : 'Gained'} in 7 days`}
-                isCompact
-                isNegative={change7Days ? Number(change7Days.value) >= 0 : false}
-                unit={weightUnit}
-              />
-              <WeightStatsCard 
-                value={change30Days ? Math.abs(Number(change30Days.value)) : 0}
-                label={`${Number(change30Days?.value || 0) < 0 ? 'Lost' : 'Gained'} in 30 days`}
-                isCompact
-                isNegative={change30Days ? Number(change30Days.value) >= 0 : false}
-                unit={weightUnit}
-              />
-              <WeightStatsCard 
-                value={change90Days ? Math.abs(Number(change90Days.value)) : 0}
-                label={`${Number(change90Days?.value || 0) < 0 ? 'Lost' : 'Gained'} in 90 days`}
-                isCompact
-                isNegative={change90Days ? Number(change90Days.value) >= 0 : false}
-                unit={weightUnit}
-              />
-              <WeightStatsCard 
-                value={changeAllTime ? Math.abs(Number(changeAllTime.value)) : 0}
-                label={`${Number(changeAllTime?.value || 0) < 0 ? 'Lost' : 'Gained'} all time`}
-                isCompact
-                isNegative={changeAllTime ? Number(changeAllTime.value) >= 0 : false}
-                unit={weightUnit}
-              />
-            </div>
+            <WeightChangeStats
+              changes={changes}
+              weightUnit={weightUnit}
+            />
 
-            {/* Weight Chart */}
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <WeightChart 
@@ -197,7 +115,6 @@ const Weight = () => {
               </CardContent>
             </Card>
 
-            {/* Add Weight Button */}
             <Button 
               className="w-full py-6" 
               variant="default" 
@@ -210,7 +127,6 @@ const Weight = () => {
         )}
       </div>
 
-      {/* Weight Entry Modal */}
       <WeightEntryModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
