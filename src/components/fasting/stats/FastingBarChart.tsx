@@ -10,12 +10,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-
-interface ChartDataItem {
-  day: string;
-  fasting: number;
-  eating: number;
-}
+import { ChartDataItem } from './chartData';
 
 interface FastingBarChartProps {
   chartData: ChartDataItem[];
