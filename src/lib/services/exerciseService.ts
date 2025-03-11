@@ -83,3 +83,27 @@ export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
     averageHeartRate: data.average_heart_rate || undefined
   };
 }
+
+export async function deleteExerciseLog(id: string) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('exercise_logs')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', session.user.id);
+
+  if (error) {
+    console.error('Error deleting exercise log:', error);
+    throw error;
+  }
+
+  return true;
+}
+
+// For future Strava API integration
+export async function fetchStravaActivities() {
+  // This will be implemented when we add the Strava API edge function
+  return [];
+}
