@@ -24,7 +24,7 @@ const Exercise = () => {
 
   return (
     <Layout>
-      <div className="container max-w-7xl py-6 space-y-6">
+      <div className="container max-w-7xl py-6 space-y-6 mt-16">
         <ExercisePageHeader />
         
         <div className="flex justify-between items-center">
