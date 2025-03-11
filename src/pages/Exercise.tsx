@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -64,20 +63,6 @@ const Exercise = () => {
             <ExerciseGoals />
           </TabsContent>
         </Tabs>
-
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Recent Activities</h2>
-          </div>
-          <ExerciseTable 
-            exerciseLogs={exerciseLogs}
-            isLoading={isLoading}
-            onDelete={deleteExerciseLog}
-            timeFilter={timeFilter}
-            onTimeFilterChange={setTimeFilter}
-            showTimeFilter={false}
-          />
-        </div>
 
         <ExerciseEntryModal
           isOpen={isEntryModalOpen}
