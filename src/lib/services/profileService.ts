@@ -17,16 +17,53 @@ export async function getProfile() {
     return null;
   }
 
-  return data;
+  // Transform snake_case DB fields to camelCase for our frontend types
+  if (data) {
+    const transformedData: User = {
+      id: data.id,
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+      email: session.user.email || '',
+      birthDate: data.birth_date ? new Date(data.birth_date) : new Date(),
+      gender: data.gender as 'male' | 'female' | 'other' || 'other',
+      height: data.height || 0,
+      currentWeight: data.current_weight || 0,
+      targetWeight: data.target_weight || 0,
+      fitnessLevel: data.fitness_level as 'sedentary' | 'light' | 'moderate' | 'active' || 'moderate',
+      weightLossPerWeek: data.weight_loss_per_week || 0,
+      exerciseMinutesPerDay: data.exercise_minutes_per_day || 0,
+      healthGoals: data.health_goals || '',
+      measurementUnit: data.measurement_unit as 'imperial' | 'metric' || 'metric',
+      firstName: data.first_name || '',
+      lastName: data.last_name || ''
+    };
+    return transformedData;
+  }
+
+  return null;
 }
 
 export async function updateProfile(profileData: Partial<User>) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  // Convert camelCase to snake_case for DB
+  const dbProfileData: any = {};
+  if (profileData.firstName !== undefined) dbProfileData.first_name = profileData.firstName;
+  if (profileData.lastName !== undefined) dbProfileData.last_name = profileData.lastName;
+  if (profileData.birthDate !== undefined) dbProfileData.birth_date = profileData.birthDate.toISOString().split('T')[0];
+  if (profileData.gender !== undefined) dbProfileData.gender = profileData.gender;
+  if (profileData.height !== undefined) dbProfileData.height = profileData.height;
+  if (profileData.currentWeight !== undefined) dbProfileData.current_weight = profileData.currentWeight;
+  if (profileData.targetWeight !== undefined) dbProfileData.target_weight = profileData.targetWeight;
+  if (profileData.fitnessLevel !== undefined) dbProfileData.fitness_level = profileData.fitnessLevel;
+  if (profileData.weightLossPerWeek !== undefined) dbProfileData.weight_loss_per_week = profileData.weightLossPerWeek;
+  if (profileData.exerciseMinutesPerDay !== undefined) dbProfileData.exercise_minutes_per_day = profileData.exerciseMinutesPerDay;
+  if (profileData.healthGoals !== undefined) dbProfileData.health_goals = profileData.healthGoals;
+  if (profileData.measurementUnit !== undefined) dbProfileData.measurement_unit = profileData.measurementUnit;
+
   const { data, error } = await supabase
     .from('profiles')
-    .update(profileData)
+    .update(dbProfileData)
     .eq('id', session.user.id)
     .select()
     .single();
@@ -36,5 +73,6 @@ export async function updateProfile(profileData: Partial<User>) {
     throw error;
   }
 
-  return data;
+  // Transform response back to our frontend type
+  return getProfile();
 }

@@ -110,11 +110,11 @@ const Dashboard = () => {
   }
 
   // Calculate progress percentage if we have the data
-  const weightProgress = profile?.current_weight && profile?.target_weight
+  const weightProgress = profile?.currentWeight && profile?.targetWeight
     ? getProgressPercentage(
-        profile.current_weight,
-        profile.current_weight + 10, // assuming starting weight was 10 more
-        profile.target_weight
+        profile.currentWeight,
+        profile.currentWeight + 10, // assuming starting weight was 10 more
+        profile.targetWeight
       )
     : 0;
 
@@ -138,7 +138,7 @@ const Dashboard = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 pt-24 pb-12">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold">Hello, {profile?.first_name || 'there'}</h1>
+          <h1 className="text-3xl font-bold">Hello, {profile?.firstName || 'there'}</h1>
           <p className="text-muted-foreground">Here's an overview of your health journey</p>
         </header>
 
@@ -156,8 +156,8 @@ const Dashboard = () => {
                     percentage={weightProgress} 
                     size={140} 
                     label="PROGRESS"
-                    valueLabel={profile?.current_weight && profile?.target_weight
-                      ? `-${(profile.current_weight + 10 - profile.current_weight).toFixed(1)} kg`
+                    valueLabel={profile?.currentWeight && profile?.targetWeight
+                      ? `-${(profile.currentWeight + 10 - profile.currentWeight).toFixed(1)} kg`
                       : 'No data'
                     }
                   />
@@ -165,14 +165,14 @@ const Dashboard = () => {
                 <div className="flex flex-col justify-center">
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground mb-1">CURRENT WEIGHT</div>
-                    <div className="text-4xl font-bold">{profile?.current_weight || '?'}</div>
+                    <div className="text-4xl font-bold">{profile?.currentWeight || '?'}</div>
                     <div className="text-xs text-muted-foreground mt-1">kg</div>
                   </div>
                 </div>
                 <div className="flex flex-col justify-center">
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground mb-1">TARGET WEIGHT</div>
-                    <div className="text-4xl font-bold">{profile?.target_weight || '?'}</div>
+                    <div className="text-4xl font-bold">{profile?.targetWeight || '?'}</div>
                     <div className="text-xs text-muted-foreground mt-1">kg</div>
                   </div>
                 </div>
@@ -180,8 +180,8 @@ const Dashboard = () => {
                   <div className="text-center">
                     <div className="text-xs text-muted-foreground mb-1">REMAINING</div>
                     <div className="text-4xl font-bold">
-                      {profile?.current_weight && profile?.target_weight
-                        ? (profile.current_weight - profile.target_weight).toFixed(1)
+                      {profile?.currentWeight && profile?.targetWeight
+                        ? (profile.currentWeight - profile.targetWeight).toFixed(1)
                         : '?'
                       }
                     </div>

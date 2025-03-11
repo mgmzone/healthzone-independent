@@ -23,7 +23,15 @@ export async function getFastingLogs(limit?: number) {
     return [];
   }
 
-  return data;
+  // Transform snake_case DB fields to camelCase for our frontend types
+  return data.map(item => ({
+    id: item.id,
+    userId: item.user_id,
+    startTime: new Date(item.start_time),
+    endTime: item.end_time ? new Date(item.end_time) : undefined,
+    fastingHours: item.fasting_hours || undefined,
+    eatingWindowHours: item.eating_window_hours || undefined
+  }));
 }
 
 export async function getCurrentFasting() {
@@ -44,7 +52,17 @@ export async function getCurrentFasting() {
     return null;
   }
 
-  return data;
+  if (!data) return null;
+
+  // Transform snake_case DB fields to camelCase for our frontend types
+  return {
+    id: data.id,
+    userId: data.user_id,
+    startTime: new Date(data.start_time),
+    endTime: data.end_time ? new Date(data.end_time) : undefined,
+    fastingHours: data.fasting_hours || undefined,
+    eatingWindowHours: data.eating_window_hours || undefined
+  };
 }
 
 export async function startFasting() {
@@ -53,12 +71,10 @@ export async function startFasting() {
 
   const { data, error } = await supabase
     .from('fasting_logs')
-    .insert([
-      {
-        user_id: session.user.id,
-        start_time: new Date()
-      }
-    ])
+    .insert({
+      user_id: session.user.id,
+      start_time: new Date().toISOString()
+    })
     .select()
     .single();
 
@@ -67,7 +83,15 @@ export async function startFasting() {
     throw error;
   }
 
-  return data;
+  // Transform the response to our frontend type
+  return {
+    id: data.id,
+    userId: data.user_id,
+    startTime: new Date(data.start_time),
+    endTime: data.end_time ? new Date(data.end_time) : undefined,
+    fastingHours: data.fasting_hours || undefined,
+    eatingWindowHours: data.eating_window_hours || undefined
+  };
 }
 
 export async function endFasting(fastingId: string) {
@@ -90,7 +114,7 @@ export async function endFasting(fastingId: string) {
   const { data, error } = await supabase
     .from('fasting_logs')
     .update({
-      end_time: endTime,
+      end_time: endTime.toISOString(),
       fasting_hours: parseFloat(fastingHours.toFixed(2)),
       eating_window_hours: parseFloat(eatingWindowHours.toFixed(2))
     })
@@ -104,5 +128,13 @@ export async function endFasting(fastingId: string) {
     throw error;
   }
 
-  return data;
+  // Transform the response to our frontend type
+  return {
+    id: data.id,
+    userId: data.user_id,
+    startTime: new Date(data.start_time),
+    endTime: data.end_time ? new Date(data.end_time) : undefined,
+    fastingHours: data.fasting_hours || undefined,
+    eatingWindowHours: data.eating_window_hours || undefined
+  };
 }

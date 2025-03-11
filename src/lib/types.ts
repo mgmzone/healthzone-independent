@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -13,6 +12,8 @@ export interface User {
   exerciseMinutesPerDay: number;
   healthGoals: string;
   measurementUnit: 'imperial' | 'metric';
+  firstName: string;
+  lastName: string;
 }
 
 export interface Period {
@@ -87,6 +88,8 @@ export const mockUser: User = {
   exerciseMinutesPerDay: 30,
   healthGoals: 'Lose weight and improve overall fitness',
   measurementUnit: 'metric',
+  firstName: 'John',
+  lastName: 'Doe',
 };
 
 export const mockWeighIns: WeighIn[] = [

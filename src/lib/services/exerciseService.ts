@@ -23,21 +23,43 @@ export async function getExerciseLogs(limit?: number) {
     return [];
   }
 
-  return data;
+  // Transform snake_case DB fields to camelCase for our frontend types
+  return data.map(item => ({
+    id: item.id,
+    userId: item.user_id,
+    date: new Date(item.date),
+    type: item.type as 'walk' | 'run' | 'bike' | 'elliptical' | 'other',
+    minutes: item.minutes,
+    intensity: item.intensity as 'low' | 'medium' | 'high',
+    steps: item.steps || undefined,
+    distance: item.distance || undefined,
+    lowestHeartRate: item.lowest_heart_rate || undefined,
+    highestHeartRate: item.highest_heart_rate || undefined,
+    averageHeartRate: item.average_heart_rate || undefined
+  }));
 }
 
 export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  // Convert camelCase to snake_case for DB and Date to string
+  const dbData = {
+    user_id: session.user.id,
+    date: exerciseData.date ? exerciseData.date.toISOString() : new Date().toISOString(),
+    type: exerciseData.type || 'walk',
+    minutes: exerciseData.minutes || 0,
+    intensity: exerciseData.intensity || 'medium',
+    steps: exerciseData.steps,
+    distance: exerciseData.distance,
+    lowest_heart_rate: exerciseData.lowestHeartRate,
+    highest_heart_rate: exerciseData.highestHeartRate,
+    average_heart_rate: exerciseData.averageHeartRate
+  };
+
   const { data, error } = await supabase
     .from('exercise_logs')
-    .insert([
-      {
-        user_id: session.user.id,
-        ...exerciseData
-      }
-    ])
+    .insert(dbData)
     .select()
     .single();
 
@@ -46,5 +68,18 @@ export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
     throw error;
   }
 
-  return data;
+  // Transform the response to our frontend type
+  return {
+    id: data.id,
+    userId: data.user_id,
+    date: new Date(data.date),
+    type: data.type as 'walk' | 'run' | 'bike' | 'elliptical' | 'other',
+    minutes: data.minutes,
+    intensity: data.intensity as 'low' | 'medium' | 'high',
+    steps: data.steps || undefined,
+    distance: data.distance || undefined,
+    lowestHeartRate: data.lowest_heart_rate || undefined,
+    highestHeartRate: data.highest_heart_rate || undefined,
+    averageHeartRate: data.average_heart_rate || undefined
+  };
 }
