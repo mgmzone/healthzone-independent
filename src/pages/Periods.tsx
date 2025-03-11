@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,9 @@ import { getProgressPercentage } from '@/lib/types';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
-  getDaysRemaining 
+  getDaysRemaining,
+  getWeeksInPeriod,
+  getMonthsInPeriod
 } from '@/lib/utils/dateUtils';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
@@ -28,13 +29,11 @@ const Periods = () => {
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
-  // Convert weight if needed based on measurement unit
   const convertWeight = (weight: number) => {
     if (!weight) return 0;
     return isImperial ? weight * 2.20462 : weight;
   };
 
-  // Get the latest weight
   const getLatestWeight = () => {
     if (weighIns.length === 0) return null;
     return convertWeight(weighIns[0].weight);
@@ -43,14 +42,12 @@ const Periods = () => {
   const latestWeight = getLatestWeight();
   const currentPeriod = getCurrentPeriod();
 
-  // Check if the user needs to create their first period
   useEffect(() => {
     if (!periodsLoading && periods.length === 0) {
       setNeedsFirstPeriod(true);
     }
   }, [periodsLoading, periods]);
 
-  // Handler for saving a new period
   const handleSavePeriod = (periodData: {
     startWeight: number,
     targetWeight: number,
@@ -59,7 +56,6 @@ const Periods = () => {
     endDate?: Date,
     fastingSchedule: string
   }) => {
-    // Convert from imperial to metric if necessary
     const startWeight = isImperial ? periodData.startWeight / 2.20462 : periodData.startWeight;
     const targetWeight = isImperial ? periodData.targetWeight / 2.20462 : periodData.targetWeight;
     
@@ -73,7 +69,6 @@ const Periods = () => {
     setNeedsFirstPeriod(false);
   };
 
-  // Show loading state
   if (periodsLoading || weighInsLoading) {
     return (
       <Layout>
@@ -84,7 +79,6 @@ const Periods = () => {
     );
   }
 
-  // Calculate metrics for current period (if exists)
   const currentMetrics = currentPeriod ? {
     weightProgress: latestWeight
       ? getProgressPercentage(latestWeight, convertWeight(currentPeriod.startWeight), convertWeight(currentPeriod.targetWeight))
@@ -98,8 +92,8 @@ const Periods = () => {
       ? Math.abs(convertWeight(currentPeriod.startWeight) - latestWeight)
       : 0,
     weightDirection: latestWeight && latestWeight < convertWeight(currentPeriod.startWeight) 
-      ? 'lost' 
-      : 'gained'
+      ? 'lost' as const
+      : 'gained' as const
   } : null;
 
   return (
@@ -118,7 +112,6 @@ const Periods = () => {
           <>
             {!currentPeriod && <NoActivePeriodAlert />}
 
-            {/* Current Period Metrics Cards */}
             {currentPeriod && currentMetrics && (
               <PeriodMetricsCards
                 weightProgress={currentMetrics.weightProgress}
