@@ -34,8 +34,11 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     
     if (!closestPreviousWeighIn) return null;
     
+    // Use the same precision as totalPeriodChange
+    const changeValue = (convertWeight(latestWeight.weight) - convertWeight(closestPreviousWeighIn.weight));
+    
     return {
-      value: (convertWeight(latestWeight.weight) - convertWeight(closestPreviousWeighIn.weight)).toFixed(1),
+      value: changeValue.toFixed(1),
       days: Math.round((latestDate.getTime() - new Date(closestPreviousWeighIn.date).getTime()) / (1000 * 60 * 60 * 24))
     };
   };

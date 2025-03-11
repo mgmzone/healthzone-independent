@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,7 @@ const Weight = () => {
   const periodStartWeight = currentPeriod ? convertWeight(currentPeriod.startWeight) : 0;
   const currentWeight = latestWeight ? convertWeight(latestWeight.weight) : 0;
   
+  // Ensure consistent precision with toFixed(1)
   const totalPeriodChange = currentWeight && periodStartWeight
     ? (currentWeight - periodStartWeight).toFixed(1)
     : "0.0";
@@ -51,6 +51,7 @@ const Weight = () => {
     days30: calculateWeightChange(30),
     days90: calculateWeightChange(90),
     allTime: weighIns.length >= 2 ? {
+      // Make sure this also uses toFixed(1) for consistency
       value: (convertWeight(weighIns[0].weight) - convertWeight(weighIns[weighIns.length - 1].weight)).toFixed(1)
     } : null
   };
