@@ -21,6 +21,7 @@ interface PeriodEntryModalProps {
     targetWeight: number,
     type: 'weightLoss' | 'maintenance',
     startDate: Date,
+    endDate?: Date,
     fastingSchedule: string
   }) => void;
   defaultValues?: {
@@ -41,6 +42,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
   const [targetWeight, setTargetWeight] = useState<string>(defaultValues?.targetWeight?.toString() || '');
   const [type, setType] = useState<'weightLoss' | 'maintenance'>('weightLoss');
   const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [fastingSchedule, setFastingSchedule] = useState<string>('16:8');
   const { toast } = useToast();
   
@@ -68,11 +70,21 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       return;
     }
     
+    if (endDate && startDate > endDate) {
+      toast({
+        title: "Invalid date range",
+        description: "End date must be after start date",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     onSave({
       startWeight: startWeightValue,
       targetWeight: targetWeightValue,
       type,
       startDate,
+      endDate,
       fastingSchedule
     });
     
@@ -81,6 +93,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
     setTargetWeight('');
     setType('weightLoss');
     setStartDate(new Date());
+    setEndDate(undefined);
     setFastingSchedule('16:8');
   };
   
@@ -151,6 +164,34 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
                     selected={startDate}
                     onSelect={(date) => date && setStartDate(date)}
                     initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="endDate">End Date (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="endDate"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : <span>Select end date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    fromDate={startDate}
                   />
                 </PopoverContent>
               </Popover>

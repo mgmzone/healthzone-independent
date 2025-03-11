@@ -46,6 +46,7 @@ export function usePeriodsData() {
       targetWeight: number,
       type: 'weightLoss' | 'maintenance',
       startDate: Date,
+      endDate?: Date,
       fastingSchedule: string
     }) => {
       const { data, error } = await supabase
@@ -55,6 +56,7 @@ export function usePeriodsData() {
           target_weight: period.targetWeight,
           type: period.type,
           start_date: period.startDate.toISOString(),
+          end_date: period.endDate ? period.endDate.toISOString() : null,
           fasting_schedule: period.fastingSchedule,
           user_id: (await supabase.auth.getUser()).data.user?.id
         }])
