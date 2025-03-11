@@ -34,13 +34,55 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
   const birthDate = isValidDate ? formData.birthDate : new Date();
 
-  const handleCalendarSelect = (date: Date | undefined) => {
-    if (date) {
-      // Format date to YYYY-MM-DD string for the handler
-      const dateString = format(date, 'yyyy-MM-dd');
-      handleDateChange('birthDate', dateString);
+  // Generate year options for the dropdown (120 years back)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 120 }, (_, i) => currentYear - i);
+  
+  const birthYear = birthDate.getFullYear();
+  const birthMonth = birthDate.getMonth(); // 0-11
+  const birthDay = birthDate.getDate();
+  
+  // Update birth date when year, month, or day changes
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newYear = parseInt(e.target.value);
+    const newDate = new Date(birthDate);
+    newDate.setFullYear(newYear);
+    
+    // Check if the date is valid (handles leap years, etc.)
+    if (!isNaN(newDate.getTime())) {
+      handleDateChange('birthDate', newDate.toISOString().split('T')[0]);
     }
   };
+  
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMonth = parseInt(e.target.value);
+    const newDate = new Date(birthDate);
+    newDate.setMonth(newMonth);
+    
+    // Check if the date is valid
+    if (!isNaN(newDate.getTime())) {
+      handleDateChange('birthDate', newDate.toISOString().split('T')[0]);
+    }
+  };
+  
+  const handleDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newDay = parseInt(e.target.value);
+    const newDate = new Date(birthDate);
+    newDate.setDate(newDay);
+    
+    // Check if the date is valid
+    if (!isNaN(newDate.getTime())) {
+      handleDateChange('birthDate', newDate.toISOString().split('T')[0]);
+    }
+  };
+  
+  // Generate days based on month and year (accounting for leap years)
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+  
+  const daysInMonth = isValidDate ? getDaysInMonth(birthYear, birthMonth) : 31;
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   return (
     <TabsContent value="personal" className="space-y-4">
@@ -79,30 +121,53 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="birthDate">Birth Date</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              id="birthDate"
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !isValidDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {isValidDate ? format(birthDate, 'PPP') : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={birthDate}
-              onSelect={handleCalendarSelect}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <Select value={birthMonth.toString()} onValueChange={(value) => handleMonthChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">January</SelectItem>
+                <SelectItem value="1">February</SelectItem>
+                <SelectItem value="2">March</SelectItem>
+                <SelectItem value="3">April</SelectItem>
+                <SelectItem value="4">May</SelectItem>
+                <SelectItem value="5">June</SelectItem>
+                <SelectItem value="6">July</SelectItem>
+                <SelectItem value="7">August</SelectItem>
+                <SelectItem value="8">September</SelectItem>
+                <SelectItem value="9">October</SelectItem>
+                <SelectItem value="10">November</SelectItem>
+                <SelectItem value="11">December</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select value={birthDay.toString()} onValueChange={(value) => handleDayChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Day" />
+              </SelectTrigger>
+              <SelectContent>
+                {days.map(day => (
+                  <SelectItem key={day} value={day.toString()}>{day}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select value={birthYear.toString()} onValueChange={(value) => handleYearChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent className="h-[200px] overflow-y-auto">
+                {years.map(year => (
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="gender">Gender</Label>
