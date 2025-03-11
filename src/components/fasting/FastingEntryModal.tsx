@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -18,13 +17,15 @@ interface FastingEntryModalProps {
     eatingWindowHours?: number;
   }) => void;
   initialFast?: FastingLog;
+  defaultFastingSchedule?: string;
 }
 
 const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  initialFast
+  initialFast,
+  defaultFastingSchedule = '16:8'
 }) => {
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [startTime, setStartTime] = useState<string>("08:00");
@@ -57,17 +58,18 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
       setStartDate(now);
       setStartTime(format(now, 'HH:mm'));
       
-      const end = addHours(now, 16);
+      const [fastHours, eatHours] = defaultFastingSchedule.split(':').map(Number);
+      setFastingHours(fastHours.toString());
+      setEatingWindowHours(eatHours.toString());
+      
+      const end = addHours(now, fastHours);
       setEndDate(end);
       setEndTime(format(end, 'HH:mm'));
       
-      setFastingHours("16");
-      setEatingWindowHours("8");
       setIsAutoCalculate(true);
     }
-  }, [initialFast, isOpen]);
+  }, [initialFast, isOpen, defaultFastingSchedule]);
 
-  // Calculate fasting hours based on start and end times
   const calculateFastingHours = () => {
     if (!endDate || !endTime || !startDate || !startTime) return;
     
@@ -81,10 +83,8 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
     
     if (endDateTime <= startDateTime) return;
     
-    // Calculate hours as a whole number
     const hours = differenceInHours(endDateTime, startDateTime);
     
-    // Calculate the remaining seconds and convert to decimal hours
     const totalSeconds = differenceInSeconds(endDateTime, startDateTime);
     const hourSeconds = hours * 3600;
     const remainingSeconds = totalSeconds - hourSeconds;
@@ -96,7 +96,6 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
     }
   };
 
-  // Update calculations when dates/times change
   useEffect(() => {
     if (isAutoCalculate && endDate && endTime) {
       calculateFastingHours();

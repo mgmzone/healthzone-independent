@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import { useFastingData } from '@/hooks/useFastingData';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
 import FastingTimer from '@/components/fasting/FastingTimer';
 import FastingStats from '@/components/fasting/FastingStats';
 import FastingTable from '@/components/fasting/FastingTable';
@@ -15,6 +16,7 @@ import { Loader2 } from "lucide-react";
 const Fasting = () => {
   const { profile } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { getCurrentPeriod } = usePeriodsData();
   const { 
     fastingLogs, 
     isLoading, 
@@ -27,6 +29,7 @@ const Fasting = () => {
   } = useFastingData();
   
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'year'>('week');
+  const currentPeriod = getCurrentPeriod();
 
   if (isLoading) {
     return (
@@ -90,6 +93,7 @@ const Fasting = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={addFast}
+        defaultFastingSchedule={currentPeriod?.fastingSchedule}
       />
     </Layout>
   );
