@@ -9,7 +9,8 @@ import {
   YAxis, 
   CartesianGrid, 
   ResponsiveContainer,
-  Tooltip
+  Tooltip,
+  Legend
 } from 'recharts';
 
 interface FastingStatsProps {
@@ -82,7 +83,11 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       ];
       
       // Initialize data with 0 hours
-      const data = orderedDays.map(day => ({ day, hours: 0 }));
+      const data = orderedDays.map(day => ({ 
+        day, 
+        fasting: 0,
+        eating: 24 // Default to 24 hours eating
+      }));
       
       // Fill in actual hours from logs
       fastingLogs.forEach(log => {
@@ -97,18 +102,21 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         const dayIndex = data.findIndex(d => d.day === days[startTime.getDay()]);
         if (dayIndex !== -1) {
           const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
-          data[dayIndex].hours += fastDurationInHours;
+          data[dayIndex].fasting = Math.min(fastDurationInHours, 24);
+          data[dayIndex].eating = Math.max(24 - fastDurationInHours, 0);
         }
       });
       
       return data;
     } else if (timeFilter === 'month') {
-      // Group by week for month view
       const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-      const data = weeks.map(week => ({ day: week, hours: 0 }));
+      const data = weeks.map(week => ({ 
+        day: week, 
+        fasting: 0,
+        eating: 24
+      }));
       
       // Fill in actual hours from logs
-      // This is simplified - in a real app you'd need to determine the actual week number
       const now = new Date();
       fastingLogs.forEach(log => {
         if (!log.endTime) return;
@@ -119,20 +127,23 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         // Only include logs from the past month
         if (startTime < subMonths(now, 1)) return;
         
-        // Very simple week calculation
         const dayOfMonth = startTime.getDate();
         let weekIndex = Math.floor((dayOfMonth - 1) / 7);
-        if (weekIndex > 3) weekIndex = 3; // Cap at 4 weeks
+        if (weekIndex > 3) weekIndex = 3;
         
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
-        data[weekIndex].hours += fastDurationInHours;
+        data[weekIndex].fasting += fastDurationInHours;
+        data[weekIndex].eating = Math.max(24 - data[weekIndex].fasting, 0);
       });
       
       return data;
     } else {
-      // Group by month for year view
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const data = months.map(month => ({ day: month, hours: 0 }));
+      const data = months.map(month => ({ 
+        day: month, 
+        fasting: 0,
+        eating: 24
+      }));
       
       // Fill in actual hours from logs
       const now = new Date();
@@ -147,7 +158,8 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         
         const monthIndex = startTime.getMonth();
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
-        data[monthIndex].hours += fastDurationInHours;
+        data[monthIndex].fasting += fastDurationInHours;
+        data[monthIndex].eating = Math.max(24 - data[monthIndex].fasting, 0);
       });
       
       return data;
@@ -190,7 +202,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+            margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis 
@@ -205,15 +217,29 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
               tickFormatter={(value) => `${value}h`}
               fontSize={12}
               width={30}
+              domain={[0, 24]}
             />
             <Tooltip 
-              formatter={(value) => [`${value} hours`, 'Fasting time']}
+              formatter={(value, name) => [
+                `${Math.round(Number(value))} hours`, 
+                name === 'fasting' ? 'Fasting Time' : 'Eating Time'
+              ]}
               labelFormatter={(label) => `${label}`}
             />
+            <Legend />
             <Bar 
-              dataKey="hours" 
+              dataKey="fasting" 
+              name="Fasting Time"
+              stackId="a"
               fill="#3b82f6" 
-              radius={[4, 4, 0, 0]} 
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar 
+              dataKey="eating" 
+              name="Eating Time"
+              stackId="a"
+              fill="#ef4444"
+              radius={[0, 0, 4, 4]}
             />
           </BarChart>
         </ResponsiveContainer>
