@@ -59,21 +59,21 @@ const Fasting = () => {
             <FastingTimer activeFast={activeFast} onEndFast={endFast} />
           </div>
           <div className="lg:col-span-2">
-            <Card className="p-6 h-full">
+            <Card className="p-6">
               <h2 className="text-xl font-semibold mb-4">Fasting Statistics</h2>
-              <Tabs defaultValue="week" className="w-full h-full">
+              <Tabs defaultValue="week" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 mb-4">
                   <TabsTrigger value="week" onClick={() => setTimeFilter('week')}>Week</TabsTrigger>
                   <TabsTrigger value="month" onClick={() => setTimeFilter('month')}>Month</TabsTrigger>
                   <TabsTrigger value="year" onClick={() => setTimeFilter('year')}>Year</TabsTrigger>
                 </TabsList>
-                <TabsContent value="week" className="mt-0 h-[calc(100%-50px)]">
+                <TabsContent value="week" className="mt-0">
                   <FastingStats fastingLogs={fastingLogs} timeFilter="week" />
                 </TabsContent>
-                <TabsContent value="month" className="mt-0 h-[calc(100%-50px)]">
+                <TabsContent value="month" className="mt-0">
                   <FastingStats fastingLogs={fastingLogs} timeFilter="month" />
                 </TabsContent>
-                <TabsContent value="year" className="mt-0 h-[calc(100%-50px)]">
+                <TabsContent value="year" className="mt-0">
                   <FastingStats fastingLogs={fastingLogs} timeFilter="year" />
                 </TabsContent>
               </Tabs>
@@ -86,7 +86,6 @@ const Fasting = () => {
           isLoading={isLoading}
           onUpdateFast={updateFast}
           onDeleteFast={deleteFast}
-          timeFilter={timeFilter}
         />
       </div>
 
