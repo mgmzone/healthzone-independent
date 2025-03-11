@@ -59,8 +59,20 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
   };
 
   const handleDistanceChange = (value: string) => {
+    // Remove any non-numeric characters except decimal point
     const numericValue = value.replace(/[^0-9.]/g, '');
-    let parsedValue = parseFloat(numericValue);
+    
+    // Don't attempt to parse empty strings
+    if (numericValue === '' || numericValue === '.') {
+      setFormData({
+        ...formData,
+        distance: undefined
+      });
+      return;
+    }
+    
+    // Parse the numeric value
+    const parsedValue = parseFloat(numericValue);
     
     if (isNaN(parsedValue)) {
       setFormData({
