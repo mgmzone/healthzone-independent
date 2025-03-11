@@ -18,6 +18,7 @@ const WeightStatsCard: React.FC<WeightStatsCardProps> = ({
   isCompact = false,
   isNegative = false
 }) => {
+  // Format the value without any additional rounding
   const formattedValue = value.toFixed(1);
   
   return (

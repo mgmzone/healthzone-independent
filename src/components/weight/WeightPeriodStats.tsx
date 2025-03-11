@@ -40,4 +40,3 @@ const WeightPeriodStats: React.FC<WeightPeriodStatsProps> = ({
 };
 
 export default WeightPeriodStats;
-

@@ -1,3 +1,4 @@
+
 import { WeighIn } from '@/lib/types';
 import { isWithinInterval, startOfWeek, startOfMonth, subDays } from 'date-fns';
 
@@ -15,8 +16,8 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
 
   // Ensure consistent formatting with exactly one decimal place
   const formatWeightValue = (value: number): string => {
-    // Round to exactly one decimal place
-    return (Math.round(value * 10) / 10).toFixed(1);
+    // We don't round here to avoid losing precision
+    return value.toFixed(1);
   };
 
   // Filter weighIns by specified time period
@@ -53,6 +54,7 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     
     // Get the earliest entry in the filtered range
     const earliestEntry = filteredEntries[filteredEntries.length - 1];
+    // Return the exact converted weight without rounding
     return convertWeight(earliestEntry.weight);
   };
 
@@ -102,10 +104,11 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     const latestWeightConverted = convertWeight(latestEntry.weight);
     const earliestWeightConverted = convertWeight(earliestEntry.weight);
     
-    const changeValue = formatWeightValue(latestWeightConverted - earliestWeightConverted);
+    // Calculate exact difference without rounding
+    const exactChange = latestWeightConverted - earliestWeightConverted;
     
     return {
-      value: changeValue,
+      value: exactChange.toFixed(1),
       days: Math.round((new Date(latestEntry.date).getTime() - new Date(earliestEntry.date).getTime()) / (1000 * 60 * 60 * 24))
     };
   };
