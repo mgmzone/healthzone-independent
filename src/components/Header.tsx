@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut } from 'lucide-react';
@@ -16,10 +15,8 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   
-  // Check if we're on the landing page
   const isLandingPage = location.pathname === '/';
   
-  // Handle scroll for transparent header
   useEffect(() => {
     const handleScroll = () => {
       const offset = window.scrollY;
@@ -62,7 +59,6 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {user ? (
             <>
@@ -111,7 +107,6 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
           )}
         </nav>
 
-        {/* Mobile Navigation Trigger */}
         <button 
           className="md:hidden p-2 focus:outline-none"
           onClick={() => setIsOpen(!isOpen)}
@@ -125,7 +120,6 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
         </button>
       </div>
 
-      {/* Mobile Navigation Menu */}
       {isOpen && (
         <div className="md:hidden absolute top-[60px] left-0 right-0 bg-background shadow-lg border-b border-border/40 animate-fade-in">
           <div className="p-4 space-y-3">
