@@ -22,6 +22,9 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
   const { profile } = useAuth();
   const isImperial = profile?.measurementUnit === 'imperial';
 
+  // State for the raw input string of distance (before conversion)
+  const [distanceInputValue, setDistanceInputValue] = useState<string>('');
+
   const [formData, setFormData] = useState<Partial<ExerciseLog>>(
     initialData || {
       date: new Date(),
@@ -35,6 +38,18 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
       averageHeartRate: undefined
     }
   );
+
+  // Initialize the distance input value when the modal opens with initial data
+  React.useEffect(() => {
+    if (initialData?.distance !== undefined) {
+      const displayValue = isImperial 
+        ? (initialData.distance * 0.621371).toString() 
+        : initialData.distance.toString();
+      setDistanceInputValue(displayValue);
+    } else {
+      setDistanceInputValue('');
+    }
+  }, [initialData, isImperial]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,15 +65,10 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
     onClose();
   };
 
-  const getDisplayDistance = () => {
-    if (formData.distance === undefined) return '';
-    if (isImperial) {
-      return (formData.distance * 0.621371).toFixed(2);
-    }
-    return formData.distance.toFixed(2);
-  };
-
   const handleDistanceChange = (value: string) => {
+    // Update the raw input value immediately for display
+    setDistanceInputValue(value);
+    
     // Handle empty input
     if (value === '') {
       setFormData({
@@ -69,20 +79,22 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
     }
     
     // Accept any valid number format including decimals
-    // This even allows formats like ".5" or "3."
     if (/^(\d*\.?\d*|\.\d+)$/.test(value)) {
-      // Only update state if there's an actual number to parse
-      if (value !== '.') {
-        const parsedValue = parseFloat(value);
-        
-        if (!isNaN(parsedValue)) {
-          setFormData({
-            ...formData,
-            distance: isImperial 
-              ? parsedValue / 0.621371 // Store as km internally
-              : parsedValue
-          });
-        }
+      // Let users type a decimal point without immediately parsing it
+      if (value === '.') {
+        // Just update the display value, not the actual distance yet
+        return;
+      }
+      
+      const parsedValue = parseFloat(value);
+      
+      if (!isNaN(parsedValue)) {
+        setFormData({
+          ...formData,
+          distance: isImperial 
+            ? parsedValue / 0.621371 // Store as km internally
+            : parsedValue
+        });
       }
     }
   };
@@ -99,7 +111,7 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
             formData={formData}
             setFormData={setFormData}
             isImperial={isImperial}
-            displayDistance={getDisplayDistance()}
+            displayDistance={distanceInputValue}
             handleDistanceChange={handleDistanceChange}
           />
           
