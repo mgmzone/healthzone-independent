@@ -21,7 +21,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
 
   return (
     <div className="flex flex-col h-full">
-      <div className="w-full h-full min-h-[280px]">
+      <div className="w-full h-full">
         <FastingBarChart chartData={chartData} />
       </div>
     </div>

@@ -18,20 +18,24 @@ const ActivitySummarySection: React.FC<ActivitySummarySectionProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Activity Minutes</h2>
-        <ExerciseSummary 
-          exerciseLogs={exerciseLogs}
-          isLoading={false}
-          timeFilter="week"
-          onTimeFilterChange={() => {}}
-        />
+        <div className="h-64">
+          <ExerciseSummary 
+            exerciseLogs={exerciseLogs}
+            isLoading={false}
+            timeFilter="week"
+            onTimeFilterChange={() => {}}
+          />
+        </div>
       </Card>
       
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Fasting Progress</h2>
-        <FastingStats 
-          fastingLogs={fastingLogs}
-          timeFilter="week"
-        />
+        <div className="h-64">
+          <FastingStats 
+            fastingLogs={fastingLogs}
+            timeFilter="week"
+          />
+        </div>
       </Card>
     </div>
   );
