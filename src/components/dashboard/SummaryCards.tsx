@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { ExerciseLog, FastingLog } from '@/lib/types';
+import { isWithinInterval, subWeeks } from 'date-fns';
 
 interface SummaryCardProps {
   title: string;
@@ -15,8 +17,8 @@ interface SummaryCardsProps {
   latestWeight: number | null;
   weightUnit: string;
   currentPeriod: any;
-  exerciseLogs: any[];
-  fastingLogs: any[];
+  exerciseLogs: ExerciseLog[];
+  fastingLogs: FastingLog[];
   getDaysRemaining: (date: Date) => number;
 }
 
@@ -28,9 +30,29 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   fastingLogs,
   getDaysRemaining
 }) => {
+  // Calculate average weekly exercise minutes
+  const calculateAverageWeeklyExercise = () => {
+    if (exerciseLogs.length === 0) return 0;
+    
+    const now = new Date();
+    const fourWeeksAgo = subWeeks(now, 4);
+    
+    // Filter logs from the last 4 weeks
+    const recentLogs = exerciseLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return isWithinInterval(logDate, { start: fourWeeksAgo, end: now });
+    });
+    
+    // Calculate total minutes
+    const totalMinutes = recentLogs.reduce((sum, log) => sum + log.minutes, 0);
+    
+    // Calculate weekly average (divide by 4 weeks)
+    return Math.round(totalMinutes / 4);
+  };
+
   const summaryCards: SummaryCardProps[] = [
     {
-      title: "Weight Progress",
+      title: "Current Weight",
       value: latestWeight ? `${latestWeight.toFixed(1)} ${weightUnit}` : "No data",
       icon: Scale,
       color: "#4287f5"
@@ -42,14 +64,14 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       color: "#f5a742"
     },
     {
-      title: "Exercise Minutes",
-      value: `${exerciseLogs.reduce((sum, log) => sum + log.minutes, 0)} mins`,
+      title: "Average Weekly Exercise",
+      value: `${calculateAverageWeeklyExercise()} mins`,
       icon: Activity,
       color: "#42f5ad"
     },
     {
       title: "Fasting Streaks",
-      value: `${fastingLogs.filter(log => log.endTime).length} fasts`,
+      value: `${fastingLogs.length} fasts`,
       icon: Timer,
       color: "#f542a7"
     }

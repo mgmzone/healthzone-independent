@@ -4,6 +4,8 @@ import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
+import { useFastingData } from '@/hooks/useFastingData';
+import { useExerciseData } from '@/hooks/useExerciseData';
 import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
@@ -21,6 +23,8 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const { periods, isLoading: periodsLoading, getCurrentPeriod } = usePeriodsData();
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
+  const { fastingLogs } = useFastingData();
+  const { exerciseLogs } = useExerciseData();
   
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
@@ -75,8 +79,8 @@ const Dashboard = () => {
             latestWeight={latestWeight}
             weightUnit={weightUnit}
             currentPeriod={currentPeriod}
-            exerciseLogs={[]}
-            fastingLogs={[]}
+            exerciseLogs={exerciseLogs}
+            fastingLogs={fastingLogs}
             getDaysRemaining={getDaysRemaining}
           />
 
