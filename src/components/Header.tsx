@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn } from 'lucide-react';
+import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
 
 interface HeaderProps {
   transparent?: boolean;
@@ -13,6 +14,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
   
   // Check if we're on the landing page
   const isLandingPage = location.pathname === '/';
@@ -62,25 +64,39 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          {!isLandingPage ? (
-            navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
+          {user ? (
+            <>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={cn(
+                    "flex items-center space-x-1 font-medium transition-colors hover:text-primary",
+                    (transparent && !scrolled) ? "text-white/90 hover:text-white" : "text-foreground/80 hover:text-foreground",
+                    location.pathname === link.path && "text-primary font-semibold"
+                  )}
+                >
+                  <link.icon className="h-4 w-4" />
+                  <span>{link.name}</span>
+                </Link>
+              ))}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={signOut}
                 className={cn(
-                  "flex items-center space-x-1 font-medium transition-colors hover:text-primary",
-                  (transparent && !scrolled) ? "text-white/90 hover:text-white" : "text-foreground/80 hover:text-foreground",
-                  location.pathname === link.path && "text-primary font-semibold"
+                  "flex items-center space-x-1",
+                  (transparent && !scrolled) ? "text-white/90 hover:text-white" : ""
                 )}
               >
-                <link.icon className="h-4 w-4" />
-                <span>{link.name}</span>
-              </Link>
-            ))
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            </>
           ) : (
             <>
               <Link 
-                to="/login" 
+                to="/auth" 
                 className={cn(
                   "font-medium transition-colors",
                   (transparent && !scrolled) ? "text-white/90 hover:text-white" : "text-foreground/80 hover:text-foreground"
@@ -89,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                 Login
               </Link>
               <Button asChild size="sm" className="rounded-full px-6">
-                <Link to="/signup">Sign Up</Link>
+                <Link to="/auth?tab=signup">Sign Up</Link>
               </Button>
             </>
           )}
@@ -113,27 +129,40 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
       {isOpen && (
         <div className="md:hidden absolute top-[60px] left-0 right-0 bg-background shadow-lg border-b border-border/40 animate-fade-in">
           <div className="p-4 space-y-3">
-            {!isLandingPage ? (
-              navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    "flex items-center space-x-2 p-3 rounded-md transition-colors",
-                    location.pathname === link.path 
-                      ? "bg-primary/10 text-primary font-medium" 
-                      : "hover:bg-secondary"
-                  )}
-                  onClick={() => setIsOpen(false)}
+            {user ? (
+              <>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={cn(
+                      "flex items-center space-x-2 p-3 rounded-md transition-colors",
+                      location.pathname === link.path 
+                        ? "bg-primary/10 text-primary font-medium" 
+                        : "hover:bg-secondary"
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <link.icon className="h-5 w-5" />
+                    <span>{link.name}</span>
+                  </Link>
+                ))}
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start p-3" 
+                  onClick={() => {
+                    signOut();
+                    setIsOpen(false);
+                  }}
                 >
-                  <link.icon className="h-5 w-5" />
-                  <span>{link.name}</span>
-                </Link>
-              ))
+                  <LogOut className="h-5 w-5 mr-2" />
+                  <span>Logout</span>
+                </Button>
+              </>
             ) : (
               <>
                 <Link
-                  to="/login"
+                  to="/auth"
                   className="flex items-center space-x-2 p-3 rounded-md transition-colors hover:bg-secondary"
                   onClick={() => setIsOpen(false)}
                 >
@@ -141,7 +170,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                   <span>Login</span>
                 </Link>
                 <Button asChild className="w-full justify-center rounded-md">
-                  <Link to="/signup" onClick={() => setIsOpen(false)}>
+                  <Link to="/auth?tab=signup" onClick={() => setIsOpen(false)}>
                     Sign Up
                   </Link>
                 </Button>
