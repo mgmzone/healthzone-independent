@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,7 @@ const Weight = () => {
   
   // Ensure consistent precision with toFixed(1)
   const totalPeriodChange = currentWeight && periodStartWeight
-    ? (currentWeight - periodStartWeight).toFixed(1)
+    ? parseFloat((currentWeight - periodStartWeight).toFixed(1)).toFixed(1)
     : "0.0";
   const isWeightLoss = Number(totalPeriodChange) < 0;
 

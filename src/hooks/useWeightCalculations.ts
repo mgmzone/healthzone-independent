@@ -37,7 +37,8 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     // Calculate the exact weight difference
     const latestWeightConverted = convertWeight(latestWeight.weight);
     const previousWeightConverted = convertWeight(closestPreviousWeighIn.weight);
-    const changeValue = latestWeightConverted - previousWeightConverted;
+    // Make sure to round to 1 decimal place for consistency
+    const changeValue = parseFloat((latestWeightConverted - previousWeightConverted).toFixed(1));
     
     return {
       value: changeValue.toFixed(1),
@@ -55,7 +56,8 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     // Calculate the exact weight difference
     const latestWeightConverted = convertWeight(latestWeight.weight);
     const firstWeightConverted = convertWeight(firstWeight.weight);
-    const changeValue = latestWeightConverted - firstWeightConverted;
+    // Make sure to round to 1 decimal place for consistency
+    const changeValue = parseFloat((latestWeightConverted - firstWeightConverted).toFixed(1));
     
     return changeValue.toFixed(1);
   };
