@@ -2,8 +2,9 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import ProgressCircle from '@/components/ProgressCircle';
-import { Period, WeighIn } from '@/lib/types';
+import { Period, WeighIn, FastingLog } from '@/lib/types';
 import WeightForecastChart from '@/components/charts/WeightForecastChart';
+import { differenceInSeconds } from 'date-fns';
 
 interface PeriodMetricsCardsProps {
   weightProgress: number;
@@ -18,6 +19,7 @@ interface PeriodMetricsCardsProps {
   weighIns: WeighIn[];
   currentPeriod?: Period;
   isImperial: boolean;
+  fastingLogs: FastingLog[];
 }
 
 const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
@@ -29,16 +31,41 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   weightUnit,
   weighIns,
   currentPeriod,
-  isImperial
+  isImperial,
+  fastingLogs
 }) => {
   // Format weight with 1 decimal place
   const formatWeight = (weight: number): string => {
     return weight.toFixed(1);
   };
 
+  // Calculate average daily fasting hours
+  const calculateAverageDailyFasting = (): { hours: number, percentage: number } => {
+    if (!fastingLogs.length) return { hours: 0, percentage: 0 };
+    
+    const completedLogs = fastingLogs.filter(log => log.endTime);
+    if (!completedLogs.length) return { hours: 0, percentage: 0 };
+    
+    const totalFastingSeconds = completedLogs.reduce((total, log) => {
+      const startTime = new Date(log.startTime);
+      const endTime = new Date(log.endTime!);
+      return total + differenceInSeconds(endTime, startTime);
+    }, 0);
+    
+    const averageHours = totalFastingSeconds / 3600 / completedLogs.length;
+    const percentage = (averageHours / 24) * 100;
+    
+    return {
+      hours: parseFloat(averageHours.toFixed(1)),
+      percentage: Math.min(100, percentage) // Cap at 100% for display purposes
+    };
+  };
+
+  const averageFasting = calculateAverageDailyFasting();
+
   return (
     <div className="grid grid-cols-1 gap-6 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Weight Progress</CardTitle>
@@ -70,6 +97,21 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
               strokeWidth={10}
               showPercentage={true}
               valueLabel={`${daysRemaining} days left`}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Average Daily Fasting</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center pt-0">
+            <ProgressCircle 
+              value={averageFasting.percentage}
+              size={120}
+              strokeWidth={10}
+              showPercentage={true}
+              valueLabel={`${averageFasting.hours}h per day`}
             />
           </CardContent>
         </Card>

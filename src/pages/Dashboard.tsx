@@ -103,6 +103,7 @@ const Dashboard = () => {
                   weighIns={weighIns}
                   currentPeriod={currentPeriod}
                   isImperial={isImperial}
+                  fastingLogs={fastingLogs}
                 />
               )}
             </>
