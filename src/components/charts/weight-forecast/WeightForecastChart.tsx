@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { 
   calculateChartData, 
   calculateWeightRange,
+  convertWeight,
+  formatDateForDisplay,
   WeeklyWeightData
 } from './weightForecastUtils';
 import CustomTooltip from './CustomTooltip';
@@ -21,13 +23,17 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   currentPeriod,
   isImperial 
 }) => {
-  const chartData = useMemo(() => {
+  const { chartData, targetDate } = useMemo(() => {
     return calculateChartData(weighIns, currentPeriod, isImperial);
   }, [weighIns, currentPeriod, isImperial]);
   
+  const targetWeight = useMemo(() => {
+    return currentPeriod ? convertWeight(currentPeriod.targetWeight, isImperial) : undefined;
+  }, [currentPeriod, isImperial]);
+  
   const { minWeight, maxWeight } = useMemo(() => {
-    return calculateWeightRange(chartData);
-  }, [chartData]);
+    return calculateWeightRange(chartData, targetWeight);
+  }, [chartData, targetWeight]);
 
   const today = new Date();
   
@@ -51,68 +57,108 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const projectedData = formattedData.filter(d => d.isProjected);
 
   return (
-    <div className="w-full h-[220px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-          <XAxis 
-            dataKey="dateValue" 
-            tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
-            tickLine={false}
-            axisLine={false}
-            tick={{ fontSize: 12 }}
-            minTickGap={30}
-            domain={['dataMin', 'dataMax']}
-            type="number"
-            allowDataOverflow={true}
-          />
-          <YAxis 
-            domain={[minWeight, maxWeight]} 
-            tickLine={false}
-            axisLine={false}
-            tick={{ fontSize: 12 }}
-            width={40}
-          />
-          <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
-          
-          {/* Reference line for today */}
-          <ReferenceLine x={today.getTime()} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" />
-          
-          {/* Actual weight line */}
-          <Line
-            type="monotone"
-            dataKey="weight"
-            data={actualData}
-            stroke="#6366F1"
-            strokeWidth={2}
-            dot={{ stroke: '#6366F1', strokeWidth: 2, r: 4, fill: 'white' }}
-            activeDot={{ r: 6, fill: '#6366F1' }}
-            connectNulls={true}
-            isAnimationActive={true}
-            animationDuration={1000}
-            name="Actual"
-          />
-          
-          {/* Projected weight line (dashed) */}
-          {projectedData.length > 0 && (
+    <>
+      <div className="w-full h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+            <XAxis 
+              dataKey="dateValue" 
+              tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
+              tickLine={false}
+              axisLine={false}
+              tick={{ fontSize: 12 }}
+              minTickGap={30}
+              domain={['dataMin', 'dataMax']}
+              type="number"
+              allowDataOverflow={true}
+            />
+            <YAxis 
+              domain={[minWeight, maxWeight]} 
+              tickLine={false}
+              axisLine={false}
+              tick={{ fontSize: 12 }}
+              width={40}
+            />
+            <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
+            
+            {/* Reference line for today */}
+            <ReferenceLine x={today.getTime()} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" label={{ value: 'Today', position: 'insideBottomRight', fill: '#10B981', fontSize: 10 }} />
+            
+            {/* Target weight horizontal reference line */}
+            {targetWeight && (
+              <ReferenceLine 
+                y={targetWeight} 
+                stroke="#F59E0B" 
+                strokeWidth={1} 
+                strokeDasharray="3 3" 
+                label={{ 
+                  value: `Target: ${targetWeight.toFixed(1)}`, 
+                  position: 'right', 
+                  fill: '#F59E0B',
+                  fontSize: 10
+                }} 
+              />
+            )}
+            
+            {/* Target date vertical reference line (if projection reaches target) */}
+            {targetDate && (
+              <ReferenceLine 
+                x={targetDate.getTime()} 
+                stroke="#F59E0B" 
+                strokeWidth={1} 
+                strokeDasharray="3 3" 
+                label={{ 
+                  value: 'Target date', 
+                  position: 'insideTopRight', 
+                  fill: '#F59E0B',
+                  fontSize: 10
+                }} 
+              />
+            )}
+            
+            {/* Actual weight line */}
             <Line
               type="monotone"
               dataKey="weight"
-              data={projectedData}
-              stroke="#3B82F6"
+              data={actualData}
+              stroke="#6366F1"
               strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 3, fill: 'white' }}
-              activeDot={{ r: 6, fill: '#3B82F6' }}
+              dot={{ stroke: '#6366F1', strokeWidth: 2, r: 4, fill: 'white' }}
+              activeDot={{ r: 6, fill: '#6366F1' }}
+              connectNulls={true}
               isAnimationActive={true}
               animationDuration={1000}
-              name="Projected"
-              connectNulls={true}
+              name="Actual"
             />
-          )}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+            
+            {/* Projected weight line (dashed) */}
+            {projectedData.length > 0 && (
+              <Line
+                type="monotone"
+                dataKey="weight"
+                data={projectedData}
+                stroke="#3B82F6"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 3, fill: 'white' }}
+                activeDot={{ r: 6, fill: '#3B82F6' }}
+                isAnimationActive={true}
+                animationDuration={1000}
+                name="Projected"
+                connectNulls={true}
+              />
+            )}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      
+      {targetDate && (
+        <div className="text-xs text-muted-foreground mt-2 text-center">
+          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateForDisplay(targetDate)}</span>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -1,33 +1,38 @@
 
 import React from 'react';
+import { TooltipProps } from 'recharts';
 import { format } from 'date-fns';
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: any[];
-  label?: string;
+interface ChartData {
+  formattedDate: string;
+  weight: number;
+  isProjected: boolean;
+}
+
+interface CustomTooltipProps extends TooltipProps<number, string> {
   isImperial: boolean;
 }
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ 
-  active, 
-  payload, 
-  label,
-  isImperial 
-}) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-white p-2 border border-gray-200 rounded shadow-sm">
-        <p className="font-medium">{`${payload[0].value.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}`}</p>
-        <p className="text-xs text-gray-500">{format(new Date(data.date), 'MMM d, yyyy')}</p>
-        {data.isProjected && (
-          <p className="text-xs text-blue-500">Projected</p>
-        )}
-      </div>
-    );
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isImperial }) => {
+  if (!active || !payload || payload.length === 0) {
+    return null;
   }
-  return null;
+
+  const data = payload[0].payload as ChartData;
+  const unit = isImperial ? 'lbs' : 'kg';
+  const weightValue = data.weight.toFixed(1);
+  const dateText = data.formattedDate;
+  const isPrediction = data.isProjected;
+
+  return (
+    <div className="bg-white p-2 border border-gray-200 shadow-sm rounded-md text-xs">
+      <p className="font-semibold mb-1">{dateText}</p>
+      <p className="text-gray-700">
+        {isPrediction ? 'Projected: ' : 'Actual: '}
+        <span className="font-medium text-slate-900">{weightValue} {unit}</span>
+      </p>
+    </div>
+  );
 };
 
 export default CustomTooltip;
