@@ -14,6 +14,7 @@ export interface User {
   measurementUnit: 'imperial' | 'metric';
   firstName: string;
   lastName: string;
+  avatarUrl?: string;
 }
 
 export interface Period {
@@ -90,6 +91,7 @@ export const mockUser: User = {
   measurementUnit: 'metric',
   firstName: 'John',
   lastName: 'Doe',
+  avatarUrl: '',
 };
 
 export const mockWeighIns: WeighIn[] = [

@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,7 @@ const App = () => (
               <Route path="/weight" element={<div>Weight tracking page (coming soon)</div>} />
               <Route path="/fasting" element={<div>Fasting tracking page (coming soon)</div>} />
               <Route path="/exercise" element={<div>Exercise tracking page (coming soon)</div>} />
-              <Route path="/profile" element={<div>Profile page (coming soon)</div>} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
             
             {/* Catch-all route */}
