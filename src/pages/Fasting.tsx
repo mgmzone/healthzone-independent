@@ -59,21 +59,21 @@ const Fasting = () => {
             <FastingTimer activeFast={activeFast} onEndFast={endFast} />
           </div>
           <div className="lg:col-span-2">
-            <Card className="p-6">
+            <Card className="p-6 h-[100%] flex flex-col">
               <h2 className="text-xl font-semibold mb-4">Fasting Statistics</h2>
-              <Tabs defaultValue="week" className="w-full">
+              <Tabs defaultValue="week" className="w-full flex-1 flex flex-col">
                 <TabsList className="grid w-full grid-cols-3 mb-4">
                   <TabsTrigger value="week" onClick={() => setTimeFilter('week')}>Week</TabsTrigger>
                   <TabsTrigger value="month" onClick={() => setTimeFilter('month')}>Month</TabsTrigger>
                   <TabsTrigger value="year" onClick={() => setTimeFilter('year')}>Year</TabsTrigger>
                 </TabsList>
-                <TabsContent value="week" className="mt-0">
+                <TabsContent value="week" className="mt-0 flex-1">
                   <FastingStats fastingLogs={fastingLogs} timeFilter="week" />
                 </TabsContent>
-                <TabsContent value="month" className="mt-0">
+                <TabsContent value="month" className="mt-0 flex-1">
                   <FastingStats fastingLogs={fastingLogs} timeFilter="month" />
                 </TabsContent>
-                <TabsContent value="year" className="mt-0">
+                <TabsContent value="year" className="mt-0 flex-1">
                   <FastingStats fastingLogs={fastingLogs} timeFilter="year" />
                 </TabsContent>
               </Tabs>
