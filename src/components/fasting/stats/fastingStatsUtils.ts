@@ -116,7 +116,23 @@ export const prepareChartData = (fastingLogs: FastingLog[], timeFilter: 'week' |
     
     return data;
   } else if (timeFilter === 'month') {
-    const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    // Find the maximum week number in the logs
+    let maxWeekNumber = 0;
+    fastingLogs.forEach(log => {
+      const startTime = new Date(log.startTime);
+      const referenceStartDate = new Date(2025, 1, 23); // 2/23/2025
+      const daysSinceStart = Math.floor((startTime.getTime() - referenceStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const weekNumber = Math.floor(daysSinceStart / 7) + 1;
+      maxWeekNumber = Math.max(maxWeekNumber, weekNumber);
+    });
+    
+    // Ensure we have at least 4 weeks for display
+    maxWeekNumber = Math.max(maxWeekNumber, 4);
+    
+    // Create an array with all weeks
+    const weeks = Array.from({ length: maxWeekNumber }, (_, i) => `Week ${i + 1}`);
+    
+    // Initialize data with 0 hours for all weeks
     const data = weeks.map(week => ({ 
       day: week, 
       fasting: 0,
@@ -135,17 +151,21 @@ export const prepareChartData = (fastingLogs: FastingLog[], timeFilter: 'week' |
       // Only include logs from the past month
       if (startTime < subMonths(now, 1)) return;
       
-      const dayOfMonth = startTime.getDate();
-      let weekIndex = Math.floor((dayOfMonth - 1) / 7);
-      if (weekIndex > 3) weekIndex = 3;
+      // Calculate week number based on reference date (same as in fastingUtils.ts)
+      const referenceStartDate = new Date(2025, 1, 23); // 2/23/2025
+      const daysSinceStart = Math.floor((startTime.getTime() - referenceStartDate.getTime()) / (1000 * 60 * 60 * 24));
+      const weekNumber = Math.floor(daysSinceStart / 7) + 1;
       
-      const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
-      data[weekIndex].fasting += fastDurationInHours;
-      
-      // Only add eating time for completed fasts
-      if (log.endTime) {
-        const eatingHours = 24 - (data[weekIndex].fasting % 24);
-        data[weekIndex].eating += eatingHours > 0 ? eatingHours : 0;
+      if (weekNumber <= maxWeekNumber) {
+        const weekIndex = weekNumber - 1;
+        const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
+        data[weekIndex].fasting += fastDurationInHours;
+        
+        // Only add eating time for completed fasts
+        if (log.endTime) {
+          const eatingHours = 24 - (fastDurationInHours % 24);
+          data[weekIndex].eating += eatingHours > 0 ? eatingHours : 0;
+        }
       }
     });
     
