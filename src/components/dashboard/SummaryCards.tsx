@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar, Footprints } from 'lucide-react';
@@ -88,67 +87,66 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
 
   const weeklyGoal = calculateWeeklyGoalProgress();
   const stepsGoal = calculateStepsProgress();
-
-  const summaryCards: SummaryCardProps[] = [
-    {
-      title: "Current Weight",
-      value: latestWeight ? `${latestWeight.toFixed(1)} ${weightUnit}` : "No data",
-      icon: Scale,
-      color: "#4287f5"
-    },
-    {
-      title: "Active Period",
-      value: currentPeriod ? `${getDaysRemaining(currentPeriod.endDate)} days left` : "No active period",
-      icon: Calendar,
-      color: "#f5a742"
-    },
-    {
-      title: "Average Weekly Exercise",
-      value: `${calculateAverageWeeklyExercise()} mins`,
-      icon: Activity,
-      color: "#42f5ad"
-    },
-    {
-      title: "Fasting Streaks",
-      value: `${fastingLogs.length} fasts`,
-      icon: Timer,
-      color: "#f542a7"
-    }
-  ];
+  const weightProgress = currentPeriod && latestWeight ? 
+    Math.round(((latestWeight - currentPeriod.startWeight) / (currentPeriod.targetWeight - currentPeriod.startWeight)) * 100) : 0;
+  const timeProgress = currentPeriod ? 
+    Math.round(((new Date().getTime() - new Date(currentPeriod.startDate).getTime()) / 
+    (new Date(currentPeriod.endDate).getTime() - new Date(currentPeriod.startDate).getTime())) * 100) : 0;
 
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {summaryCards.map((card, index) => (
-          <Card key={index} className="border-t-4" style={{ borderTopColor: card.color }}>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full" style={{ backgroundColor: `${card.color}10` }}>
-                  <card.icon className="h-5 w-5" style={{ color: card.color }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg mb-1">{card.title}</h3>
-                  <p className="text-sm text-muted-foreground">{card.value}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Weight Progress Card */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-blue-500" />
-                <h3 className="font-semibold text-lg">Weekly Goal</h3>
-              </div>
+          <CardContent className="pt-6 flex flex-col items-center justify-center h-full">
+            <div className="flex items-center space-x-2 mb-4 w-full">
+              <Scale className="h-5 w-5 text-blue-500" />
+              <h3 className="font-semibold text-lg">Current Weight</h3>
             </div>
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-2">
+              <ProgressCircle 
+                value={weightProgress} 
+                size={120} 
+                strokeWidth={10}
+                showPercentage={true}
+                valueLabel={latestWeight ? `${latestWeight.toFixed(1)} ${weightUnit}` : "No data"}
+                allowExceedGoal={true}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Time Progress Card */}
+        <Card>
+          <CardContent className="pt-6 flex flex-col items-center justify-center h-full">
+            <div className="flex items-center space-x-2 mb-4 w-full">
+              <Calendar className="h-5 w-5 text-orange-500" />
+              <h3 className="font-semibold text-lg">Time Progress</h3>
+            </div>
+            <div className="flex items-center justify-center py-2">
+              <ProgressCircle 
+                value={timeProgress} 
+                size={120} 
+                strokeWidth={10}
+                showPercentage={true}
+                valueLabel={currentPeriod ? `${getDaysRemaining(currentPeriod.endDate)} days left` : "No period"}
+                allowExceedGoal={true}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Weekly Goal Card */}
+        <Card>
+          <CardContent className="pt-6 flex flex-col items-center justify-center h-full">
+            <div className="flex items-center space-x-2 mb-4 w-full">
+              <Activity className="h-5 w-5 text-blue-500" />
+              <h3 className="font-semibold text-lg">Weekly Goal</h3>
+            </div>
+            <div className="flex items-center justify-center py-2">
               <ProgressCircle 
                 value={weeklyGoal.progress} 
-                size={100} 
+                size={120} 
                 strokeWidth={10}
                 showPercentage={true}
                 valueLabel={`${weeklyGoal.achieved}/${weeklyGoal.target} min`}
@@ -158,18 +156,17 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
           </CardContent>
         </Card>
 
+        {/* Today's Steps Card */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Footprints className="h-5 w-5 text-green-500" />
-                <h3 className="font-semibold text-lg">Today's Steps</h3>
-              </div>
+          <CardContent className="pt-6 flex flex-col items-center justify-center h-full">
+            <div className="flex items-center space-x-2 mb-4 w-full">
+              <Footprints className="h-5 w-5 text-green-500" />
+              <h3 className="font-semibold text-lg">Today's Steps</h3>
             </div>
-            <div className="flex items-center justify-center py-4">
+            <div className="flex items-center justify-center py-2">
               <ProgressCircle 
                 value={stepsGoal.progress} 
-                size={100} 
+                size={120} 
                 strokeWidth={10}
                 showPercentage={true}
                 valueLabel={`${stepsGoal.achieved}/${stepsGoal.target}`}

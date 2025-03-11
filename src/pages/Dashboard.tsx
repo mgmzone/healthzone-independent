@@ -6,10 +6,12 @@ import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
 import { useFastingData } from '@/hooks/useFastingData';
 import { useExerciseData } from '@/hooks/useExerciseData';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
+import WeightForecastChart from '@/components/charts/WeightForecastChart';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -103,7 +105,6 @@ const Dashboard = () => {
                   weighIns={weighIns}
                   currentPeriod={currentPeriod}
                   isImperial={isImperial}
-                  singleRow={true} // Add this prop to indicate we want a single row layout
                 />
               )}
             </>
