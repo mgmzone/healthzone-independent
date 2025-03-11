@@ -3,13 +3,13 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { differenceInDays } from 'date-fns';
 import { mockExerciseLogs } from '@/lib/types';
-import { Activity, Bike, Running } from 'lucide-react';
+import { Activity, Bike, Footprints } from 'lucide-react';
 
 const ExercisePageHeader = () => {
   // Placeholder data until we connect to the Strava API
   const lastActivities = [
-    { type: 'Walking', count: mockExerciseLogs.filter(e => e.type === 'walk').length, icon: Running },
-    { type: 'Running', count: mockExerciseLogs.filter(e => e.type === 'run').length, icon: Running },
+    { type: 'Walking', count: mockExerciseLogs.filter(e => e.type === 'walk').length, icon: Footprints },
+    { type: 'Running', count: mockExerciseLogs.filter(e => e.type === 'run').length, icon: Activity },
     { type: 'Cycling', count: mockExerciseLogs.filter(e => e.type === 'bike').length, icon: Bike }
   ];
   

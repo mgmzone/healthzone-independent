@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Running, Bike, Activity, Trash2 } from 'lucide-react';
+import { Activity, Bike, Footprints, Trash2 } from 'lucide-react';
 import { ExerciseLog, TimeFilter } from '@/lib/types';
 import { format, differenceInDays } from 'date-fns';
 import ExerciseTimeFilter from '@/components/exercise/ExerciseTimeFilter';
@@ -44,8 +45,8 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
   
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'walk': return <Running className="h-4 w-4 text-blue-500" />;
-      case 'run': return <Running className="h-4 w-4 text-orange-500" />;
+      case 'walk': return <Footprints className="h-4 w-4 text-blue-500" />;
+      case 'run': return <Activity className="h-4 w-4 text-orange-500" />;
       case 'bike': return <Bike className="h-4 w-4 text-green-500" />;
       default: return <Activity className="h-4 w-4 text-purple-500" />;
     }
