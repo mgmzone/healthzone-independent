@@ -95,8 +95,8 @@ const FastingTable: React.FC<FastingTableProps> = ({
               const weekNumA = parseInt(weekA.split(' ')[1]);
               const weekNumB = parseInt(weekB.split(' ')[1]);
               
-              // Sort in ascending order (smaller number = more recent week)
-              return weekNumA - weekNumB;
+              // Sort in descending order (larger number first for most recent week)
+              return weekNumB - weekNumA;
             })
             .map(([weekKey, logs]) => (
               <FastingWeekGroup 

@@ -1,5 +1,4 @@
-
-import { differenceInSeconds } from 'date-fns';
+import { differenceInSeconds, differenceInDays, startOfWeek, endOfWeek } from 'date-fns';
 import { FastingLog } from '@/lib/types';
 
 // Calculate duration between start and end time
@@ -31,34 +30,37 @@ export const groupLogsByWeek = (fastingLogs: FastingLog[]) => {
   
   if (!fastingLogs.length) return weeks;
   
-  // Find the most recent date to use as our reference point
-  const mostRecentLog = [...fastingLogs].sort((a, b) => 
-    new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-  )[0];
+  // Define the reference start date for the first week
+  // This assumes starting from 2/23/2025, but we'll try to guess from the logs if available
+  let referenceStartDate = new Date(2025, 1, 23); // 2/23/2025
   
-  const mostRecentDate = new Date(mostRecentLog.startTime);
-  const mostRecentWeek = getISOWeek(mostRecentDate);
-  const mostRecentYear = mostRecentDate.getFullYear();
+  // Find the earliest date in the logs to use as our reference point, if it's earlier than our default
+  const sortedByOldestFirst = [...fastingLogs].sort((a, b) => 
+    new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+  );
+  
+  if (sortedByOldestFirst.length > 0) {
+    const earliestLogDate = new Date(sortedByOldestFirst[0].startTime);
+    // Use the start of the week for the earliest log as the reference date
+    const weekStart = startOfWeek(earliestLogDate, { weekStartsOn: 0 }); // 0 = Sunday
+    
+    // Only update if our earliest log is before the default reference date
+    if (weekStart < referenceStartDate) {
+      referenceStartDate = weekStart;
+    }
+  }
   
   fastingLogs.forEach(log => {
     const startDate = new Date(log.startTime);
-    const weekNumber = getISOWeek(startDate);
-    const year = startDate.getFullYear();
     
-    // Calculate relative week number (0 is current week, 1 is last week, etc.)
-    let relativeWeek = 0;
+    // Calculate days since reference date
+    const daysSinceStart = differenceInDays(startDate, referenceStartDate);
     
-    if (year === mostRecentYear) {
-      relativeWeek = mostRecentWeek - weekNumber;
-    } else {
-      // Handle year boundary (approximate weeks difference)
-      const weeksInYear = 52;
-      relativeWeek = (mostRecentWeek + (weeksInYear * (mostRecentYear - year))) - weekNumber;
-    }
+    // Calculate which week number this falls into (1-based)
+    const weekNumber = Math.floor(daysSinceStart / 7) + 1;
     
-    // Make sure relative week is non-negative and use it to create a sortable key
-    relativeWeek = Math.max(0, relativeWeek);
-    const weekKey = `Week ${relativeWeek + 1}`;
+    // Create a key for this week
+    const weekKey = `Week ${weekNumber}`;
     
     if (!weeks[weekKey]) {
       weeks[weekKey] = [];
@@ -130,4 +132,3 @@ export const calculateEatingWindowHours = (fastingHours: number): number => {
   // For normal fasts, just return 24 - fasting hours
   return Math.max(0, 24 - fastingHours);
 };
-

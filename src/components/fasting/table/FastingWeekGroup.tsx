@@ -17,15 +17,21 @@ const FastingWeekGroup: React.FC<FastingWeekGroupProps> = ({
   onEdit, 
   onDelete 
 }) => {
+  // Sort logs in descending order by date
   const sortedLogs = [...logs].sort((a, b) => 
     new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
   );
+
+  // Get the year from the first log in the group (most recent one after sorting)
+  const yearDisplay = sortedLogs.length > 0 
+    ? new Date(sortedLogs[0].startTime).getFullYear() 
+    : new Date().getFullYear();
 
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-2">
         <h3 className="font-medium text-lg">
-          {weekKey}, {new Date().getFullYear()}
+          {weekKey}, {yearDisplay}
         </h3>
         <div className="text-sm text-gray-500">
           Count: {logs.length}
