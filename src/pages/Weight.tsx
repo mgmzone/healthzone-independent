@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,10 +63,10 @@ const Weight = () => {
     };
   };
 
-  const onAddWeight = (weight: number) => {
+  const onAddWeight = (weight: number, date: Date) => {
     // Convert from lbs to kg if using imperial
     const weightInKg = isImperial ? weight / 2.20462 : weight;
-    addWeighIn(weightInKg);
+    addWeighIn({ weight: weightInKg, date });
     setIsModalOpen(false);
   };
 

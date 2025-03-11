@@ -43,12 +43,12 @@ export function useWeightData() {
   });
 
   const addWeighIn = useMutation({
-    mutationFn: async (weight: number) => {
+    mutationFn: async ({ weight, date }: { weight: number, date: Date }) => {
       const { data, error } = await supabase
         .from('weigh_ins')
         .insert([{
           weight,
-          date: new Date().toISOString(),
+          date: date.toISOString(),
           user_id: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
