@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import WeightTable from '@/components/weight/WeightTable';
+import TableHeader from '@/components/weight/TableHeader';
 import { WeighIn } from '@/lib/types';
 
 interface TableSectionProps {
@@ -35,17 +34,10 @@ const TableSection: React.FC<TableSectionProps> = ({
 }) => {
   return (
     <>
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Weight History</h2>
-        <Button 
-          variant="default" 
-          onClick={onAddWeight}
-          disabled={!isPeriodActive}
-          size="sm"
-        >
-          <Plus className="mr-2" /> Add Weight
-        </Button>
-      </div>
+      <TableHeader
+        onAddWeight={onAddWeight}
+        isPeriodActive={isPeriodActive}
+      />
 
       <WeightTable 
         weighIns={weighIns} 
