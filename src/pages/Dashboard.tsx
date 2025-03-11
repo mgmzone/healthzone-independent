@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart, Clock, Dumbbell, Info, ArrowRight, Calendar, Weight, Heart } from 'lucide-react';
@@ -109,22 +108,18 @@ const Dashboard = () => {
     );
   }
 
-  // Calculate progress percentage if we have the data
   const weightProgress = profile?.currentWeight && profile?.targetWeight
     ? getProgressPercentage(
-        profile.currentWeight,
-        profile.currentWeight + 10, // assuming starting weight was 10 more
-        profile.targetWeight
+        Number(profile.currentWeight),
+        Number(profile.currentWeight) + 10, // assuming starting weight was 10 more
+        Number(profile.targetWeight)
       )
     : 0;
 
-  // Get latest weigh-in data
   const latestWeighIn = weighIns.length > 0 ? weighIns[0] : null;
   
-  // Check if user is currently fasting
   const isFasting = !!currentFasting;
   
-  // Count exercise stats
   const totalExerciseMinutes = exerciseLogs.reduce((total, log) => total + log.minutes, 0);
   const exerciseTypes = exerciseLogs.reduce((acc, log) => {
     acc[log.type] = (acc[log.type] || 0) + 1;
@@ -142,7 +137,6 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Here's an overview of your health journey</p>
         </header>
 
-        {/* Progress Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="col-span-1 md:col-span-2">
             <CardHeader className="pb-2">
@@ -157,7 +151,7 @@ const Dashboard = () => {
                     size={140} 
                     label="PROGRESS"
                     valueLabel={profile?.currentWeight && profile?.targetWeight
-                      ? `-${(profile.currentWeight + 10 - profile.currentWeight).toFixed(1)} kg`
+                      ? `-${(Number(profile.currentWeight) + 10 - Number(profile.currentWeight)).toFixed(1)} kg`
                       : 'No data'
                     }
                   />
@@ -181,7 +175,7 @@ const Dashboard = () => {
                     <div className="text-xs text-muted-foreground mb-1">REMAINING</div>
                     <div className="text-4xl font-bold">
                       {profile?.currentWeight && profile?.targetWeight
-                        ? (profile.currentWeight - profile.targetWeight).toFixed(1)
+                        ? (Number(profile.currentWeight) - Number(profile.targetWeight)).toFixed(1)
                         : '?'
                       }
                     </div>
@@ -236,7 +230,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-6 flex items-center space-x-4">
@@ -284,7 +277,6 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Charts Section */}
         <div className="mb-8">
           <Tabs defaultValue="weight">
             <div className="flex items-center justify-between mb-6">
@@ -340,7 +332,7 @@ const Dashboard = () => {
                       <WeightChart 
                         data={weighIns} 
                         timeFilter={timeFilter} 
-                        targetWeight={profile?.target_weight}
+                        targetWeight={profile?.targetWeight}
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">
@@ -421,7 +413,6 @@ const Dashboard = () => {
           </Tabs>
         </div>
 
-        {/* Health Tips */}
         <div>
           <Card>
             <CardHeader className="pb-2">
