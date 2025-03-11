@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +63,7 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
           <div className="mt-4 flex items-center justify-center">
             <div className="w-20 h-20">
               <ProgressCircle 
-                progress={progress} 
+                value={progress} 
                 strokeWidth={10}
                 size={80}
               />
