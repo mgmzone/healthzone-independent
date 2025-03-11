@@ -129,8 +129,8 @@ export const prepareChartData = (fastingLogs: FastingLog[], timeFilter: 'week' |
     // Ensure we have at least 4 weeks for display
     maxWeekNumber = Math.max(maxWeekNumber, 4);
     
-    // Create an array with all weeks in reverse order (most recent first)
-    const weeks = Array.from({ length: maxWeekNumber }, (_, i) => `Week ${maxWeekNumber - i}`);
+    // Create an array with all weeks in ascending order (Week 1 to Week N)
+    const weeks = Array.from({ length: maxWeekNumber }, (_, i) => `Week ${i + 1}`);
     
     // Initialize data with 0 hours for all weeks
     const data = weeks.map(week => ({ 
@@ -157,7 +157,7 @@ export const prepareChartData = (fastingLogs: FastingLog[], timeFilter: 'week' |
       const weekNumber = Math.floor(daysSinceStart / 7) + 1;
       
       if (weekNumber <= maxWeekNumber) {
-        // Find the corresponding week in our reversed array
+        // Find the corresponding week in our array
         const weekIndex = data.findIndex(item => item.day === `Week ${weekNumber}`);
         if (weekIndex !== -1) {
           const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
