@@ -9,6 +9,11 @@ interface WeightInputFieldProps {
   value: string;
   onChange: (value: string) => void;
   weightUnit: string;
+  placeholder?: string;
+  type?: string;
+  step?: string;
+  min?: string;
+  max?: string;
 }
 
 const WeightInputField: React.FC<WeightInputFieldProps> = ({
@@ -16,18 +21,25 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   label,
   value,
   onChange,
-  weightUnit
+  weightUnit,
+  placeholder,
+  type = "number",
+  step = "0.1",
+  min,
+  max
 }) => {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label} ({weightUnit})</Label>
       <Input
         id={id}
-        type="number"
-        step="0.1"
+        type={type}
+        step={step}
+        min={min}
+        max={max}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={`Enter ${label.toLowerCase()} in ${weightUnit}`}
+        placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
       />
     </div>
   );
