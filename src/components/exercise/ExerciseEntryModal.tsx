@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
                 <DatePickerField
-                  value={formData.date || new Date()}
+                  date={formData.date || new Date()}
                   onChange={(date) => setFormData({ ...formData, date })}
                 />
               </div>

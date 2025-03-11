@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { run, walk, bike, activity, trash2 } from 'lucide-react';
+import { Running, Bike, Activity, Trash2 } from 'lucide-react';
 import { ExerciseLog, TimeFilter } from '@/lib/types';
 import { format, differenceInDays } from 'date-fns';
 import ExerciseTimeFilter from '@/components/exercise/ExerciseTimeFilter';
@@ -34,10 +33,8 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
 }) => {
   const [expandedWeeks, setExpandedWeeks] = useState<Record<string, boolean>>({});
   
-  // Group logs by week
   const groupedByWeek = groupLogsByWeek(exerciseLogs);
   
-  // Toggle week expansion
   const toggleWeekExpansion = (weekKey: string) => {
     setExpandedWeeks(prev => ({
       ...prev,
@@ -47,10 +44,10 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
   
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'walk': return <walk className="h-4 w-4 text-blue-500" />;
-      case 'run': return <run className="h-4 w-4 text-orange-500" />;
-      case 'bike': return <bike className="h-4 w-4 text-green-500" />;
-      default: return <activity className="h-4 w-4 text-purple-500" />;
+      case 'walk': return <Running className="h-4 w-4 text-blue-500" />;
+      case 'run': return <Running className="h-4 w-4 text-orange-500" />;
+      case 'bike': return <Bike className="h-4 w-4 text-green-500" />;
+      default: return <Activity className="h-4 w-4 text-purple-500" />;
     }
   };
   
@@ -110,7 +107,7 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                 </TableRow>
               ) : (
                 Object.entries(groupedByWeek).map(([weekKey, entries]) => {
-                  const isExpanded = expandedWeeks[weekKey] !== false; // Default to expanded
+                  const isExpanded = expandedWeeks[weekKey] !== false;
                   const totalMinutes = entries.reduce((acc, log) => acc + log.minutes, 0);
                   const totalDistance = entries.reduce((acc, log) => acc + (log.distance || 0), 0);
                   
@@ -155,7 +152,7 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
                                 onDelete(log.id);
                               }}
                             >
-                              <trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -175,7 +172,6 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
 function groupLogsByWeek(logs: ExerciseLog[]): Record<string, ExerciseLog[]> {
   const grouped: Record<string, ExerciseLog[]> = {};
   
-  // Sort logs by date (newest first)
   const sortedLogs = [...logs].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -183,10 +179,10 @@ function groupLogsByWeek(logs: ExerciseLog[]): Record<string, ExerciseLog[]> {
   sortedLogs.forEach(log => {
     const logDate = new Date(log.date);
     const weekStart = new Date(logDate);
-    weekStart.setDate(logDate.getDate() - logDate.getDay()); // Start of week (Sunday)
+    weekStart.setDate(logDate.getDate() - logDate.getDay());
     
     const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+    weekEnd.setDate(weekStart.getDate() + 6);
     
     const weekKey = `Week of ${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
     
