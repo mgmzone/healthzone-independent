@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import DatePickerField from '@/components/weight/DatePickerField';
 import { FastingLog } from '@/lib/types';
-import { format, addHours, differenceInHours, differenceInSeconds } from 'date-fns';
+import { format, addHours } from 'date-fns';
+import FastingDateTimeFields from './modal/FastingDateTimeFields';
+import FastingHoursFields from './modal/FastingHoursFields';
+import { useFastingTimeCalculation } from '@/hooks/useFastingTimeCalculation';
 
 interface FastingEntryModalProps {
   isOpen: boolean;
@@ -31,10 +32,15 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
   const [startTime, setStartTime] = useState<string>("08:00");
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [endTime, setEndTime] = useState<string>("16:00");
-  const [fastingHours, setFastingHours] = useState<string>("16");
-  const [eatingWindowHours, setEatingWindowHours] = useState<string>("8");
   const [isAutoCalculate, setIsAutoCalculate] = useState(true);
   
+  const {
+    fastingHours,
+    setFastingHours,
+    eatingWindowHours,
+    setEatingWindowHours
+  } = useFastingTimeCalculation(startDate, startTime, endDate, endTime, isAutoCalculate);
+
   useEffect(() => {
     if (initialFast) {
       const start = new Date(initialFast.startTime);
@@ -70,38 +76,6 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
     }
   }, [initialFast, isOpen, defaultFastingSchedule]);
 
-  const calculateFastingHours = () => {
-    if (!endDate || !endTime || !startDate || !startTime) return;
-    
-    const [startHours, startMinutes] = startTime.split(':').map(Number);
-    const startDateTime = new Date(startDate);
-    startDateTime.setHours(startHours, startMinutes, 0, 0);
-    
-    const [endHours, endMinutes] = endTime.split(':').map(Number);
-    const endDateTime = new Date(endDate);
-    endDateTime.setHours(endHours, endMinutes, 0, 0);
-    
-    if (endDateTime <= startDateTime) return;
-    
-    const hours = differenceInHours(endDateTime, startDateTime);
-    
-    const totalSeconds = differenceInSeconds(endDateTime, startDateTime);
-    const hourSeconds = hours * 3600;
-    const remainingSeconds = totalSeconds - hourSeconds;
-    const decimalPart = (remainingSeconds / 3600).toFixed(2).substring(1);
-    
-    setFastingHours(hours + decimalPart);
-    if (isAutoCalculate) {
-      setEatingWindowHours((24 - parseFloat(hours + decimalPart)).toFixed(2));
-    }
-  };
-
-  useEffect(() => {
-    if (isAutoCalculate && endDate && endTime) {
-      calculateFastingHours();
-    }
-  }, [startDate, startTime, endDate, endTime, isAutoCalculate]);
-
   const handleSave = () => {
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     const startDateTime = new Date(startDate);
@@ -130,92 +104,25 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 gap-4 items-end">
-            <div className="col-span-3">
-              <DatePickerField
-                date={startDate}
-                onChange={setStartDate}
-              />
-            </div>
-            <div>
-              <Label htmlFor="startTime">Start Time</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </div>
-          </div>
+          <FastingDateTimeFields 
+            startDate={startDate}
+            setStartDate={setStartDate}
+            startTime={startTime}
+            setStartTime={setStartTime}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            endTime={endTime}
+            setEndTime={setEndTime}
+          />
           
-          <div className="grid grid-cols-4 gap-4 items-end">
-            <div className="col-span-3">
-              <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
-                {endDate ? (
-                  <DatePickerField
-                    date={endDate}
-                    onChange={setEndDate}
-                  />
-                ) : (
-                  <Button
-                    id="endDate"
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                    onClick={() => setEndDate(new Date())}
-                  >
-                    Select end date
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="endTime">End Time</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                disabled={!endDate}
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="fastingHours">Fasting Hours</Label>
-              <Input
-                id="fastingHours"
-                type="number"
-                min="1"
-                max="48"
-                step="0.01"
-                value={fastingHours}
-                onChange={(e) => {
-                  setFastingHours(e.target.value);
-                  if (isAutoCalculate) {
-                    const value = parseFloat(e.target.value) || 0;
-                    setEatingWindowHours((24 - value).toFixed(2));
-                  }
-                }}
-              />
-            </div>
-            <div>
-              <Label htmlFor="eatingWindowHours">Eating Window Hours</Label>
-              <Input
-                id="eatingWindowHours"
-                type="number"
-                min="1"
-                max="23"
-                step="0.01"
-                value={eatingWindowHours}
-                onChange={(e) => {
-                  setEatingWindowHours(e.target.value);
-                  setIsAutoCalculate(false);
-                }}
-              />
-            </div>
-          </div>
+          <FastingHoursFields 
+            fastingHours={fastingHours}
+            setFastingHours={setFastingHours}
+            eatingWindowHours={eatingWindowHours}
+            setEatingWindowHours={setEatingWindowHours}
+            isAutoCalculate={isAutoCalculate}
+            setIsAutoCalculate={setIsAutoCalculate}
+          />
         </div>
         
         <DialogFooter>
