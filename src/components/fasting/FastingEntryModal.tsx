@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import DatePickerField from '@/components/weight/DatePickerField';
 import { FastingLog } from '@/lib/types';
-import { format, addHours, differenceInHours } from 'date-fns';
+import { format, addHours, differenceInHours, differenceInSeconds } from 'date-fns';
 
 interface FastingEntryModalProps {
   isOpen: boolean;
@@ -81,8 +81,14 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
     
     if (endDateTime <= startDateTime) return;
     
+    // Calculate hours as a whole number
     const hours = differenceInHours(endDateTime, startDateTime);
-    const decimalPart = (differenceInHours(endDateTime, startDateTime, { includeSeconds: true }) - hours).toFixed(2).substring(1);
+    
+    // Calculate the remaining seconds and convert to decimal hours
+    const totalSeconds = differenceInSeconds(endDateTime, startDateTime);
+    const hourSeconds = hours * 3600;
+    const remainingSeconds = totalSeconds - hourSeconds;
+    const decimalPart = (remainingSeconds / 3600).toFixed(2).substring(1);
     
     setFastingHours(hours + decimalPart);
     if (isAutoCalculate) {
