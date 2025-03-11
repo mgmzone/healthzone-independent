@@ -14,6 +14,8 @@ import { useNavigate } from 'react-router-dom';
 import WeightPeriodStats from '@/components/weight/WeightPeriodStats';
 import WeightChangeStats from '@/components/weight/WeightChangeStats';
 import { useWeightCalculations } from '@/hooks/useWeightCalculations';
+import WeightTable from '@/components/weight/WeightTable';
+import MetricSelector from '@/components/weight/MetricSelector';
 
 const Weight = () => {
   const { profile } = useAuth();
@@ -21,6 +23,7 @@ const Weight = () => {
   const { weighIns, isLoading, addWeighIn } = useWeightData();
   const { getCurrentPeriod, isLoading: periodsLoading } = usePeriodsData();
   const navigate = useNavigate();
+  const [selectedMetric, setSelectedMetric] = useState('weight');
 
   // Get the unit based on user preference
   const isImperial = profile?.measurementUnit === 'imperial';
@@ -99,7 +102,7 @@ const Weight = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-16">
         {!currentPeriod && (
           <Alert className="mb-6">
             <AlertCircle className="h-4 w-4" />
@@ -135,23 +138,40 @@ const Weight = () => {
               weightUnit={weightUnit}
             />
 
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Progress Chart</h2>
+              <MetricSelector 
+                selectedMetric={selectedMetric} 
+                onSelectMetric={setSelectedMetric}
+              />
+            </div>
+
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <WeightChart 
                   data={weighIns} 
                   isImperial={isImperial}
+                  metricKey={selectedMetric}
                 />
               </CardContent>
             </Card>
 
-            <Button 
-              className="w-full py-6" 
-              variant="default" 
-              onClick={() => setIsModalOpen(true)}
-              disabled={!currentPeriod}
-            >
-              <Plus className="mr-2" /> Add Weight
-            </Button>
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Weight History</h2>
+              <Button 
+                variant="default" 
+                onClick={() => setIsModalOpen(true)}
+                disabled={!currentPeriod}
+                size="sm"
+              >
+                <Plus className="mr-2" /> Add Weight
+              </Button>
+            </div>
+
+            <WeightTable 
+              weighIns={weighIns} 
+              isImperial={isImperial}
+            />
           </>
         )}
       </div>
