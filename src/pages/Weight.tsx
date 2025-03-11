@@ -81,6 +81,18 @@ const Weight = () => {
 
   const latestWeight = getLatestWeight();
   const lowestWeight = getLowestWeight();
+  
+  // Get starting weight from current period
+  const periodStartWeight = currentPeriod ? convertWeight(currentPeriod.startWeight) : 0;
+  const currentWeight = latestWeight ? convertWeight(latestWeight.weight) : 0;
+  
+  // Calculate total change since period start
+  const totalPeriodChange = currentWeight && periodStartWeight
+    ? (currentWeight - periodStartWeight).toFixed(1)
+    : "0.0";
+  const isWeightLoss = Number(totalPeriodChange) < 0;
+  
+  // Previous change calculations
   const change7Days = calculateWeightChange(7);
   const change30Days = calculateWeightChange(30);
   const change90Days = calculateWeightChange(90);
@@ -124,16 +136,22 @@ const Weight = () => {
         ) : (
           <>
             {/* Top Stats Cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
               <WeightStatsCard 
-                value={latestWeight ? convertWeight(latestWeight.weight) : 0}
+                value={periodStartWeight}
+                label="Starting Weight"
+                unit={weightUnit}
+              />
+              <WeightStatsCard 
+                value={currentWeight}
                 label="Current Weight"
                 unit={weightUnit}
               />
               <WeightStatsCard 
-                value={lowestWeight ? convertWeight(lowestWeight.weight) : 0}
-                label="Lowest Entry"
+                value={Math.abs(Number(totalPeriodChange))}
+                label={`${isWeightLoss ? 'Lost' : 'Gained'} This Period`}
                 unit={weightUnit}
+                isNegative={!isWeightLoss}
               />
             </div>
 
@@ -141,27 +159,31 @@ const Weight = () => {
             <div className="grid grid-cols-4 gap-4 mb-6">
               <WeightStatsCard 
                 value={change7Days ? Math.abs(Number(change7Days.value)) : 0}
-                label={`Lost in 7 days`}
+                label={`${Number(change7Days?.value || 0) < 0 ? 'Lost' : 'Gained'} in 7 days`}
                 isCompact
-                isNegative={change7Days ? Number(change7Days.value) < 0 : false}
+                isNegative={change7Days ? Number(change7Days.value) >= 0 : false}
+                unit={weightUnit}
               />
               <WeightStatsCard 
                 value={change30Days ? Math.abs(Number(change30Days.value)) : 0}
-                label={`Lost in 30 days`}
+                label={`${Number(change30Days?.value || 0) < 0 ? 'Lost' : 'Gained'} in 30 days`}
                 isCompact
-                isNegative={change30Days ? Number(change30Days.value) < 0 : false}
+                isNegative={change30Days ? Number(change30Days.value) >= 0 : false}
+                unit={weightUnit}
               />
               <WeightStatsCard 
                 value={change90Days ? Math.abs(Number(change90Days.value)) : 0}
-                label={`Lost in 90 days`}
+                label={`${Number(change90Days?.value || 0) < 0 ? 'Lost' : 'Gained'} in 90 days`}
                 isCompact
-                isNegative={change90Days ? Number(change90Days.value) < 0 : false}
+                isNegative={change90Days ? Number(change90Days.value) >= 0 : false}
+                unit={weightUnit}
               />
               <WeightStatsCard 
                 value={changeAllTime ? Math.abs(Number(changeAllTime.value)) : 0}
-                label={`Lost all Time`}
+                label={`${Number(changeAllTime?.value || 0) < 0 ? 'Lost' : 'Gained'} all time`}
                 isCompact
-                isNegative={changeAllTime ? Number(changeAllTime.value) < 0 : false}
+                isNegative={changeAllTime ? Number(changeAllTime.value) >= 0 : false}
+                unit={weightUnit}
               />
             </div>
 
