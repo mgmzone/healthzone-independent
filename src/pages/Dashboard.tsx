@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
@@ -100,6 +101,7 @@ const Dashboard = () => {
                   weightChange={currentMetrics.weightChange}
                   weightDirection={currentMetrics.weightDirection}
                   weightUnit={weightUnit}
+                  exerciseLogs={exerciseLogs}
                 />
               )}
             </>
