@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { FastingLog } from '@/lib/types';
+import { subDays, subMonths, subYears, startOfDay } from 'date-fns';
 import FastingEntryModal from './FastingEntryModal';
 import DeleteFastingConfirmDialog from './DeleteFastingConfirmDialog';
 import FastingWeekGroup from './table/FastingWeekGroup';
@@ -11,6 +12,7 @@ import { groupLogsByWeek } from './utils/fastingUtils';
 interface FastingTableProps {
   fastingLogs: FastingLog[];
   isLoading?: boolean;
+  timeFilter: 'week' | 'month' | 'year';
   onUpdateFast: (
     id: string,
     updatedFast: {
@@ -26,6 +28,7 @@ interface FastingTableProps {
 const FastingTable: React.FC<FastingTableProps> = ({ 
   fastingLogs,
   isLoading = false,
+  timeFilter,
   onUpdateFast,
   onDeleteFast
 }) => {
@@ -60,7 +63,20 @@ const FastingTable: React.FC<FastingTableProps> = ({
     }
   };
 
-  const weeks = groupLogsByWeek(fastingLogs);
+  // Filter logs based on timeFilter
+  const filterDate = startOfDay(
+    timeFilter === 'week'
+      ? subDays(new Date(), 7)
+      : timeFilter === 'month'
+      ? subMonths(new Date(), 1)
+      : subYears(new Date(), 1)
+  );
+
+  const filteredLogs = fastingLogs.filter(
+    log => new Date(log.startTime) >= filterDate
+  );
+
+  const weeks = groupLogsByWeek(filteredLogs);
   const editingFast = editingId ? fastingLogs.find(f => f.id === editingId) : null;
 
   return (

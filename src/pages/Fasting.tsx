@@ -84,6 +84,7 @@ const Fasting = () => {
         <FastingTable 
           fastingLogs={fastingLogs}
           isLoading={isLoading}
+          timeFilter={timeFilter}
           onUpdateFast={updateFast}
           onDeleteFast={deleteFast}
         />
