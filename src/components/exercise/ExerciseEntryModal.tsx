@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExerciseLog } from '@/lib/types';
@@ -40,11 +40,12 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
   );
 
   // Initialize the distance input value when the modal opens with initial data
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialData?.distance !== undefined) {
+      // If imperial, convert kilometers to miles for display
       const displayValue = isImperial 
-        ? (initialData.distance * 0.621371).toString() 
-        : initialData.distance.toString();
+        ? (initialData.distance * 0.621371).toFixed(2)
+        : initialData.distance.toFixed(2);
       setDistanceInputValue(displayValue);
     } else {
       setDistanceInputValue('');
@@ -55,13 +56,18 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
     e.preventDefault();
     
     // If using imperial, convert miles to km for storage
-    if (isImperial && formData.distance) {
-      const distanceInKm = formData.distance / 0.621371;
-      onSave({...formData, distance: parseFloat(distanceInKm.toFixed(2))});
-    } else {
-      onSave(formData);
+    let dataToSave = {...formData};
+    
+    if (isImperial && dataToSave.distance) {
+      // Convert miles to kilometers for storage
+      const distanceInKm = dataToSave.distance / 0.621371;
+      dataToSave = {
+        ...dataToSave, 
+        distance: parseFloat(distanceInKm.toFixed(2))
+      };
     }
     
+    onSave(dataToSave);
     onClose();
   };
 
@@ -89,11 +95,11 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
       const parsedValue = parseFloat(value);
       
       if (!isNaN(parsedValue)) {
+        // Store the value as entered by the user (in miles or km depending on preference)
+        // We'll convert it when submitting the form
         setFormData({
           ...formData,
-          distance: isImperial 
-            ? parsedValue / 0.621371 // Store as km internally
-            : parsedValue
+          distance: parsedValue
         });
       }
     }
