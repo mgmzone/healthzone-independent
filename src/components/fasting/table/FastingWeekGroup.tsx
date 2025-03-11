@@ -25,7 +25,7 @@ const FastingWeekGroup: React.FC<FastingWeekGroupProps> = ({
     <div className="mb-8">
       <div className="flex justify-between items-center mb-2">
         <h3 className="font-medium text-lg">
-          Week {weekKey.split('-W')[1]}, {weekKey.split('-')[0]}
+          {weekKey}, {new Date().getFullYear()}
         </h3>
         <div className="text-sm text-gray-500">
           Count: {logs.length}

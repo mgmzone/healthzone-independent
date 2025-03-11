@@ -90,7 +90,14 @@ const FastingTable: React.FC<FastingTableProps> = ({
           <FastingEmptyState />
         ) : (
           Object.entries(weeks)
-            .sort(([weekA], [weekB]) => weekB.localeCompare(weekA))
+            .sort(([weekA], [weekB]) => {
+              // Extract numbers from the week keys for proper numerical sorting
+              const weekNumA = parseInt(weekA.split(' ')[1]);
+              const weekNumB = parseInt(weekB.split(' ')[1]);
+              
+              // Sort in ascending order (smaller number = more recent week)
+              return weekNumA - weekNumB;
+            })
             .map(([weekKey, logs]) => (
               <FastingWeekGroup 
                 key={weekKey} 

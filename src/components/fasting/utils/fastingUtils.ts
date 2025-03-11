@@ -29,11 +29,36 @@ export const getISOWeek = (date: Date) => {
 export const groupLogsByWeek = (fastingLogs: FastingLog[]) => {
   const weeks: { [key: string]: FastingLog[] } = {};
   
+  if (!fastingLogs.length) return weeks;
+  
+  // Find the most recent date to use as our reference point
+  const mostRecentLog = [...fastingLogs].sort((a, b) => 
+    new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+  )[0];
+  
+  const mostRecentDate = new Date(mostRecentLog.startTime);
+  const mostRecentWeek = getISOWeek(mostRecentDate);
+  const mostRecentYear = mostRecentDate.getFullYear();
+  
   fastingLogs.forEach(log => {
     const startDate = new Date(log.startTime);
     const weekNumber = getISOWeek(startDate);
     const year = startDate.getFullYear();
-    const weekKey = `${year}-W${weekNumber}`;
+    
+    // Calculate relative week number (0 is current week, 1 is last week, etc.)
+    let relativeWeek = 0;
+    
+    if (year === mostRecentYear) {
+      relativeWeek = mostRecentWeek - weekNumber;
+    } else {
+      // Handle year boundary (approximate weeks difference)
+      const weeksInYear = 52;
+      relativeWeek = (mostRecentWeek + (weeksInYear * (mostRecentYear - year))) - weekNumber;
+    }
+    
+    // Make sure relative week is non-negative and use it to create a sortable key
+    relativeWeek = Math.max(0, relativeWeek);
+    const weekKey = `Week ${relativeWeek + 1}`;
     
     if (!weeks[weekKey]) {
       weeks[weekKey] = [];
