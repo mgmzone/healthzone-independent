@@ -90,3 +90,19 @@ export const calculateFastingStats = (fastingLogs: FastingLog[]) => {
     totalFasts: fastingLogs.filter(log => log.endTime).length
   };
 };
+
+// Helper function to calculate eating window hours
+export const calculateEatingWindowHours = (fastingHours: number): number => {
+  // For fasts longer than 24 hours, return remaining hours until next 24-hour period
+  const daysPassed = Math.floor(fastingHours / 24);
+  const remainingFastHours = fastingHours % 24;
+  
+  // If the fast is longer than 24 hours, calculate hours until next 24-hour period
+  if (daysPassed > 0) {
+    return 24 - remainingFastHours;
+  }
+  
+  // For normal fasts, just return 24 - fasting hours
+  return Math.max(0, 24 - fastingHours);
+};
+

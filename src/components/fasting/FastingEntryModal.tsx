@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -38,7 +37,8 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
     fastingHours,
     setFastingHours,
     eatingWindowHours,
-    setEatingWindowHours
+    setEatingWindowHours,
+    calculateFastingHours
   } = useFastingTimeCalculation(startDate, startTime, endDate, endTime, isAutoCalculate);
 
   useEffect(() => {

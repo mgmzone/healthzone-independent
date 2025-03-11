@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { differenceInHours, differenceInSeconds } from 'date-fns';
+import { calculateEatingWindowHours } from '@/components/fasting/utils/fastingUtils';
 
 export const useFastingTimeCalculation = (
   startDate: Date, 
@@ -25,16 +26,14 @@ export const useFastingTimeCalculation = (
     
     if (endDateTime <= startDateTime) return;
     
-    const hours = differenceInHours(endDateTime, startDateTime);
-    
     const totalSeconds = differenceInSeconds(endDateTime, startDateTime);
-    const hourSeconds = hours * 3600;
-    const remainingSeconds = totalSeconds - hourSeconds;
-    const decimalPart = (remainingSeconds / 3600).toFixed(2).substring(1);
+    const hours = totalSeconds / 3600;
+    const hoursFormatted = hours.toFixed(2);
     
-    setFastingHours(hours + decimalPart);
+    setFastingHours(hoursFormatted);
     if (isAutoCalculate) {
-      setEatingWindowHours((24 - parseFloat(hours + decimalPart)).toFixed(2));
+      const calculatedEatingHours = calculateEatingWindowHours(parseFloat(hoursFormatted));
+      setEatingWindowHours(calculatedEatingHours.toFixed(2));
     }
   };
 
