@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { FastingLog } from '@/lib/types';
 import { differenceInSeconds, subDays, subMonths, subYears, startOfDay } from 'date-fns';
@@ -82,11 +81,10 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         ...days.slice(0, dayOfWeek + 1)
       ];
       
-      // Initialize data with 0 hours
+      // Initialize data with 0 hours for fasting only
       const data = orderedDays.map(day => ({ 
         day, 
-        fasting: 0,
-        eating: 24 // Default to 24 hours eating
+        fasting: 0
       }));
       
       // Fill in actual hours from logs
@@ -103,7 +101,6 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         if (dayIndex !== -1) {
           const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
           data[dayIndex].fasting = Math.min(fastDurationInHours, 24);
-          data[dayIndex].eating = Math.max(24 - fastDurationInHours, 0);
         }
       });
       
@@ -112,8 +109,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
       const data = weeks.map(week => ({ 
         day: week, 
-        fasting: 0,
-        eating: 24
+        fasting: 0
       }));
       
       // Fill in actual hours from logs
@@ -133,7 +129,6 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
         data[weekIndex].fasting += fastDurationInHours;
-        data[weekIndex].eating = Math.max(24 - data[weekIndex].fasting, 0);
       });
       
       return data;
@@ -141,8 +136,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const data = months.map(month => ({ 
         day: month, 
-        fasting: 0,
-        eating: 24
+        fasting: 0
       }));
       
       // Fill in actual hours from logs
@@ -159,7 +153,6 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         const monthIndex = startTime.getMonth();
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
         data[monthIndex].fasting += fastDurationInHours;
-        data[monthIndex].eating = Math.max(24 - data[monthIndex].fasting, 0);
       });
       
       return data;
@@ -222,7 +215,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
             <Tooltip 
               formatter={(value, name) => [
                 `${Math.round(Number(value))} hours`, 
-                name === 'fasting' ? 'Fasting Time' : 'Eating Time'
+                name === 'fasting' ? 'Fasting Time' : ''
               ]}
               labelFormatter={(label) => `${label}`}
             />
@@ -230,16 +223,8 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
             <Bar 
               dataKey="fasting" 
               name="Fasting Time"
-              stackId="a"
               fill="#3b82f6" 
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar 
-              dataKey="eating" 
-              name="Eating Time"
-              stackId="a"
-              fill="#ef4444"
-              radius={[0, 0, 4, 4]}
+              radius={[4, 4, 4, 4]}
             />
           </BarChart>
         </ResponsiveContainer>
