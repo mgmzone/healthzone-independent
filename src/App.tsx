@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Weight from "./pages/Weight";
+import Periods from "./pages/Periods";
 import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/weight" element={<Weight />} />
+              <Route path="/periods" element={<Periods />} />
               <Route path="/fasting" element={<div>Fasting tracking page (coming soon)</div>} />
               <Route path="/exercise" element={<div>Exercise tracking page (coming soon)</div>} />
               <Route path="/profile" element={<Profile />} />

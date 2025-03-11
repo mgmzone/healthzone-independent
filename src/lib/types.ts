@@ -21,10 +21,11 @@ export interface Period {
   id: string;
   userId: string;
   startDate: Date;
-  endDate: Date;
+  endDate?: Date;
   type: 'weightLoss' | 'maintenance';
   startWeight: number;
   targetWeight: number;
+  fastingSchedule: string;
 }
 
 export interface WeighIn {

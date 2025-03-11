@@ -1,22 +1,31 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, AlertCircle } from "lucide-react";
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import WeightChart from '@/components/charts/WeightChart';
 import WeightEntryModal from '@/components/weight/WeightEntryModal';
 import WeightStatsCard from '@/components/weight/WeightStatsCard';
 import { useWeightData } from '@/hooks/useWeightData';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from 'react-router-dom';
 
 const Weight = () => {
   const { profile } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { weighIns, isLoading, addWeighIn } = useWeightData();
+  const { getCurrentPeriod, isLoading: periodsLoading } = usePeriodsData();
+  const navigate = useNavigate();
 
   // Get the unit based on user preference
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
+
+  // Check if there's an active period
+  const currentPeriod = getCurrentPeriod();
 
   // Convert weight if needed based on measurement unit
   const convertWeight = (weight: number) => {
@@ -79,7 +88,7 @@ const Weight = () => {
     value: (convertWeight(weighIns[0].weight) - convertWeight(weighIns[weighIns.length - 1].weight)).toFixed(1)
   } : null;
 
-  if (isLoading) {
+  if (isLoading || periodsLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12">
@@ -92,10 +101,23 @@ const Weight = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
+        {!currentPeriod && (
+          <Alert className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No active period</AlertTitle>
+            <AlertDescription className="flex justify-between items-center">
+              <span>You need to create a period to track your weight progress effectively.</span>
+              <Button size="sm" variant="outline" onClick={() => navigate('/periods')}>
+                Create Period
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {weighIns.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">No weight data recorded yet</p>
-            <Button onClick={() => setIsModalOpen(true)}>
+            <Button onClick={() => setIsModalOpen(true)} disabled={!currentPeriod}>
               <Plus className="mr-2" /> Add Your First Weight
             </Button>
           </div>
@@ -158,6 +180,7 @@ const Weight = () => {
               className="w-full py-6" 
               variant="default" 
               onClick={() => setIsModalOpen(true)}
+              disabled={!currentPeriod}
             >
               <Plus className="mr-2" /> Add Weight
             </Button>

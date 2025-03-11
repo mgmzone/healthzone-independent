@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { WeighIn } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
 
 export function useWeightData() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getCurrentPeriod } = usePeriodsData();
 
   const { data: weighIns = [], isLoading } = useQuery({
     queryKey: ['weighIns'],
@@ -44,12 +46,15 @@ export function useWeightData() {
 
   const addWeighIn = useMutation({
     mutationFn: async ({ weight, date }: { weight: number, date: Date }) => {
+      const currentPeriod = getCurrentPeriod();
+      
       const { data, error } = await supabase
         .from('weigh_ins')
         .insert([{
           weight,
           date: date.toISOString(),
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          period_id: currentPeriod?.id || null
         }])
         .select()
         .single();
