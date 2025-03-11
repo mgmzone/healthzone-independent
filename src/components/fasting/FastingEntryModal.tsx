@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import DatePickerField from '@/components/weight/DatePickerField';
 import { FastingLog } from '@/lib/types';
-import { format, addHours } from 'date-fns';
+import { format, addHours, differenceInHours } from 'date-fns';
 
 interface FastingEntryModalProps {
   isOpen: boolean;
@@ -32,6 +32,7 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
   const [endTime, setEndTime] = useState<string>("16:00");
   const [fastingHours, setFastingHours] = useState<string>("16");
   const [eatingWindowHours, setEatingWindowHours] = useState<string>("8");
+  const [isAutoCalculate, setIsAutoCalculate] = useState(true);
   
   useEffect(() => {
     if (initialFast) {
@@ -43,6 +44,7 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
         const end = new Date(initialFast.endTime);
         setEndDate(end);
         setEndTime(format(end, 'HH:mm'));
+        setIsAutoCalculate(false); // Disable auto-calculate when editing existing fast
       } else {
         setEndDate(null);
         setEndTime("");
@@ -61,8 +63,39 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
       
       setFastingHours("16");
       setEatingWindowHours("8");
+      setIsAutoCalculate(true);
     }
   }, [initialFast, isOpen]);
+
+  // Calculate fasting hours based on start and end times
+  const calculateFastingHours = () => {
+    if (!endDate || !endTime || !startDate || !startTime) return;
+    
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const startDateTime = new Date(startDate);
+    startDateTime.setHours(startHours, startMinutes, 0, 0);
+    
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
+    const endDateTime = new Date(endDate);
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
+    
+    if (endDateTime <= startDateTime) return;
+    
+    const hours = differenceInHours(endDateTime, startDateTime);
+    const decimalPart = (differenceInHours(endDateTime, startDateTime, { includeSeconds: true }) - hours).toFixed(2).substring(1);
+    
+    setFastingHours(hours + decimalPart);
+    if (isAutoCalculate) {
+      setEatingWindowHours((24 - parseFloat(hours + decimalPart)).toFixed(2));
+    }
+  };
+
+  // Update calculations when dates/times change
+  useEffect(() => {
+    if (isAutoCalculate && endDate && endTime) {
+      calculateFastingHours();
+    }
+  }, [startDate, startTime, endDate, endTime, isAutoCalculate]);
 
   const handleSave = () => {
     const [startHours, startMinutes] = startTime.split(':').map(Number);
@@ -151,8 +184,15 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
                 type="number"
                 min="1"
                 max="48"
+                step="0.01"
                 value={fastingHours}
-                onChange={(e) => setFastingHours(e.target.value)}
+                onChange={(e) => {
+                  setFastingHours(e.target.value);
+                  if (isAutoCalculate) {
+                    const value = parseFloat(e.target.value) || 0;
+                    setEatingWindowHours((24 - value).toFixed(2));
+                  }
+                }}
               />
             </div>
             <div>
@@ -162,8 +202,12 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
                 type="number"
                 min="1"
                 max="23"
+                step="0.01"
                 value={eatingWindowHours}
-                onChange={(e) => setEatingWindowHours(e.target.value)}
+                onChange={(e) => {
+                  setEatingWindowHours(e.target.value);
+                  setIsAutoCalculate(false);
+                }}
               />
             </div>
           </div>
