@@ -14,6 +14,7 @@ import Weight from "./pages/Weight";
 import Periods from "./pages/Periods";
 import Fasting from "./pages/Fasting";
 import Profile from "./pages/Profile";
+import Exercise from "./pages/Exercise";
 
 const queryClient = new QueryClient();
 
@@ -34,7 +35,7 @@ const App = () => (
               <Route path="/weight" element={<Weight />} />
               <Route path="/periods" element={<Periods />} />
               <Route path="/fasting" element={<Fasting />} />
-              <Route path="/exercise" element={<div>Exercise tracking page (coming soon)</div>} />
+              <Route path="/exercise" element={<Exercise />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
             
