@@ -10,7 +10,7 @@ interface ExerciseFormFieldsProps {
   formData: Partial<ExerciseLog>;
   setFormData: React.Dispatch<React.SetStateAction<Partial<ExerciseLog>>>;
   isImperial: boolean;
-  displayDistance: () => string;
+  displayDistance: string;
   handleDistanceChange: (value: string) => void;
 }
 
@@ -85,9 +85,9 @@ const ExerciseFormFields: React.FC<ExerciseFormFieldsProps> = ({
           <Label htmlFor="distance">Distance ({distanceUnit})</Label>
           <Input
             id="distance"
-            type="number"
-            step="0.01"
-            value={displayDistance()}
+            type="text"
+            inputMode="decimal"
+            value={displayDistance}
             onChange={(e) => handleDistanceChange(e.target.value)}
           />
         </div>
