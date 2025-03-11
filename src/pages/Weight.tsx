@@ -32,17 +32,17 @@ const Weight = () => {
   // Check if there's an active period
   const currentPeriod = getCurrentPeriod();
 
-  const { convertWeight, getLatestWeight, calculateWeightChange, calculateTotalChange } = useWeightCalculations(weighIns, isImperial);
+  const { convertWeight, getLatestWeight, calculateWeightChange, calculateTotalChange, formatWeightValue } = useWeightCalculations(weighIns, isImperial);
 
   const latestWeight = getLatestWeight();
   
-  // Calculate weights and changes
-  const periodStartWeight = currentPeriod ? convertWeight(currentPeriod.startWeight) : 0;
-  const currentWeight = latestWeight ? convertWeight(latestWeight.weight) : 0;
+  // Calculate weights and changes using consistent formatting
+  const periodStartWeight = currentPeriod ? Number(formatWeightValue(convertWeight(currentPeriod.startWeight))) : 0;
+  const currentWeight = latestWeight ? Number(formatWeightValue(convertWeight(latestWeight.weight))) : 0;
   
-  // Ensure consistent precision with toFixed(1)
+  // Format consistently with the same rounding logic
   const totalPeriodChange = currentWeight && periodStartWeight
-    ? parseFloat((currentWeight - periodStartWeight).toFixed(1)).toFixed(1)
+    ? formatWeightValue(currentWeight - periodStartWeight)
     : "0.0";
   const isWeightLoss = Number(totalPeriodChange) < 0;
 

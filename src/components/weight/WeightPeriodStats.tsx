@@ -17,20 +17,18 @@ const WeightPeriodStats: React.FC<WeightPeriodStatsProps> = ({
   isWeightLoss,
   weightUnit
 }) => {
-  // Ensure values are formatted consistently with one decimal place
-  const formattedStartWeight = parseFloat(periodStartWeight.toFixed(1));
-  const formattedCurrentWeight = parseFloat(currentWeight.toFixed(1));
+  // Use the raw number values since they've already been consistently formatted
   const formattedChange = Math.abs(parseFloat(totalPeriodChange));
   
   return (
     <div className="grid grid-cols-3 gap-4 mb-6">
       <WeightStatsCard 
-        value={formattedStartWeight}
+        value={periodStartWeight}
         label="Starting Weight"
         unit={weightUnit}
       />
       <WeightStatsCard 
-        value={formattedCurrentWeight}
+        value={currentWeight}
         label="Current Weight"
         unit={weightUnit}
       />

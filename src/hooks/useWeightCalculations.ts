@@ -13,6 +13,12 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     return weighIns[0];
   };
 
+  // Ensure consistent formatting with exactly one decimal place
+  const formatWeightValue = (value: number): string => {
+    // Round to exactly one decimal place
+    return (Math.round(value * 10) / 10).toFixed(1);
+  };
+
   const calculateWeightChange = (days: number) => {
     if (weighIns.length < 2) return null;
     
@@ -37,8 +43,9 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     // Calculate the exact weight difference
     const latestWeightConverted = convertWeight(latestWeight.weight);
     const previousWeightConverted = convertWeight(closestPreviousWeighIn.weight);
-    // Make sure to round to 1 decimal place for consistency
-    const changeValue = parseFloat((latestWeightConverted - previousWeightConverted).toFixed(1));
+    
+    // Use our consistent formatting function
+    const changeValue = Number(formatWeightValue(latestWeightConverted - previousWeightConverted));
     
     return {
       value: changeValue.toFixed(1),
@@ -56,16 +63,18 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     // Calculate the exact weight difference
     const latestWeightConverted = convertWeight(latestWeight.weight);
     const firstWeightConverted = convertWeight(firstWeight.weight);
-    // Make sure to round to 1 decimal place for consistency
-    const changeValue = parseFloat((latestWeightConverted - firstWeightConverted).toFixed(1));
     
-    return changeValue.toFixed(1);
+    // Use our consistent formatting function
+    const changeValue = formatWeightValue(latestWeightConverted - firstWeightConverted);
+    
+    return changeValue;
   };
 
   return {
     convertWeight,
     getLatestWeight,
     calculateWeightChange,
-    calculateTotalChange
+    calculateTotalChange,
+    formatWeightValue
   };
 };
