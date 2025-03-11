@@ -86,7 +86,6 @@ const ExerciseFormFields: React.FC<ExerciseFormFieldsProps> = ({
           <Input
             id="distance"
             type="text"
-            pattern="[0-9]*\.?[0-9]*"
             inputMode="decimal"
             value={displayDistance}
             onChange={(e) => handleDistanceChange(e.target.value)}
