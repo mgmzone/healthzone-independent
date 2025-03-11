@@ -87,7 +87,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
       
       // Project future weeks with decreasing rate of change
       for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
-        // Calculate a diminishing rate factor (starts at 1.0 and gradually decreases)
+        // Calculate a diminishing factor (starts at 1.0 and gradually decreases)
         // The rate drops by 10% every 4 weeks
         const weeksFromLastReal = week - lastRealDataPoint.week;
         const diminishingFactor = Math.pow(0.9, weeksFromLastReal / 4);
@@ -174,7 +174,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             domain={['dataMin', 'dataMax']}
             type="number"
             allowDataOverflow={true}
-            data={formattedData}
           />
           <YAxis 
             domain={[minWeight, maxWeight]} 
