@@ -35,9 +35,7 @@ export function usePeriodsData() {
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
-        // The fasting_schedule column does not exist yet in the database
-        // Let's provide a default value until we update the database
-        fastingSchedule: '16:8' // Default value
+        fastingSchedule: item.fasting_schedule
       })) as Period[];
     }
   });
@@ -57,8 +55,7 @@ export function usePeriodsData() {
           target_weight: period.targetWeight,
           type: period.type,
           start_date: period.startDate.toISOString(),
-          // We're not storing the fasting schedule yet as the column doesn't exist
-          // We'll need to add this column to the database
+          fasting_schedule: period.fastingSchedule,
           user_id: (await supabase.auth.getUser()).data.user?.id
         }])
         .select();
