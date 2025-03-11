@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart, Clock, Dumbbell, Info, ArrowRight, Calendar, Weight, Heart } from 'lucide-react';
@@ -118,7 +117,7 @@ const Dashboard = () => {
                   <div className="text-xs text-muted-foreground">Current plan</div>
                 </div>
               </div>
-              <Button variant="primary" className="w-full">
+              <Button variant="default" className="w-full">
                 {isFasting ? "End Fast" : "Start Fast"}
               </Button>
             </CardContent>

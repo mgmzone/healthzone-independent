@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -6,9 +5,6 @@ import { ArrowRight, Activity, BarChart, Clock, Heart, Dumbbell } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { cn } from '@/lib/utils';
-
-// Add framer-motion dependency
-<lov-add-dependency>framer-motion@latest</lov-add-dependency>
 
 const Index = () => {
   return (
