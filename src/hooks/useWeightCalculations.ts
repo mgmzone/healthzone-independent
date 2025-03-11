@@ -34,8 +34,10 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     
     if (!closestPreviousWeighIn) return null;
     
-    // Use the same precision as totalPeriodChange
-    const changeValue = (convertWeight(latestWeight.weight) - convertWeight(closestPreviousWeighIn.weight));
+    // Calculate the exact weight difference
+    const latestWeightConverted = convertWeight(latestWeight.weight);
+    const previousWeightConverted = convertWeight(closestPreviousWeighIn.weight);
+    const changeValue = latestWeightConverted - previousWeightConverted;
     
     return {
       value: changeValue.toFixed(1),
@@ -43,9 +45,25 @@ export const useWeightCalculations = (weighIns: WeighIn[], isImperial: boolean) 
     };
   };
 
+  // Calculate weight change between first and last weigh-ins
+  const calculateTotalChange = () => {
+    if (weighIns.length < 2) return "0.0";
+    
+    const latestWeight = weighIns[0];
+    const firstWeight = weighIns[weighIns.length - 1];
+    
+    // Calculate the exact weight difference
+    const latestWeightConverted = convertWeight(latestWeight.weight);
+    const firstWeightConverted = convertWeight(firstWeight.weight);
+    const changeValue = latestWeightConverted - firstWeightConverted;
+    
+    return changeValue.toFixed(1);
+  };
+
   return {
     convertWeight,
     getLatestWeight,
-    calculateWeightChange
+    calculateWeightChange,
+    calculateTotalChange
   };
 };

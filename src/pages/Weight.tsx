@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ const Weight = () => {
   // Check if there's an active period
   const currentPeriod = getCurrentPeriod();
 
-  const { convertWeight, getLatestWeight, calculateWeightChange } = useWeightCalculations(weighIns, isImperial);
+  const { convertWeight, getLatestWeight, calculateWeightChange, calculateTotalChange } = useWeightCalculations(weighIns, isImperial);
 
   const latestWeight = getLatestWeight();
   
@@ -51,8 +52,7 @@ const Weight = () => {
     days30: calculateWeightChange(30),
     days90: calculateWeightChange(90),
     allTime: weighIns.length >= 2 ? {
-      // Make sure this also uses toFixed(1) for consistency
-      value: (convertWeight(weighIns[0].weight) - convertWeight(weighIns[weighIns.length - 1].weight)).toFixed(1)
+      value: calculateTotalChange()
     } : null
   };
 
