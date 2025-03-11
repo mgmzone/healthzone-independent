@@ -16,8 +16,8 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   timeRemaining
 }) => {
   // Calculate angles for the progress circle
-  // Reduce radius slightly to fit better in the smaller container
-  const radius = 95; 
+  // Increase radius by 10% from 92 to 101
+  const radius = 101; 
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
   const dashOffset = circumference - (progress / 100) * circumference;
@@ -31,8 +31,8 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   });
 
   return (
-    <div className="relative flex items-center justify-center">
-      <svg className="w-80 h-80 -rotate-90">
+    <div className="relative flex items-center justify-center mb-6">
+      <svg className="w-96 h-96 -rotate-90">
         {/* Background circle */}
         <circle
           cx="50%"
@@ -78,17 +78,17 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
       
       {/* Center content */}
       <div className="absolute flex flex-col items-center">
-        <Flame className="w-10 h-10 text-orange-500 mb-2" />
+        <Flame className="w-12 h-12 text-orange-500 mb-3" />
         <div className="text-center">
-          <div className="text-xs text-muted-foreground">Fasting for</div>
-          <div className="text-3xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
+          <div className="text-sm text-muted-foreground">Fasting for</div>
+          <div className="text-4xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
           {rotations > 0 && (
-            <div className="text-xs text-emerald-500 font-medium mt-1">
+            <div className="text-sm text-emerald-500 font-medium mt-1">
               +{rotations} full rotation{rotations > 1 ? 's' : ''}
             </div>
           )}
-          <div className="text-xs text-muted-foreground mt-1">Remaining</div>
-          <div className="text-base font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div>
+          <div className="text-sm text-muted-foreground mt-1">Remaining</div>
+          <div className="text-lg font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div>
         </div>
       </div>
     </div>
