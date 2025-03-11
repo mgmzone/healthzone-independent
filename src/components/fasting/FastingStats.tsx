@@ -25,8 +25,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
     <div className="flex flex-col h-full">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 h-full">
         <div className="flex flex-col gap-4 md:col-span-1">
-          <StatsCard title="Fasts" value={stats.totalFasts || 0} />
-          <StatsCard title="Longest fast" value={formatDuration(stats.longestFast)} />
+          <StatsCard title="Total fasts" value={stats.totalFasts || 0} />
           <StatsCard title="Total fasting time" value={formatDuration(stats.totalFastingTime)} />
         </div>
         
