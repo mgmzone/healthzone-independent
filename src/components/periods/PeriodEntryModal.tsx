@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Period } from '@/lib/types';
 
 interface PeriodEntryModalProps {
   isOpen: boolean;
@@ -29,6 +29,7 @@ interface PeriodEntryModalProps {
     targetWeight?: number;
   };
   weightUnit: string;
+  initialPeriod?: Period;
 }
 
 const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
@@ -36,7 +37,8 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
   onClose,
   onSave,
   defaultValues,
-  weightUnit
+  weightUnit,
+  initialPeriod
 }) => {
   const [startWeight, setStartWeight] = useState<string>(defaultValues?.startWeight?.toString() || '');
   const [targetWeight, setTargetWeight] = useState<string>(defaultValues?.targetWeight?.toString() || '');
@@ -45,6 +47,17 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [fastingSchedule, setFastingSchedule] = useState<string>('16:8');
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (initialPeriod) {
+      setStartWeight(defaultValues?.startWeight?.toString() || '');
+      setTargetWeight(defaultValues?.targetWeight?.toString() || '');
+      setType(initialPeriod.type);
+      setStartDate(new Date(initialPeriod.startDate));
+      setEndDate(initialPeriod.endDate ? new Date(initialPeriod.endDate) : undefined);
+      setFastingSchedule(initialPeriod.fastingSchedule);
+    }
+  }, [initialPeriod, defaultValues]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +101,6 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       fastingSchedule
     });
     
-    // Reset form
     setStartWeight('');
     setTargetWeight('');
     setType('weightLoss');
@@ -101,7 +113,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>Create New Period</DialogTitle>
+          <DialogTitle>{initialPeriod ? 'Edit Period' : 'Create New Period'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="py-4 space-y-4">
