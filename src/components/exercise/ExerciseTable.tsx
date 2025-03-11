@@ -21,6 +21,7 @@ interface ExerciseTableProps {
   onDelete: (id: string) => void;
   timeFilter: TimeFilter;
   onTimeFilterChange: (filter: TimeFilter) => void;
+  showTimeFilter?: boolean;
 }
 
 const ExerciseTable: React.FC<ExerciseTableProps> = ({ 
@@ -28,7 +29,8 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
   isLoading, 
   onDelete,
   timeFilter,
-  onTimeFilterChange
+  onTimeFilterChange,
+  showTimeFilter = true
 }) => {
   const [expandedWeeks, setExpandedWeeks] = useState<Record<string, boolean>>({});
   
@@ -43,13 +45,15 @@ const ExerciseTable: React.FC<ExerciseTableProps> = ({
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Activity Log</h2>
-        <ExerciseTimeFilter 
-          value={timeFilter} 
-          onChange={onTimeFilterChange}
-        />
-      </div>
+      {showTimeFilter && (
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Activity Log</h2>
+          <ExerciseTimeFilter 
+            value={timeFilter} 
+            onChange={onTimeFilterChange}
+          />
+        </div>
+      )}
       
       <Card>
         <CardContent className="p-0">
