@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import Weight from "./pages/Weight";
 import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
@@ -28,7 +29,7 @@ const App = () => (
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/weight" element={<div>Weight tracking page (coming soon)</div>} />
+              <Route path="/weight" element={<Weight />} />
               <Route path="/fasting" element={<div>Fasting tracking page (coming soon)</div>} />
               <Route path="/exercise" element={<div>Exercise tracking page (coming soon)</div>} />
               <Route path="/profile" element={<Profile />} />
