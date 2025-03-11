@@ -16,7 +16,8 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   timeRemaining
 }) => {
   // Calculate angles for the progress circle
-  const radius = 80; 
+  // Increase radius by 15% from 80 to 92
+  const radius = 92; 
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
   const dashOffset = circumference - (progress / 100) * circumference;
