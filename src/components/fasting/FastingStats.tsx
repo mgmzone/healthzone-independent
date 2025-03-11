@@ -21,11 +21,15 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
     return prepareChartData(fastingLogs, timeFilter);
   }, [fastingLogs, timeFilter]);
 
+  // For debugging
+  console.log('FastingStats stats:', stats);
+  console.log('FastingStats logs count:', fastingLogs.length);
+
   return (
     <div className="flex flex-col h-full">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 h-full">
         <div className="flex flex-col gap-4 md:col-span-1">
-          <StatsCard title="Total fasts" value={stats.totalFasts || 0} />
+          <StatsCard title="Total fasts" value={stats.totalFasts} />
           <StatsCard title="Total fasting time" value={formatDuration(stats.totalFastingTime)} />
         </div>
         

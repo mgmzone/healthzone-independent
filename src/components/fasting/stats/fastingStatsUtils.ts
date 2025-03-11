@@ -4,7 +4,7 @@ import { differenceInSeconds, subDays, subMonths, subYears, startOfDay } from 'd
 
 // Format durations
 export const formatDuration = (hours: number) => {
-  if (hours === 0) return '0h';
+  if (!hours || hours === 0) return '0h';
   
   const days = Math.floor(hours / 24);
   const remainingHours = Math.floor(hours % 24);
@@ -29,6 +29,7 @@ export const calculateStats = (fastingLogs: FastingLog[], timeFilter: 'week' | '
   
   // Calculate total fasting time in hours
   const totalFastingHours = filteredLogs.reduce((total, log) => {
+    // Skip incomplete logs except for the active one
     if (!log.endTime && log !== fastingLogs[0]) return total;
     
     const startTime = new Date(log.startTime);
@@ -60,11 +61,12 @@ export const calculateStats = (fastingLogs: FastingLog[], timeFilter: 'week' | '
     daysWithFast.add(date);
   });
   
+  // Ensure we're returning numeric values, not undefined
   return {
-    totalFasts: filteredLogs.length,
-    longestFast: longestFastHours,
-    totalFastingTime: totalFastingHours,
-    daysWithFast: daysWithFast.size,
+    totalFasts: filteredLogs.length || 0,
+    longestFast: longestFastHours || 0,
+    totalFastingTime: totalFastingHours || 0,
+    daysWithFast: daysWithFast.size || 0,
   };
 };
 
