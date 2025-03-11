@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				healthzone: {
+					50: '#eef9ff',
+					100: '#dcf2ff',
+					200: '#b9eaff',
+					300: '#7cddff',
+					400: '#36cfff',
+					500: '#06b6f2',
+					600: '#0095d3',
+					700: '#0077ab',
+					800: '#00638c',
+					900: '#065374',
+					950: '#04344d',
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,36 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				'fade-in-up': {
+					'0%': { opacity: '0', transform: 'translateY(20px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'pulse-glow': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.7' }
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' }
+				},
+				'progress-circular': {
+					'0%': { 'stroke-dasharray': '0 100' },
+					'100%': { 'stroke-dasharray': 'var(--progress) 100' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out',
+				'fade-in-up': 'fade-in-up 0.5s ease-out',
+				'pulse-glow': 'pulse-glow 2s infinite',
+				'float': 'float 6s infinite ease-in-out',
+				'progress-circular': 'progress-circular 1s ease-out forwards'
 			}
 		}
 	},
