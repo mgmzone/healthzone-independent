@@ -1,6 +1,7 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProgressCircle } from "@/components/ProgressCircle";
+import ProgressCircle from "@/components/ProgressCircle";
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 
