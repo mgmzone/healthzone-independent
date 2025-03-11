@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
@@ -28,20 +27,26 @@ export const useProfileForm = () => {
 
   useEffect(() => {
     if (profile) {
+      const safeProfile = { ...profile };
+      
+      if (!(safeProfile.birthDate instanceof Date && !isNaN(safeProfile.birthDate.getTime()))) {
+        safeProfile.birthDate = new Date();
+      }
+      
       setFormData({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        email: profile.email,
-        birthDate: profile.birthDate,
-        gender: profile.gender,
-        height: profile.height,
-        currentWeight: profile.currentWeight,
-        targetWeight: profile.targetWeight,
-        fitnessLevel: profile.fitnessLevel,
-        weightLossPerWeek: profile.weightLossPerWeek,
-        exerciseMinutesPerDay: profile.exerciseMinutesPerDay,
-        healthGoals: profile.healthGoals,
-        measurementUnit: profile.measurementUnit,
+        firstName: safeProfile.firstName,
+        lastName: safeProfile.lastName,
+        email: safeProfile.email,
+        birthDate: safeProfile.birthDate,
+        gender: safeProfile.gender,
+        height: safeProfile.height,
+        currentWeight: safeProfile.currentWeight,
+        targetWeight: safeProfile.targetWeight,
+        fitnessLevel: safeProfile.fitnessLevel,
+        weightLossPerWeek: safeProfile.weightLossPerWeek,
+        exerciseMinutesPerDay: safeProfile.exerciseMinutesPerDay,
+        healthGoals: safeProfile.healthGoals,
+        measurementUnit: safeProfile.measurementUnit,
       });
     }
   }, [profile]);
@@ -56,7 +61,16 @@ export const useProfileForm = () => {
   };
 
   const handleDateChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: new Date(value) }));
+    try {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        setFormData((prev) => ({ ...prev, [name]: date }));
+      } else {
+        console.error('Invalid date provided:', value);
+      }
+    } catch (error) {
+      console.error('Error parsing date:', error);
+    }
   };
 
   const handleNumberChange = (name: string, value: string) => {

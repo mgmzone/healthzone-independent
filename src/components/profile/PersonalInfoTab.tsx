@@ -4,6 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TabsContent } from '@/components/ui/tabs';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface PersonalInfoTabProps {
   formData: {
@@ -24,6 +30,18 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   handleSelectChange,
   handleDateChange
 }) => {
+  // Ensure the birthDate is a valid Date object
+  const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
+  const birthDate = isValidDate ? formData.birthDate : new Date();
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      // Format date to YYYY-MM-DD string for the handler
+      const dateString = format(date, 'yyyy-MM-dd');
+      handleDateChange('birthDate', dateString);
+    }
+  };
+
   return (
     <TabsContent value="personal" className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -61,13 +79,30 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="birthDate">Birth Date</Label>
-        <Input
-          id="birthDate"
-          name="birthDate"
-          type="date"
-          value={formData.birthDate ? formData.birthDate.toISOString().split('T')[0] : ''}
-          onChange={(e) => handleDateChange('birthDate', e.target.value)}
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              id="birthDate"
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !isValidDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {isValidDate ? format(birthDate, 'PPP') : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={birthDate}
+              onSelect={handleCalendarSelect}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       <div className="space-y-2">
         <Label htmlFor="gender">Gender</Label>
