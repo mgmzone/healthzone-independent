@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 
 const Profile = () => {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('personal');
   
   const {
@@ -31,6 +31,11 @@ const Profile = () => {
     handlePhotoClick,
     handlePhotoChange
   } = useProfilePhoto();
+
+  // Refresh profile when component mounts to ensure latest data
+  useEffect(() => {
+    refreshProfile();
+  }, [refreshProfile]);
 
   return (
     <Layout>
