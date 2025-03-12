@@ -1,7 +1,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
-import { updateProfile } from '@/lib/services/profileService';
+import { updateProfileCurrentWeight } from '@/lib/services/profileService';
 
 export function useAddWeighIn() {
   const { toast, queryClient, getCurrentPeriod, supabase } = useWeightBase();
@@ -44,7 +44,7 @@ export function useAddWeighIn() {
       
       // Update the user's profile with the latest weight
       try {
-        await updateProfile({ currentWeight: weight });
+        await updateProfileCurrentWeight(weight);
       } catch (profileError) {
         console.error('Error updating profile with new weight:', profileError);
         // We don't throw here, as we still want to consider the weigh-in successful

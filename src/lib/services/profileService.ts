@@ -49,7 +49,8 @@ export async function getProfile() {
       measurementUnit: data.measurement_unit as 'imperial' | 'metric' || 'imperial', // Default to imperial
       firstName: data.first_name || '',
       lastName: data.last_name || '',
-      avatarUrl: avatarUrl || data.avatar_url || ''
+      avatarUrl: avatarUrl || data.avatar_url || '',
+      startingWeight: data.starting_weight || 0
     };
     return transformedData;
   }
@@ -85,6 +86,7 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.healthGoals !== undefined) dbProfileData.health_goals = profileData.healthGoals;
   if (profileData.measurementUnit !== undefined) dbProfileData.measurement_unit = profileData.measurementUnit;
   if (profileData.avatarUrl !== undefined) dbProfileData.avatar_url = profileData.avatarUrl;
+  if (profileData.startingWeight !== undefined) dbProfileData.starting_weight = profileData.startingWeight;
 
   const { data, error } = await supabase
     .from('profiles')
@@ -100,4 +102,43 @@ export async function updateProfile(profileData: Partial<User>) {
 
   // Transform response back to our frontend type
   return getProfile();
+}
+
+export async function updateProfileCurrentWeight(weight: number) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  // Get current profile first to check if startingWeight needs to be set
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('starting_weight, current_weight')
+    .eq('id', session.user.id)
+    .single();
+
+  if (profileError) {
+    console.error('Error fetching profile for weight update:', profileError);
+    throw profileError;
+  }
+
+  const updates: any = {
+    current_weight: weight,
+    updated_at: new Date().toISOString()
+  };
+
+  // If startingWeight is not set yet, set it to this weight
+  if (profile && profile.starting_weight === null) {
+    updates.starting_weight = weight;
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', session.user.id);
+
+  if (error) {
+    console.error('Error updating profile weight:', error);
+    throw error;
+  }
+
+  return true;
 }

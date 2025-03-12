@@ -15,6 +15,7 @@ export interface User {
   firstName: string;
   lastName: string;
   avatarUrl?: string;
+  startingWeight?: number;
 }
 
 export interface Period {
@@ -93,6 +94,7 @@ export const mockUser: User = {
   firstName: 'John',
   lastName: 'Doe',
   avatarUrl: '',
+  startingWeight: 90,
 };
 
 export const mockWeighIns: WeighIn[] = [

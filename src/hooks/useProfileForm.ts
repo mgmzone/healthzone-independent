@@ -26,6 +26,7 @@ export const useProfileForm = () => {
     exerciseMinutesPerDay: 30,
     healthGoals: '',
     measurementUnit: 'imperial',
+    startingWeight: 0,
   });
 
   // Only set form data once when profile loads or changes
@@ -48,6 +49,7 @@ export const useProfileForm = () => {
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
+        startingWeight: profile.startingWeight || 0,
       };
       
       setFormData(newFormData);

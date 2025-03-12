@@ -15,6 +15,7 @@ interface HealthInfoTabProps {
     exerciseMinutesPerDay?: number;
     healthGoals?: string;
     measurementUnit?: string;
+    startingWeight?: number;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -61,6 +62,21 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           />
         </div>
       </div>
+      
+      {formData.startingWeight ? (
+        <div className="space-y-2">
+          <Label htmlFor="startingWeight" className="text-left block">Starting Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
+          <Input
+            id="startingWeight"
+            name="startingWeight"
+            type="number"
+            value={formData.startingWeight || ''}
+            disabled
+            className="bg-gray-100"
+            placeholder="Starting Weight"
+          />
+        </div>
+      ) : null}
       
       {/* Target Weight and Target Weight Loss Per Week on the same line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

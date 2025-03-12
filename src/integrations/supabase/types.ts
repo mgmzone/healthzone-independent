@@ -201,6 +201,7 @@ export type Database = {
           id: string
           last_name: string | null
           measurement_unit: string | null
+          starting_weight: number | null
           target_weight: number | null
           updated_at: string
           weight_loss_per_week: number | null
@@ -219,6 +220,7 @@ export type Database = {
           id: string
           last_name?: string | null
           measurement_unit?: string | null
+          starting_weight?: number | null
           target_weight?: number | null
           updated_at?: string
           weight_loss_per_week?: number | null
@@ -237,6 +239,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           measurement_unit?: string | null
+          starting_weight?: number | null
           target_weight?: number | null
           updated_at?: string
           weight_loss_per_week?: number | null
