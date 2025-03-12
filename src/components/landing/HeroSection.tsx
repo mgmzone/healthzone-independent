@@ -48,15 +48,54 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-16 w-full max-w-4xl relative"
+          className="mt-20 w-full max-w-5xl relative"
         >
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
-            <img 
-              src="/lovable-uploads/60c42391-c2db-428a-9ed5-4c47de2debd5.png" 
-              alt="HealthZone Dashboard Preview" 
-              className="w-full h-auto"
-            />
+          <div className="relative h-[500px] md:h-[600px]">
+            {/* Dashboard screenshot */}
+            <div className="absolute top-0 left-0 md:left-[5%] w-[85%] md:w-[60%] transform hover:scale-105 transition-transform duration-300 z-30">
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/7b18d2b6-0817-4015-afa4-f01258d4834d.png" 
+                  alt="HealthZone Dashboard" 
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
+            
+            {/* Weight tracker screenshot */}
+            <div className="absolute top-[15%] right-0 md:right-[5%] w-[80%] md:w-[55%] transform hover:scale-105 transition-transform duration-300 z-20">
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/7f41436f-32b9-4195-91c5-f74ebe845cef.png" 
+                  alt="HealthZone Weight Tracker" 
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
+            
+            {/* Fasting tracker screenshot */}
+            <div className="absolute top-[35%] left-[10%] md:left-[15%] w-[80%] md:w-[55%] transform hover:scale-105 transition-transform duration-300 z-10">
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/99799d8c-1a79-4982-9c46-22e3fbe44e9f.png" 
+                  alt="HealthZone Fasting Tracker" 
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
+            
+            {/* Exercise tracker screenshot */}
+            <div className="absolute top-[50%] right-[5%] md:right-[10%] w-[75%] md:w-[50%] transform hover:scale-105 transition-transform duration-300 z-0">
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/6b224319-b5c3-413e-9c54-f33b93b52bbc.png" 
+                  alt="HealthZone Exercise Tracker" 
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
           </div>
+          
           <div className="absolute -bottom-6 -right-6 rotate-12 animate-float">
             <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl shadow-lg p-3 w-40">
               <div className="flex items-center gap-2 mb-2">
