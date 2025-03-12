@@ -8,7 +8,6 @@ import Layout from '@/components/Layout';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import PersonalInfoTab from '@/components/profile/PersonalInfoTab';
 import HealthInfoTab from '@/components/profile/HealthInfoTab';
-import PreferencesTab from '@/components/profile/PreferencesTab';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 
@@ -50,10 +49,9 @@ const Profile = () => {
             />
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-3 w-full">
+              <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="personal">Personal</TabsTrigger>
                 <TabsTrigger value="health">Health</TabsTrigger>
-                <TabsTrigger value="preferences">Preferences</TabsTrigger>
               </TabsList>
             
               <CardContent className="pt-6">
@@ -70,11 +68,6 @@ const Profile = () => {
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleNumberChange={handleNumberChange}
-                  />
-                  
-                  <PreferencesTab 
-                    formData={formData}
-                    handleSelectChange={handleSelectChange}
                   />
 
                   <div className="pt-4">

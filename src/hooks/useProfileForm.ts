@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
@@ -22,7 +23,7 @@ export const useProfileForm = () => {
     weightLossPerWeek: 0.5,
     exerciseMinutesPerDay: 30,
     healthGoals: '',
-    measurementUnit: 'metric',
+    measurementUnit: 'imperial',
   });
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export const useProfileForm = () => {
         weightLossPerWeek: safeProfile.weightLossPerWeek,
         exerciseMinutesPerDay: safeProfile.exerciseMinutesPerDay,
         healthGoals: safeProfile.healthGoals,
-        measurementUnit: safeProfile.measurementUnit,
+        measurementUnit: safeProfile.measurementUnit || 'imperial',
       });
     }
   }, [profile]);
