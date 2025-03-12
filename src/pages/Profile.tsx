@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 const Profile = () => {
   const { profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = React.useState('personal');
+  const profileFetchedRef = useRef(false);
   
   const {
     formData,
@@ -31,12 +32,14 @@ const Profile = () => {
     handlePhotoChange
   } = useProfilePhoto();
 
-  // Refresh profile when component mounts to ensure latest data
+  // Refresh profile ONLY on mount, not on every render
   useEffect(() => {
-    console.log("Profile component mounted, refreshing profile data");
-    refreshProfile();
-    // Only refresh on mount, not on every render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!profileFetchedRef.current) {
+      console.log("Profile component mounted, refreshing profile data");
+      refreshProfile();
+      profileFetchedRef.current = true;
+    }
+    // Empty dependency array to ensure this runs only once on mount
   }, []);
 
   const onTabChange = useCallback((value: string) => {
@@ -44,10 +47,23 @@ const Profile = () => {
   }, []);
 
   const onFormSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
     handleSubmit(e);
   }, [handleSubmit]);
 
-  console.log("Profile Page Render - Current formData:", formData);
+  if (!profile) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-8 pt-24">
+          <Card className="w-full max-w-3xl mx-auto">
+            <CardHeader>
+              <div>Loading profile...</div>
+            </CardHeader>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

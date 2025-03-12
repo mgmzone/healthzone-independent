@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
 import { useAuth } from '@/lib/auth';
@@ -9,6 +9,7 @@ export const useProfileForm = () => {
   const { profile, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const profileLoadedRef = useRef(false);
   
   // Create a state with default values
   const [formData, setFormData] = useState<Partial<User>>({
@@ -27,9 +28,9 @@ export const useProfileForm = () => {
     measurementUnit: 'imperial',
   });
 
-  // Update form data when profile changes
+  // Only set form data once when profile loads or changes
   useEffect(() => {
-    if (profile) {
+    if (profile && !profileLoadedRef.current) {
       console.log('Setting profile data:', profile);
       
       // Create a fresh object without reference issues
@@ -50,6 +51,7 @@ export const useProfileForm = () => {
       };
       
       setFormData(newFormData);
+      profileLoadedRef.current = true;
       console.log('Form data set to:', newFormData);
     }
   }, [profile]);
@@ -96,6 +98,8 @@ export const useProfileForm = () => {
     try {
       console.log('Submitting form data:', formData);
       await updateProfile(formData);
+      // Reset the profile loaded flag so we get fresh data
+      profileLoadedRef.current = false;
       await refreshProfile();
       toast({
         title: "Profile updated",
