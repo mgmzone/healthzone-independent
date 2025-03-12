@@ -32,12 +32,12 @@ const HeroSection = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" asChild className="rounded-full px-8 gap-2 text-base">
-              <Link to="/signup">
+              <Link to="/auth?tab=signup">
                 Get Started <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="rounded-full px-8 gap-2 text-base bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20">
-              <Link to="/login">
+              <Link to="/auth">
                 Log In
               </Link>
             </Button>
