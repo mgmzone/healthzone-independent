@@ -1,7 +1,7 @@
-
 import { supabase } from "@/lib/supabase";
 import { User } from "@/lib/types";
 import { getProfilePhotoUrl } from "./storageService";
+import { formatWeightValue } from "@/lib/weight/formatWeight";
 
 export async function getProfile() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -108,6 +108,9 @@ export async function updateProfileCurrentWeight(weight: number) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  // Format weight to have one decimal place
+  const formattedWeight = parseFloat(formatWeightValue(weight));
+
   // Get current profile first to check if startingWeight needs to be set
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -121,13 +124,13 @@ export async function updateProfileCurrentWeight(weight: number) {
   }
 
   const updates: any = {
-    current_weight: weight,
+    current_weight: formattedWeight,
     updated_at: new Date().toISOString()
   };
 
   // If startingWeight is not set yet, set it to this weight
   if (profile && profile.starting_weight === null) {
-    updates.starting_weight = weight;
+    updates.starting_weight = formattedWeight;
   }
 
   const { error } = await supabase

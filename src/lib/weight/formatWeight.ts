@@ -7,7 +7,8 @@
  * Formats a weight value to consistently have one decimal place
  */
 export const formatWeightValue = (value: number): string => {
-  return value.toFixed(1);
+  if (!value && value !== 0) return '0.0';
+  return parseFloat(value.toString()).toFixed(1);
 };
 
 /**

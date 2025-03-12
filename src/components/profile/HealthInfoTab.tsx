@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { formatWeightValue } from '@/lib/weight/formatWeight';
 
 interface HealthInfoTabProps {
   formData: {
@@ -29,6 +30,12 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   handleNumberChange
 }) => {
   const unit = formData.measurementUnit || 'imperial';
+  
+  // Format weight values for display
+  const formatWeight = (weight: number | undefined): string => {
+    if (weight === undefined || weight === 0) return '';
+    return formatWeightValue(weight);
+  };
   
   // Handle fitness level changes
   const onFitnessLevelChange = (value: string) => {
@@ -56,7 +63,8 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
             id="currentWeight"
             name="currentWeight"
             type="number"
-            value={formData.currentWeight || ''}
+            step="0.1"
+            value={formatWeight(formData.currentWeight)}
             onChange={(e) => handleNumberChange('currentWeight', e.target.value)}
             placeholder="Current Weight"
           />
@@ -70,7 +78,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
             id="startingWeight"
             name="startingWeight"
             type="number"
-            value={formData.startingWeight || ''}
+            value={formatWeight(formData.startingWeight)}
             disabled
             className="bg-gray-100"
             placeholder="Starting Weight"
@@ -86,7 +94,8 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
             id="targetWeight"
             name="targetWeight"
             type="number"
-            value={formData.targetWeight || ''}
+            step="0.1"
+            value={formatWeight(formData.targetWeight)}
             onChange={(e) => handleNumberChange('targetWeight', e.target.value)}
             placeholder="Target Weight"
           />

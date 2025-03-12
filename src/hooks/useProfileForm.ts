@@ -4,6 +4,7 @@ import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { formatWeightValue } from '@/lib/weight/formatWeight';
 
 export const useProfileForm = () => {
   const { profile, refreshProfile } = useAuth();
@@ -42,14 +43,14 @@ export const useProfileForm = () => {
         birthDate: profile.birthDate instanceof Date ? new Date(profile.birthDate) : new Date(),
         gender: profile.gender || 'other',
         height: profile.height || 0,
-        currentWeight: profile.currentWeight || 0,
+        currentWeight: profile.currentWeight ? parseFloat(formatWeightValue(profile.currentWeight)) : 0,
         targetWeight: profile.targetWeight || 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',
         weightLossPerWeek: profile.weightLossPerWeek || 0.5,
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
-        startingWeight: profile.startingWeight || 0,
+        startingWeight: profile.startingWeight ? parseFloat(formatWeightValue(profile.startingWeight)) : 0,
       };
       
       setFormData(newFormData);
@@ -87,7 +88,13 @@ export const useProfileForm = () => {
 
   // Handle number changes
   const handleNumberChange = useCallback((name: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    let numValue = parseFloat(value) || 0;
+    
+    // Format certain fields to have only one decimal place
+    if (['currentWeight', 'targetWeight', 'weightLossPerWeek', 'startingWeight'].includes(name)) {
+      numValue = parseFloat(parseFloat(value).toFixed(1)) || 0;
+    }
+    
     console.log(`Number changed: ${name} = ${numValue}`);
     setFormData(prev => ({ ...prev, [name]: numValue }));
   }, []);
