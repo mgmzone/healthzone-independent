@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
 import { Navigate } from 'react-router-dom';
 import AuthCard from '@/components/auth/AuthCard';
+import { isProfileComplete } from '@/lib/auth';
 
 const Auth = () => {
   const { user, profile, signIn, signUp } = useAuth();
@@ -11,13 +12,11 @@ const Auth = () => {
 
   // If user is already logged in
   if (user) {
-    // Redirect to getting-started if profile is incomplete, otherwise to dashboard
-    const isProfileComplete = profile?.firstName && 
-      profile?.currentWeight && 
-      profile?.targetWeight && 
-      profile?.height;
+    // Use the common isProfileComplete function for consistent behavior
+    const profileComplete = isProfileComplete(profile);
+    console.log('Auth page redirect check:', { profileComplete, profile });
     
-    return <Navigate to={isProfileComplete ? "/dashboard" : "/getting-started"} />;
+    return <Navigate to={profileComplete ? "/dashboard" : "/getting-started"} />;
   }
 
   const handleSignIn = async (email: string, password: string) => {

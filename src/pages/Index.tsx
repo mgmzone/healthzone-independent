@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/lib/auth';
+import { isProfileComplete } from '@/lib/auth';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
@@ -28,13 +29,18 @@ const Index = () => {
   // Redirect logged-in users appropriately
   useEffect(() => {
     if (!loading && !profileLoading && user) {
-      const isProfileComplete = profile?.firstName && 
-        profile?.currentWeight && 
-        profile?.targetWeight && 
-        profile?.height;
+      const profileComplete = isProfileComplete(profile);
       
-      console.log('Redirecting user', { isProfileComplete });
-      navigate(isProfileComplete ? '/dashboard' : '/getting-started', { replace: true });
+      console.log('Index redirect logic', { 
+        profileComplete, 
+        profile,
+        firstName: profile?.firstName,
+        currentWeight: profile?.currentWeight,
+        targetWeight: profile?.targetWeight,
+        height: profile?.height
+      });
+      
+      navigate(profileComplete ? '/dashboard' : '/getting-started', { replace: true });
     }
   }, [user, profile, loading, profileLoading, navigate]);
 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { isProfileComplete } from '@/lib/auth';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,11 +13,17 @@ const GettingStarted = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
 
-  // Check if profile is complete (has basic info filled out)
-  const isProfileComplete = profile?.firstName && 
-    profile?.currentWeight && 
-    profile?.targetWeight && 
-    profile?.height;
+  // Use the common isProfileComplete function
+  const profileComplete = isProfileComplete(profile);
+  
+  console.log('GettingStarted page', {
+    profile,
+    profileComplete,
+    firstName: profile?.firstName,
+    currentWeight: profile?.currentWeight,
+    targetWeight: profile?.targetWeight,
+    height: profile?.height
+  });
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -41,11 +48,11 @@ const GettingStarted = () => {
           
           <div className="space-y-6">
             {/* Step 1: Complete Profile */}
-            <Card className={isProfileComplete ? 'border-green-500' : 'border-primary'}>
+            <Card className={profileComplete ? 'border-green-500' : 'border-primary'}>
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="mt-1">
-                    {isProfileComplete ? (
+                    {profileComplete ? (
                       <CheckCircle className="h-8 w-8 text-green-500" />
                     ) : (
                       <UserCircle className="h-8 w-8 text-primary" />
@@ -56,7 +63,7 @@ const GettingStarted = () => {
                     <p className="text-muted-foreground mb-4">
                       Fill in your basic information to get personalized tracking and set your measurement units.
                     </p>
-                    {!isProfileComplete && (
+                    {!profileComplete && (
                       <Button onClick={handleProfileClick} size="lg" className="mt-2">
                         Complete Profile
                         <ArrowRight className="ml-2" />
@@ -68,7 +75,7 @@ const GettingStarted = () => {
             </Card>
 
             {/* Step 2: Create First Period */}
-            <Card className={isProfileComplete ? '' : 'opacity-50'}>
+            <Card className={profileComplete ? '' : 'opacity-50'}>
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <Calendar className="h-8 w-8 text-primary mt-1" />
@@ -79,7 +86,7 @@ const GettingStarted = () => {
                     </p>
                     <Button 
                       onClick={handlePeriodClick}
-                      disabled={!isProfileComplete}
+                      disabled={!profileComplete}
                       size="lg"
                       className="mt-2"
                     >
