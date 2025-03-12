@@ -40,6 +40,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfileLoading(true);
     try {
       const profileData = await getProfile();
+      
+      // Set default measurement unit to imperial if not already set
+      if (profileData && !profileData.measurementUnit) {
+        profileData.measurementUnit = 'imperial';
+      }
+      
       setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);

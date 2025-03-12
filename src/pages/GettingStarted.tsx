@@ -1,16 +1,16 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { UserCircle, CheckCircle, Calendar, ArrowRight } from 'lucide-react';
+import { UserCircle, CheckCircle, Calendar, ArrowRight, Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const GettingStarted = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const [completedProfile, setCompletedProfile] = useState(false);
 
   // Check if profile is complete (has basic info filled out)
   const isProfileComplete = profile?.firstName && 
@@ -30,10 +30,18 @@ const GettingStarted = () => {
     <Layout>
       <div className="container mx-auto p-6 mt-16">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Getting Started</h1>
+          <h1 className="text-3xl font-bold mb-4">Getting Started</h1>
+          
+          <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Complete your profile first to setup your preferences and health information. This will help us personalize your experience.
+            </AlertDescription>
+          </Alert>
+          
           <div className="space-y-6">
             {/* Step 1: Complete Profile */}
-            <Card className={isProfileComplete ? 'border-green-500' : ''}>
+            <Card className={isProfileComplete ? 'border-green-500' : 'border-primary'}>
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="mt-1">
@@ -46,10 +54,10 @@ const GettingStarted = () => {
                   <div className="flex-1">
                     <h2 className="text-xl font-semibold mb-2">Step 1: Complete Your Profile</h2>
                     <p className="text-muted-foreground mb-4">
-                      Fill in your basic information to get personalized recommendations and tracking.
+                      Fill in your basic information to get personalized tracking and set your measurement units.
                     </p>
                     {!isProfileComplete && (
-                      <Button onClick={handleProfileClick}>
+                      <Button onClick={handleProfileClick} size="lg" className="mt-2">
                         Complete Profile
                         <ArrowRight className="ml-2" />
                       </Button>
@@ -72,6 +80,8 @@ const GettingStarted = () => {
                     <Button 
                       onClick={handlePeriodClick}
                       disabled={!isProfileComplete}
+                      size="lg"
+                      className="mt-2"
                     >
                       Create First Period
                       <ArrowRight className="ml-2" />

@@ -36,7 +36,7 @@ export async function getProfile() {
       weightLossPerWeek: data.weight_loss_per_week || 0,
       exerciseMinutesPerDay: data.exercise_minutes_per_day || 0,
       healthGoals: data.health_goals || '',
-      measurementUnit: data.measurement_unit as 'imperial' | 'metric' || 'metric',
+      measurementUnit: data.measurement_unit as 'imperial' | 'metric' || 'imperial', // Default to imperial
       firstName: data.first_name || '',
       lastName: data.last_name || '',
       avatarUrl: avatarUrl || data.avatar_url || ''

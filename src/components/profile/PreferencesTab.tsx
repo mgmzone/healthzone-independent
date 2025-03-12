@@ -20,13 +20,13 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({
     <TabsContent value="preferences" className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="measurementUnit" className="text-left block">Measurement Unit</Label>
-        <Select name="measurementUnit" value={formData.measurementUnit || 'metric'} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
+        <Select name="measurementUnit" value={formData.measurementUnit || 'imperial'} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select measurement unit" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="metric">Metric (kg, cm)</SelectItem>
             <SelectItem value="imperial">Imperial (lbs, in)</SelectItem>
+            <SelectItem value="metric">Metric (kg, cm)</SelectItem>
           </SelectContent>
         </Select>
       </div>
