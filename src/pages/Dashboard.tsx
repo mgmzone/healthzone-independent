@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
@@ -10,6 +10,7 @@ import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
+import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -21,10 +22,11 @@ import { getProgressPercentage } from '@/lib/types';
 
 const Dashboard = () => {
   const { profile } = useAuth();
-  const { periods, isLoading: periodsLoading, getCurrentPeriod } = usePeriodsData();
+  const { periods, isLoading: periodsLoading, getCurrentPeriod, addPeriod } = usePeriodsData();
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
   const { fastingLogs } = useFastingData();
   const { exerciseLogs } = useExerciseData();
+  const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
@@ -41,6 +43,18 @@ const Dashboard = () => {
 
   const latestWeight = getLatestWeight();
   const currentPeriod = getCurrentPeriod();
+
+  const handleCreatePeriod = (periodData: {
+    startWeight: number,
+    targetWeight: number,
+    type: 'weightLoss' | 'maintenance',
+    startDate: Date,
+    endDate?: Date,
+    fastingSchedule: string
+  }) => {
+    addPeriod(periodData);
+    setIsPeriodModalOpen(false);
+  };
 
   const currentMetrics = currentPeriod ? {
     weightProgress: latestWeight
@@ -85,7 +99,7 @@ const Dashboard = () => {
           />
 
           {periods.length === 0 ? (
-            <NoPeriodAlert onCreatePeriod={() => {}} />
+            <NoPeriodAlert onCreatePeriod={() => setIsPeriodModalOpen(true)} />
           ) : (
             <>
               {!currentPeriod && <NoActivePeriodAlert />}
@@ -108,6 +122,17 @@ const Dashboard = () => {
               )}
             </>
           )}
+          
+          <PeriodEntryModal
+            isOpen={isPeriodModalOpen}
+            onClose={() => setIsPeriodModalOpen(false)}
+            onSave={handleCreatePeriod}
+            weightUnit={weightUnit}
+            defaultValues={{
+              startWeight: profile?.current_weight ? convertWeight(profile.current_weight) : undefined,
+              targetWeight: profile?.target_weight ? convertWeight(profile.target_weight) : undefined
+            }}
+          />
         </div>
       </div>
     </Layout>
