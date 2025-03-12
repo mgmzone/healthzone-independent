@@ -10,6 +10,7 @@ import PersonalInfoTab from '@/components/profile/PersonalInfoTab';
 import HealthInfoTab from '@/components/profile/HealthInfoTab';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfilePhoto } from '@/hooks/useProfilePhoto';
+import { cn } from '@/lib/utils';
 
 const Profile = () => {
   const { profile, refreshProfile } = useAuth();
@@ -80,8 +81,24 @@ const Profile = () => {
             <form onSubmit={onFormSubmit} className="space-y-4 mt-4">
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger value="personal">Personal</TabsTrigger>
-                  <TabsTrigger value="health">Health</TabsTrigger>
+                  <TabsTrigger 
+                    value="personal"
+                    className={cn(
+                      activeTab === "personal" ? "bg-healthzone-500 text-white hover:text-white" : "",
+                      "transition-all duration-200"
+                    )}
+                  >
+                    Personal
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="health"
+                    className={cn(
+                      activeTab === "health" ? "bg-green-500 text-white hover:text-white" : "",
+                      "transition-all duration-200"
+                    )}
+                  >
+                    Health
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="personal" className="mt-4">
