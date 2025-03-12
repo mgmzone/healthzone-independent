@@ -27,7 +27,7 @@ const HeroSection = () => {
             Track Your Health Journey with <span className="bg-clip-text text-transparent bg-gradient-to-r from-healthzone-300 to-healthzone-500">Precision</span>
           </h1>
           <p className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-10">
-            Monitor your weight loss, intermittent fasting, and exercise routines in one seamless experience. 
+            Monitor your weight loss, intermittent fasting, and exercise goals in one seamless experience. 
             Take control of your health with data-driven insights.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
