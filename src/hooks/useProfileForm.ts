@@ -5,6 +5,7 @@ import { updateProfile } from '@/lib/services/profileService';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { formatWeightValue } from '@/lib/weight/formatWeight';
+import { convertWeight, convertToMetric } from '@/lib/weight/convertWeight';
 
 export const useProfileForm = () => {
   const { profile, refreshProfile } = useAuth();
@@ -35,6 +36,9 @@ export const useProfileForm = () => {
     if (profile && !profileLoadedRef.current) {
       console.log('Setting profile data:', profile);
       
+      // Determine if we're using imperial units
+      const isImperial = profile.measurementUnit === 'imperial';
+      
       // Create a fresh object without reference issues
       const newFormData = {
         firstName: profile.firstName || '',
@@ -43,14 +47,19 @@ export const useProfileForm = () => {
         birthDate: profile.birthDate instanceof Date ? new Date(profile.birthDate) : new Date(),
         gender: profile.gender || 'other',
         height: profile.height || 0,
-        currentWeight: profile.currentWeight ? parseFloat(formatWeightValue(profile.currentWeight)) : 0,
-        targetWeight: profile.targetWeight || 0,
+        // Convert weights from metric (stored in DB) to display units (imperial/metric)
+        currentWeight: profile.currentWeight ? 
+          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.currentWeight, true) : profile.currentWeight)) : 0,
+        targetWeight: profile.targetWeight ? 
+          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.targetWeight, true) : profile.targetWeight)) : 0,
+        startingWeight: profile.startingWeight ? 
+          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.startingWeight, true) : profile.startingWeight)) : 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',
-        weightLossPerWeek: profile.weightLossPerWeek || 0.5,
+        weightLossPerWeek: profile.weightLossPerWeek ? 
+          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.weightLossPerWeek, true) : profile.weightLossPerWeek)) : 0.5,
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
-        startingWeight: profile.startingWeight ? parseFloat(formatWeightValue(profile.startingWeight)) : 0,
       };
       
       setFormData(newFormData);
@@ -106,7 +115,25 @@ export const useProfileForm = () => {
     
     try {
       console.log('Submitting form data:', formData);
-      await updateProfile(formData);
+      
+      // Convert weight values back to metric for storage if using imperial
+      const dataToSubmit = { ...formData };
+      
+      if (formData.measurementUnit === 'imperial') {
+        // Convert from imperial to metric for storage
+        if (formData.currentWeight) {
+          dataToSubmit.currentWeight = convertToMetric(formData.currentWeight, true);
+        }
+        if (formData.targetWeight) {
+          dataToSubmit.targetWeight = convertToMetric(formData.targetWeight, true);
+        }
+        if (formData.weightLossPerWeek) {
+          dataToSubmit.weightLossPerWeek = convertToMetric(formData.weightLossPerWeek, true);
+        }
+        // Don't convert startingWeight as it's read-only in the form
+      }
+      
+      await updateProfile(dataToSubmit);
       // Reset the profile loaded flag so we get fresh data
       profileLoadedRef.current = false;
       await refreshProfile();

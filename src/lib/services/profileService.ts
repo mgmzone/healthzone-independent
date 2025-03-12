@@ -1,7 +1,9 @@
+
 import { supabase } from "@/lib/supabase";
 import { User } from "@/lib/types";
 import { getProfilePhotoUrl } from "./storageService";
 import { formatWeightValue } from "@/lib/weight/formatWeight";
+import { convertWeight, convertToMetric } from "@/lib/weight/convertWeight";
 
 export async function getProfile() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -114,7 +116,7 @@ export async function updateProfileCurrentWeight(weight: number) {
   // Get current profile first to check if startingWeight needs to be set
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('starting_weight, current_weight')
+    .select('starting_weight, current_weight, measurement_unit')
     .eq('id', session.user.id)
     .single();
 

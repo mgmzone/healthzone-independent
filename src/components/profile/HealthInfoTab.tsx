@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatWeightValue } from '@/lib/weight/formatWeight';
+import { formatWeightForDisplay } from '@/lib/weight/formatWeight';
 
 interface HealthInfoTabProps {
   formData: {
@@ -30,11 +30,12 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   handleNumberChange
 }) => {
   const unit = formData.measurementUnit || 'imperial';
+  const isImperial = unit === 'imperial';
   
-  // Format weight values for display
+  // Format weight values for display (already converted in useProfileForm)
   const formatWeight = (weight: number | undefined): string => {
     if (weight === undefined || weight === 0) return '';
-    return formatWeightValue(weight);
+    return weight.toFixed(1);
   };
   
   // Handle fitness level changes
@@ -107,7 +108,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
             name="weightLossPerWeek"
             type="number"
             step="0.1"
-            value={formData.weightLossPerWeek || ''}
+            value={formatWeight(formData.weightLossPerWeek)}
             onChange={(e) => handleNumberChange('weightLossPerWeek', e.target.value)}
             placeholder="Weight Loss Per Week"
           />
