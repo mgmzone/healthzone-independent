@@ -34,7 +34,7 @@ const Profile = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 pt-24">
         <Card className="w-full max-w-3xl mx-auto">
           <CardHeader>
             <ProfileHeader 
