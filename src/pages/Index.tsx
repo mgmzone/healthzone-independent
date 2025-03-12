@@ -10,19 +10,24 @@ import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import CallToActionSection from '@/components/landing/CallToActionSection';
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   
-  // Redirect logged-in users to dashboard
+  // Redirect logged-in users appropriately
   useEffect(() => {
     if (user) {
-      navigate('/dashboard', { replace: true });
+      const isProfileComplete = profile?.firstName && 
+        profile?.currentWeight && 
+        profile?.targetWeight && 
+        profile?.height;
+      
+      navigate(isProfileComplete ? '/dashboard' : '/getting-started', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, profile, navigate]);
 
   // If user is logged in, don't render the landing page content
   if (user) {
-    return null; // Return null while redirecting
+    return null;
   }
 
   return (
