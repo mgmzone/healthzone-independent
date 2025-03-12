@@ -1,4 +1,3 @@
-
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -39,14 +38,12 @@ const Profile = () => {
     handlePhotoChange
   } = useProfilePhoto();
 
-  // Refresh profile ONLY on mount, not on every render
   useEffect(() => {
     if (!profileFetchedRef.current) {
       console.log("Profile component mounted, refreshing profile data");
       refreshProfile();
       profileFetchedRef.current = true;
     }
-    // Empty dependency array to ensure this runs only once on mount
   }, []);
 
   const onTabChange = useCallback((value: string) => {
@@ -57,7 +54,6 @@ const Profile = () => {
     e.preventDefault();
     await handleSubmit(e);
     
-    // Check if profile is complete and show success message
     if (profile && isProfileComplete(profile)) {
       setShowSuccess(true);
     }
@@ -116,26 +112,10 @@ const Profile = () => {
             <form onSubmit={onFormSubmit} className="space-y-4 mt-4">
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger 
-                    value="personal"
-                    className={cn(
-                      "transition-all duration-200",
-                      activeTab === "personal" 
-                        ? "bg-blue-600 text-white hover:text-white" 
-                        : "bg-gray-100 hover:bg-blue-100"
-                    )}
-                  >
+                  <TabsTrigger value="personal">
                     Personal
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="health"
-                    className={cn(
-                      "transition-all duration-200",
-                      activeTab === "health" 
-                        ? "bg-green-600 text-white hover:text-white" 
-                        : "bg-gray-100 hover:bg-green-100"
-                    )}
-                  >
+                  <TabsTrigger value="health">
                     Health
                   </TabsTrigger>
                 </TabsList>
