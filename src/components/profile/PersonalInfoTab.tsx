@@ -46,6 +46,22 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     handleSelectChange('measurementUnit', value);
   };
   
+  // Handle date selection with proper timezone handling
+  const onDateSelect = (date: Date | undefined) => {
+    if (date) {
+      // Create a date with the same year, month, day values to avoid timezone issues
+      const selectedDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        12, // Set to noon to avoid any timezone-related date shifts
+        0,
+        0
+      );
+      handleDateChange(selectedDate);
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -104,7 +120,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
               <Calendar
                 mode="single"
                 selected={birthDate}
-                onSelect={(date) => date && handleDateChange(date)}
+                onSelect={onDateSelect}
                 initialFocus
                 className="pointer-events-auto"
                 disabled={(date) => date > new Date()}
