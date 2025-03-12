@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';

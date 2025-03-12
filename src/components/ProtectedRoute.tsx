@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/lib/auth';
 
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth();
