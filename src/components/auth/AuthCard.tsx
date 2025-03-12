@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import LoginForm from './LoginForm';
 import SignUpForm from './SignUpForm';
 
@@ -9,9 +10,10 @@ interface AuthCardProps {
   onSignIn: (email: string, password: string) => Promise<void>;
   onSignUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   isLoading: boolean;
+  error?: string | null;
 }
 
-const AuthCard = ({ onSignIn, onSignUp, isLoading }: AuthCardProps) => {
+const AuthCard = ({ onSignIn, onSignUp, isLoading, error }: AuthCardProps) => {
   const [activeTab, setActiveTab] = useState('login');
 
   const handleSignIn = async (email: string, password: string) => {
@@ -32,6 +34,12 @@ const AuthCard = ({ onSignIn, onSignUp, isLoading }: AuthCardProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="login">Login</TabsTrigger>

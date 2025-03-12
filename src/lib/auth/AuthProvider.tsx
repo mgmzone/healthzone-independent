@@ -145,12 +145,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting to sign in with:', { email });
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign-in error details:', error);
+        throw error;
+      }
+      
+      if (!data.user || !data.session) {
+        console.error('Sign-in succeeded but no user or session returned');
+        throw new Error('Authentication succeeded but no session was created');
+      }
+      
+      console.log('Sign-in successful, user:', data.user.id);
       
       // Do not navigate here - let the redirects in the useEffect handle it
       toast({
@@ -158,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "You are now logged in.",
       });
     } catch (error: any) {
+      console.error('Full sign-in error:', error);
       toast({
         title: "Error signing in",
         description: error.message,
