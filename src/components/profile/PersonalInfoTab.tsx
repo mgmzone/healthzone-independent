@@ -70,49 +70,54 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           />
         </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="email" className="text-left block">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          value={formData.email || ''}
-          onChange={handleInputChange}
-          placeholder="Email"
-          disabled
-        />
+      
+      {/* Email and Birth Date on the same line */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-left block">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            value={formData.email || ''}
+            onChange={handleInputChange}
+            placeholder="Email"
+            disabled
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="birthDate" className="text-left block">Birth Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="birthDate"
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !isValidDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {isValidDate ? format(birthDate, "PPP") : <span>Select date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={birthDate}
+                onSelect={(date) => date && handleDateChange(date)}
+                initialFocus
+                className="pointer-events-auto"
+                disabled={(date) => date > new Date()}
+                fromYear={1900}
+                toYear={new Date().getFullYear()}
+                captionLayout="dropdown-buttons"
+                defaultMonth={new Date(1990, 0)}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="birthDate" className="text-left block">Birth Date</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              id="birthDate"
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !isValidDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {isValidDate ? format(birthDate, "PPP") : <span>Select date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={birthDate}
-              onSelect={(date) => date && handleDateChange(date)}
-              initialFocus
-              className="pointer-events-auto"
-              disabled={(date) => date > new Date()}
-              fromYear={1900}
-              toYear={new Date().getFullYear()}
-              captionLayout="dropdown-buttons"
-              defaultMonth={new Date(1990, 0)}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="gender" className="text-left block">Gender</Label>

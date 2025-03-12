@@ -119,8 +119,10 @@ const Profile = () => {
                   <TabsTrigger 
                     value="personal"
                     className={cn(
-                      activeTab === "personal" ? "bg-healthzone-500 text-white hover:text-white" : "",
-                      "transition-all duration-200"
+                      "transition-all duration-200",
+                      activeTab === "personal" 
+                        ? "bg-blue-500 text-white hover:text-white" 
+                        : "hover:bg-blue-100"
                     )}
                   >
                     Personal
@@ -128,8 +130,10 @@ const Profile = () => {
                   <TabsTrigger 
                     value="health"
                     className={cn(
-                      activeTab === "health" ? "bg-green-500 text-white hover:text-white" : "",
-                      "transition-all duration-200"
+                      "transition-all duration-200",
+                      activeTab === "health" 
+                        ? "bg-green-500 text-white hover:text-white" 
+                        : "hover:bg-green-100"
                     )}
                   >
                     Health
