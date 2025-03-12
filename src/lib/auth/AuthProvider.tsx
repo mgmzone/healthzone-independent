@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       
-      navigate('/dashboard');
+      // Do not navigate here - let the redirects in the useEffect handle it
       toast({
         title: "Welcome back!",
         description: "You are now logged in.",
