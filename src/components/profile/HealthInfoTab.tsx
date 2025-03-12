@@ -61,57 +61,66 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           />
         </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="targetWeight" className="text-left block">Target Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
-        <Input
-          id="targetWeight"
-          name="targetWeight"
-          type="number"
-          value={formData.targetWeight || ''}
-          onChange={(e) => handleNumberChange('targetWeight', e.target.value)}
-          placeholder="Target Weight"
-        />
+      
+      {/* Target Weight and Target Weight Loss Per Week on the same line */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="targetWeight" className="text-left block">Target Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
+          <Input
+            id="targetWeight"
+            name="targetWeight"
+            type="number"
+            value={formData.targetWeight || ''}
+            onChange={(e) => handleNumberChange('targetWeight', e.target.value)}
+            placeholder="Target Weight"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="weightLossPerWeek" className="text-left block">Weight Loss Per Week ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
+          <Input
+            id="weightLossPerWeek"
+            name="weightLossPerWeek"
+            type="number"
+            step="0.1"
+            value={formData.weightLossPerWeek || ''}
+            onChange={(e) => handleNumberChange('weightLossPerWeek', e.target.value)}
+            placeholder="Weight Loss Per Week"
+          />
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="fitnessLevel" className="text-left block">Fitness Level</Label>
-        <Select 
-          value={formData.fitnessLevel || 'moderate'} 
-          onValueChange={onFitnessLevelChange}
-        >
-          <SelectTrigger id="fitnessLevel">
-            <SelectValue placeholder="Select fitness level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="sedentary">Sedentary</SelectItem>
-            <SelectItem value="light">Light Activity</SelectItem>
-            <SelectItem value="moderate">Moderate Activity</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-          </SelectContent>
-        </Select>
+      
+      {/* Fitness Level and Exercise Minutes on the same line */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fitnessLevel" className="text-left block">Fitness Level</Label>
+          <Select 
+            value={formData.fitnessLevel || 'moderate'} 
+            onValueChange={onFitnessLevelChange}
+          >
+            <SelectTrigger id="fitnessLevel">
+              <SelectValue placeholder="Select fitness level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sedentary">Sedentary</SelectItem>
+              <SelectItem value="light">Light Activity</SelectItem>
+              <SelectItem value="moderate">Moderate Activity</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="exerciseMinutesPerDay" className="text-left block">Minutes of Exercise Per Day</Label>
+          <Input
+            id="exerciseMinutesPerDay"
+            name="exerciseMinutesPerDay"
+            type="number"
+            value={formData.exerciseMinutesPerDay || ''}
+            onChange={(e) => handleNumberChange('exerciseMinutesPerDay', e.target.value)}
+            placeholder="Exercise Minutes Per Day"
+          />
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="weightLossPerWeek" className="text-left block">Target Weight Loss Per Week ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
-        <Input
-          id="weightLossPerWeek"
-          name="weightLossPerWeek"
-          type="number"
-          step="0.1"
-          value={formData.weightLossPerWeek || ''}
-          onChange={(e) => handleNumberChange('weightLossPerWeek', e.target.value)}
-          placeholder="Weight Loss Per Week"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="exerciseMinutesPerDay" className="text-left block">Exercise Minutes Per Day</Label>
-        <Input
-          id="exerciseMinutesPerDay"
-          name="exerciseMinutesPerDay"
-          type="number"
-          value={formData.exerciseMinutesPerDay || ''}
-          onChange={(e) => handleNumberChange('exerciseMinutesPerDay', e.target.value)}
-          placeholder="Exercise Minutes Per Day"
-        />
-      </div>
+      
       <div className="space-y-2">
         <Label htmlFor="healthGoals" className="text-left block">Health Goals</Label>
         <Textarea
