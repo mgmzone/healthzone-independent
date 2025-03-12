@@ -129,8 +129,8 @@ const Dashboard = () => {
             onSave={handleCreatePeriod}
             weightUnit={weightUnit}
             defaultValues={{
-              startWeight: profile?.current_weight ? convertWeight(profile.current_weight) : undefined,
-              targetWeight: profile?.target_weight ? convertWeight(profile.target_weight) : undefined
+              startWeight: profile?.currentWeight ? convertWeight(profile.currentWeight) : undefined,
+              targetWeight: profile?.targetWeight ? convertWeight(profile.targetWeight) : undefined
             }}
           />
         </div>
