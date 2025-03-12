@@ -11,7 +11,7 @@ const Auth = () => {
 
   // If user is already logged in, redirect to dashboard
   if (user) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/getting-started" />;
   }
 
   const handleSignIn = async (email: string, password: string) => {

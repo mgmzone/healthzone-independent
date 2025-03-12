@@ -1,0 +1,90 @@
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { UserCircle, CheckCircle, Calendar, ArrowRight } from 'lucide-react';
+
+const GettingStarted = () => {
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  const [completedProfile, setCompletedProfile] = useState(false);
+
+  // Check if profile is complete (has basic info filled out)
+  const isProfileComplete = profile?.firstName && 
+    profile?.currentWeight && 
+    profile?.targetWeight && 
+    profile?.height;
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
+  const handlePeriodClick = () => {
+    navigate('/dashboard');
+  };
+
+  return (
+    <Layout>
+      <div className="container mx-auto p-6 mt-16">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Getting Started</h1>
+          <div className="space-y-6">
+            {/* Step 1: Complete Profile */}
+            <Card className={isProfileComplete ? 'border-green-500' : ''}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="mt-1">
+                    {isProfileComplete ? (
+                      <CheckCircle className="h-8 w-8 text-green-500" />
+                    ) : (
+                      <UserCircle className="h-8 w-8 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-2">Step 1: Complete Your Profile</h2>
+                    <p className="text-muted-foreground mb-4">
+                      Fill in your basic information to get personalized recommendations and tracking.
+                    </p>
+                    {!isProfileComplete && (
+                      <Button onClick={handleProfileClick}>
+                        Complete Profile
+                        <ArrowRight className="ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Step 2: Create First Period */}
+            <Card className={isProfileComplete ? '' : 'opacity-50'}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <Calendar className="h-8 w-8 text-primary mt-1" />
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-2">Step 2: Create Your First Period</h2>
+                    <p className="text-muted-foreground mb-4">
+                      Set up your first tracking period to start monitoring your progress.
+                    </p>
+                    <Button 
+                      onClick={handlePeriodClick}
+                      disabled={!isProfileComplete}
+                    >
+                      Create First Period
+                      <ArrowRight className="ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default GettingStarted;
