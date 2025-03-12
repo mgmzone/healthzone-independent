@@ -32,7 +32,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
 }) => {
   // Ensure the birthDate is a valid Date object
   const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
-  const birthDate = isValidDate ? formData.birthDate : new Date();
+  const birthDate = isValidDate ? formData.birthDate : undefined;
   
   // Handle gender value changes
   const onGenderChange = (value: string) => {
@@ -97,7 +97,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {isValidDate ? format(birthDate, "PPP") : <span>Select date</span>}
+                {isValidDate ? format(birthDate!, "PPP") : <span>Select date</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -111,7 +111,6 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
                 fromYear={1900}
                 toYear={new Date().getFullYear()}
                 captionLayout="dropdown-buttons"
-                defaultMonth={new Date(1990, 0)}
               />
             </PopoverContent>
           </Popover>

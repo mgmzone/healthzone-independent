@@ -121,8 +121,8 @@ const Profile = () => {
                     className={cn(
                       "transition-all duration-200",
                       activeTab === "personal" 
-                        ? "bg-blue-500 text-white hover:text-white" 
-                        : "hover:bg-blue-100"
+                        ? "bg-blue-600 text-white hover:text-white" 
+                        : "bg-gray-100 hover:bg-blue-100"
                     )}
                   >
                     Personal
@@ -132,8 +132,8 @@ const Profile = () => {
                     className={cn(
                       "transition-all duration-200",
                       activeTab === "health" 
-                        ? "bg-green-500 text-white hover:text-white" 
-                        : "hover:bg-green-100"
+                        ? "bg-green-600 text-white hover:text-white" 
+                        : "bg-gray-100 hover:bg-green-100"
                     )}
                   >
                     Health
