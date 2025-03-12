@@ -40,7 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const profileData = await getProfile();
       
-      // Set default measurement unit to imperial if not already set
       if (profileData && !profileData.measurementUnit) {
         profileData.measurementUnit = 'imperial';
       }
@@ -58,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initialize = async () => {
       try {
-        // Get initial session
         const { data: { session } } = await supabase.auth.getSession();
         if (isSubscribed) {
           setSession(session);
@@ -75,8 +73,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initialize();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       if (isSubscribed) {
         setSession(session);
         setUser(session?.user ?? null);
@@ -97,18 +95,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, loading]);
 
   useEffect(() => {
-    if (!loading && !profileLoading && user) {
-      const isProfileComplete = profile?.firstName && 
-        profile?.currentWeight && 
-        profile?.targetWeight && 
-        profile?.height;
-
+    if (!loading && !profileLoading) {
       const currentPath = window.location.pathname;
-      const isAuthPage = currentPath === '/auth';
-      const isIndexPage = currentPath === '/';
-      
-      if (isAuthPage || isIndexPage) {
-        navigate(isProfileComplete ? '/dashboard' : '/getting-started', { replace: true });
+      console.log('Checking redirects:', { 
+        loading, 
+        profileLoading, 
+        user, 
+        profile,
+        currentPath 
+      });
+
+      if (user) {
+        const isProfileComplete = profile?.firstName && 
+          profile?.currentWeight && 
+          profile?.targetWeight && 
+          profile?.height;
+
+        const isAuthPage = currentPath === '/auth';
+        const isIndexPage = currentPath === '/';
+        
+        if ((isAuthPage || isIndexPage) && !isProfileComplete) {
+          console.log('Redirecting to getting-started');
+          navigate('/getting-started', { replace: true });
+        } else if ((isAuthPage || isIndexPage) && isProfileComplete) {
+          console.log('Redirecting to dashboard');
+          navigate('/dashboard', { replace: true });
+        }
       }
     }
   }, [loading, profileLoading, user, profile, navigate]);
