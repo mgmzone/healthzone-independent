@@ -49,15 +49,18 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   // Handle date selection with proper timezone handling
   const onDateSelect = (date: Date | undefined) => {
     if (date) {
-      // Create a date with the same year, month, day values to avoid timezone issues
-      const selectedDate = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        12, // Set to noon to avoid any timezone-related date shifts
-        0,
-        0
-      );
+      console.log("Original selected date:", date);
+      
+      // Get only the date parts (year, month, day) and create a new date
+      // Using UTC methods to avoid timezone shifts
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      
+      // Create a new UTC date and then convert to local
+      const selectedDate = new Date(Date.UTC(year, month, day));
+      console.log("Adjusted date (UTC):", selectedDate);
+      
       handleDateChange(selectedDate);
     }
   };
