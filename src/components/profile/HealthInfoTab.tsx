@@ -29,6 +29,12 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
 }) => {
   const unit = formData.measurementUnit || 'imperial';
   
+  // Handle fitness level changes
+  const onFitnessLevelChange = (value: string) => {
+    console.log("Fitness level changed to:", value);
+    handleSelectChange('fitnessLevel', value);
+  };
+  
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -70,7 +76,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         <Label htmlFor="fitnessLevel" className="text-left block">Fitness Level</Label>
         <Select 
           value={formData.fitnessLevel || 'moderate'} 
-          onValueChange={(value) => handleSelectChange('fitnessLevel', value)}
+          onValueChange={onFitnessLevelChange}
         >
           <SelectTrigger id="fitnessLevel">
             <SelectValue placeholder="Select fitness level" />

@@ -10,6 +10,7 @@ export const useProfileForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   
+  // Create a state with default values
   const [formData, setFormData] = useState<Partial<User>>({
     firstName: '',
     lastName: '',
@@ -26,64 +27,86 @@ export const useProfileForm = () => {
     measurementUnit: 'imperial',
   });
 
+  // Update form data when profile changes
   useEffect(() => {
     if (profile) {
       console.log('Setting profile data:', profile);
       
-      // Create a safe copy of the profile
-      const safeProfile = { ...profile };
+      // Create a deep copy of the profile to avoid reference issues
+      const profileCopy = JSON.parse(JSON.stringify(profile));
       
-      // Ensure birthDate is valid
-      if (!(safeProfile.birthDate instanceof Date && !isNaN(safeProfile.birthDate.getTime()))) {
-        safeProfile.birthDate = new Date();
+      // Convert birthDate string to Date object if needed
+      let birthDate = profileCopy.birthDate;
+      if (typeof birthDate === 'string') {
+        birthDate = new Date(birthDate);
+      }
+      if (!(birthDate instanceof Date) || isNaN(birthDate.getTime())) {
+        birthDate = new Date();
       }
       
       // Set form data with profile values, using defaults for any missing values
       setFormData({
-        firstName: safeProfile.firstName || '',
-        lastName: safeProfile.lastName || '',
-        email: safeProfile.email || '',
-        birthDate: safeProfile.birthDate || new Date(),
-        gender: safeProfile.gender || 'other',
-        height: safeProfile.height || 0,
-        currentWeight: safeProfile.currentWeight || 0,
-        targetWeight: safeProfile.targetWeight || 0,
-        fitnessLevel: safeProfile.fitnessLevel || 'moderate',
-        weightLossPerWeek: safeProfile.weightLossPerWeek || 0.5,
-        exerciseMinutesPerDay: safeProfile.exerciseMinutesPerDay || 30,
-        healthGoals: safeProfile.healthGoals || '',
-        measurementUnit: safeProfile.measurementUnit || 'imperial',
+        firstName: profileCopy.firstName || '',
+        lastName: profileCopy.lastName || '',
+        email: profileCopy.email || '',
+        birthDate,
+        gender: profileCopy.gender || 'other',
+        height: profileCopy.height || 0,
+        currentWeight: profileCopy.currentWeight || 0,
+        targetWeight: profileCopy.targetWeight || 0,
+        fitnessLevel: profileCopy.fitnessLevel || 'moderate',
+        weightLossPerWeek: profileCopy.weightLossPerWeek || 0.5,
+        exerciseMinutesPerDay: profileCopy.exerciseMinutesPerDay || 30,
+        healthGoals: profileCopy.healthGoals || '',
+        measurementUnit: profileCopy.measurementUnit || 'imperial',
       });
     }
   }, [profile]);
 
+  // Handle text input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    console.log(`handleSelectChange: ${name} = ${value}`);
-    
-    // Important: Create a new object to ensure state update triggers
-    setFormData(prevData => {
-      const newData = { ...prevData, [name]: value };
-      console.log('Updated formData:', newData);
-      return newData;
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      console.log(`Input changed: ${name} = ${value}`, updated);
+      return updated;
     });
   };
 
-  const handleDateChange = (date: Date) => {
-    console.log('handleDateChange:', date);
+  // Handle select changes
+  const handleSelectChange = (name: string, value: string) => {
+    console.log(`Select changed: ${name} = ${value}`);
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      console.log('Updated form data after select change:', updated);
+      return updated;
+    });
+  };
+
+  // Handle date changes
+  const handleDateChange = (date: Date | undefined) => {
     if (date && !isNaN(date.getTime())) {
-      setFormData(prev => ({ ...prev, birthDate: date }));
+      console.log('Date changed:', date);
+      setFormData(prev => {
+        const updated = { ...prev, birthDate: date };
+        console.log('Updated form data after date change:', updated);
+        return updated;
+      });
     }
   };
 
+  // Handle number changes
   const handleNumberChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
+    const numValue = parseFloat(value) || 0;
+    console.log(`Number changed: ${name} = ${numValue}`);
+    setFormData(prev => {
+      const updated = { ...prev, [name]: numValue };
+      console.log('Updated form data after number change:', updated);
+      return updated;
+    });
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);

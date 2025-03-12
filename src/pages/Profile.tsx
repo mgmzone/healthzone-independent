@@ -37,6 +37,8 @@ const Profile = () => {
   }, [refreshProfile]);
 
   console.log("Profile Page Render - Current formData:", formData);
+  console.log("Profile gender:", formData.gender);
+  console.log("Profile measurementUnit:", formData.measurementUnit);
 
   return (
     <Layout>
@@ -57,7 +59,7 @@ const Profile = () => {
                   <TabsTrigger value="health">Health</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="personal">
+                <TabsContent value="personal" className="mt-4">
                   <PersonalInfoTab 
                     formData={formData} 
                     handleInputChange={handleInputChange}
@@ -66,7 +68,7 @@ const Profile = () => {
                   />
                 </TabsContent>
                 
-                <TabsContent value="health">
+                <TabsContent value="health" className="mt-4">
                   <HealthInfoTab 
                     formData={formData}
                     handleInputChange={handleInputChange}

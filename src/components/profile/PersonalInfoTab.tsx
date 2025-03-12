@@ -29,6 +29,18 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
   const birthDate = isValidDate ? formData.birthDate : new Date();
   
+  // Handle gender value changes
+  const onGenderChange = (value: string) => {
+    console.log("Gender changed to:", value);
+    handleSelectChange('gender', value);
+  };
+  
+  // Handle measurement unit value changes
+  const onMeasurementUnitChange = (value: string) => {
+    console.log("Measurement unit changed to:", value);
+    handleSelectChange('measurementUnit', value);
+  };
+  
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,7 +95,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           <Label htmlFor="gender" className="text-left block">Gender</Label>
           <Select 
             value={formData.gender || 'other'} 
-            onValueChange={(value) => handleSelectChange('gender', value)}
+            onValueChange={onGenderChange}
           >
             <SelectTrigger id="gender">
               <SelectValue placeholder="Select gender" />
@@ -99,7 +111,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           <Label htmlFor="measurementUnit" className="text-left block">Measurement Unit</Label>
           <Select 
             value={formData.measurementUnit || 'imperial'} 
-            onValueChange={(value) => handleSelectChange('measurementUnit', value)}
+            onValueChange={onMeasurementUnitChange}
           >
             <SelectTrigger id="measurementUnit">
               <SelectValue placeholder="Select measurement unit" />
