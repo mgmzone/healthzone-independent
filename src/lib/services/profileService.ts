@@ -23,11 +23,21 @@ export async function getProfile() {
 
   // Transform snake_case DB fields to camelCase for our frontend types
   if (data) {
+    // Create Date object in a timezone-safe way by using UTC
+    let birthDate;
+    if (data.birth_date) {
+      // Parse the date from YYYY-MM-DD format
+      const [year, month, day] = data.birth_date.split('-').map(Number);
+      birthDate = new Date(Date.UTC(year, month - 1, day)); // months are 0-indexed in JS
+    } else {
+      birthDate = new Date();
+    }
+
     const transformedData: User = {
       id: data.id,
       name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
       email: session.user.email || '',
-      birthDate: data.birth_date ? new Date(data.birth_date) : new Date(),
+      birthDate: birthDate,
       gender: data.gender as 'male' | 'female' | 'other' || 'other',
       height: data.height || 0,
       currentWeight: data.current_weight || 0,
@@ -55,7 +65,16 @@ export async function updateProfile(profileData: Partial<User>) {
   const dbProfileData: any = {};
   if (profileData.firstName !== undefined) dbProfileData.first_name = profileData.firstName;
   if (profileData.lastName !== undefined) dbProfileData.last_name = profileData.lastName;
-  if (profileData.birthDate !== undefined) dbProfileData.birth_date = profileData.birthDate.toISOString().split('T')[0];
+  
+  // Format the date as YYYY-MM-DD in UTC to avoid timezone issues
+  if (profileData.birthDate !== undefined) {
+    const year = profileData.birthDate.getUTCFullYear();
+    // getUTCMonth() returns 0-11, so add 1 to get 1-12
+    const month = String(profileData.birthDate.getUTCMonth() + 1).padStart(2, '0'); 
+    const day = String(profileData.birthDate.getUTCDate()).padStart(2, '0');
+    dbProfileData.birth_date = `${year}-${month}-${day}`;
+  }
+  
   if (profileData.gender !== undefined) dbProfileData.gender = profileData.gender;
   if (profileData.height !== undefined) dbProfileData.height = profileData.height;
   if (profileData.currentWeight !== undefined) dbProfileData.current_weight = profileData.currentWeight;

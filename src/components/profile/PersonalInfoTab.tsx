@@ -24,13 +24,13 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   handleSelectChange,
   handleDateChange
 }) => {
-  // Ensure the birthDate is a valid Date object
+  // Ensure the birthDate is a valid Date object and adjust for timezone issues
   const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
   
-  // Extract date components if we have a valid date
-  const birthYear = isValidDate ? formData.birthDate!.getFullYear() : undefined;
-  const birthMonth = isValidDate ? formData.birthDate!.getMonth() : undefined; // 0-11
-  const birthDay = isValidDate ? formData.birthDate!.getDate() : undefined; // 1-31
+  // Use UTC methods to avoid timezone issues
+  const birthYear = isValidDate ? formData.birthDate!.getUTCFullYear() : undefined;
+  const birthMonth = isValidDate ? formData.birthDate!.getUTCMonth() : undefined; // 0-11
+  const birthDay = isValidDate ? formData.birthDate!.getUTCDate() : undefined; // 1-31
   
   // Generate arrays for the dropdown options
   const years = useMemo(() => {
@@ -60,7 +60,8 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     }
     
     // Get the number of days in the selected month/year
-    const daysInMonth = new Date(birthYear, birthMonth + 1, 0).getDate();
+    // Use the next month and day 0 to get the last day of the current month
+    const daysInMonth = new Date(Date.UTC(birthYear, birthMonth + 1, 0)).getUTCDate();
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   }, [birthMonth, birthYear]);
   
@@ -68,11 +69,11 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const handleYearChange = (value: string) => {
     const year = parseInt(value, 10);
     if (!isNaN(year)) {
-      const newDate = new Date(
+      const newDate = new Date(Date.UTC(
         year,
         birthMonth !== undefined ? birthMonth : 0,
         birthDay !== undefined ? birthDay : 1
-      );
+      ));
       handleDateChange(newDate);
     }
   };
@@ -81,16 +82,16 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const handleMonthChange = (value: string) => {
     const month = parseInt(value, 10);
     if (!isNaN(month)) {
-      const year = birthYear || new Date().getFullYear();
+      const year = birthYear || new Date().getUTCFullYear();
       let day = birthDay || 1;
       
       // Check if the day is valid for this month
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
       if (day > daysInMonth) {
         day = daysInMonth;
       }
       
-      const newDate = new Date(year, month, day);
+      const newDate = new Date(Date.UTC(year, month, day));
       handleDateChange(newDate);
     }
   };
@@ -99,10 +100,10 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const handleDayChange = (value: string) => {
     const day = parseInt(value, 10);
     if (!isNaN(day)) {
-      const year = birthYear || new Date().getFullYear();
+      const year = birthYear || new Date().getUTCFullYear();
       const month = birthMonth !== undefined ? birthMonth : 0;
       
-      const newDate = new Date(year, month, day);
+      const newDate = new Date(Date.UTC(year, month, day));
       handleDateChange(newDate);
     }
   };
