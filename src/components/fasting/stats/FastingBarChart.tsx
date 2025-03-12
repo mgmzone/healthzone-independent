@@ -23,6 +23,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
         <BarChart
           data={chartData}
           margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
+          barSize={40}
+          maxBarSize={50}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis 
@@ -30,6 +32,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             tickLine={false}
             axisLine={false}
             fontSize={12}
+            padding={{ left: 10, right: 10 }}
           />
           <YAxis 
             axisLine={false}
@@ -52,14 +55,14 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             name="Fasting Time"
             stackId="a"
             fill="#3b82f6" 
-            radius={[4, 4, 0, 0]}
+            radius={[0, 0, 0, 0]}
           />
           <Bar 
             dataKey="eating" 
             name="Eating Time"
             stackId="a"
             fill="#ef4444"
-            radius={[0, 0, 4, 4]}
+            radius={[0, 0, 0, 0]}
           />
         </BarChart>
       </ResponsiveContainer>
