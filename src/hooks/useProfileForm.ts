@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 
 export const useProfileForm = () => {
@@ -28,12 +28,17 @@ export const useProfileForm = () => {
 
   useEffect(() => {
     if (profile) {
+      console.log('Setting profile data:', profile);
+      
+      // Create a safe copy of the profile
       const safeProfile = { ...profile };
       
+      // Ensure birthDate is valid
       if (!(safeProfile.birthDate instanceof Date && !isNaN(safeProfile.birthDate.getTime()))) {
         safeProfile.birthDate = new Date();
       }
       
+      // Set form data with profile values, using defaults for any missing values
       setFormData({
         firstName: safeProfile.firstName || '',
         lastName: safeProfile.lastName || '',
@@ -54,39 +59,35 @@ export const useProfileForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    console.log('handleSelectChange:', name, value);
-    // Fix for select inputs - ensure we're setting the value correctly
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [name]: value };
-      console.log('Updated formData:', updatedData);
-      return updatedData;
+    console.log(`handleSelectChange: ${name} = ${value}`);
+    
+    // Important: Create a new object to ensure state update triggers
+    setFormData(prevData => {
+      const newData = { ...prevData, [name]: value };
+      console.log('Updated formData:', newData);
+      return newData;
     });
   };
 
-  const handleDateChange = (name: string, value: string) => {
-    try {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        setFormData((prev) => ({ ...prev, [name]: date }));
-      } else {
-        console.error('Invalid date provided:', value);
-      }
-    } catch (error) {
-      console.error('Error parsing date:', error);
+  const handleDateChange = (date: Date) => {
+    console.log('handleDateChange:', date);
+    if (date && !isNaN(date.getTime())) {
+      setFormData(prev => ({ ...prev, birthDate: date }));
     }
   };
 
   const handleNumberChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: parseFloat(value) || 0 }));
+    setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
       console.log('Submitting form data:', formData);
       await updateProfile(formData);

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 
 const Profile = () => {
   const { profile, refreshProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState('personal');
+  const [activeTab, setActiveTab] = React.useState('personal');
   
   const {
     formData,
@@ -36,6 +36,8 @@ const Profile = () => {
     refreshProfile();
   }, [refreshProfile]);
 
+  console.log("Profile Page Render - Current formData:", formData);
+
   return (
     <Layout>
       <div className="container mx-auto py-8 pt-24">
@@ -48,38 +50,38 @@ const Profile = () => {
               handlePhotoChange={handlePhotoChange} 
             />
             
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="personal">Personal</TabsTrigger>
-                <TabsTrigger value="health">Health</TabsTrigger>
-              </TabsList>
-              
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                {activeTab === 'personal' && (
+            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-2 w-full">
+                  <TabsTrigger value="personal">Personal</TabsTrigger>
+                  <TabsTrigger value="health">Health</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="personal">
                   <PersonalInfoTab 
                     formData={formData} 
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleDateChange={handleDateChange}
                   />
-                )}
+                </TabsContent>
                 
-                {activeTab === 'health' && (
+                <TabsContent value="health">
                   <HealthInfoTab 
                     formData={formData}
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleNumberChange={handleNumberChange}
                   />
-                )}
+                </TabsContent>
+              </Tabs>
 
-                <div className="pt-4">
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </div>
-              </form>
-            </Tabs>
+              <div className="pt-4">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
           </CardHeader>
         </Card>
       </div>
