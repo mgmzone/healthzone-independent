@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
@@ -35,18 +34,18 @@ export const useProfileForm = () => {
       }
       
       setFormData({
-        firstName: safeProfile.firstName,
-        lastName: safeProfile.lastName,
-        email: safeProfile.email,
-        birthDate: safeProfile.birthDate,
-        gender: safeProfile.gender,
-        height: safeProfile.height,
-        currentWeight: safeProfile.currentWeight,
-        targetWeight: safeProfile.targetWeight,
-        fitnessLevel: safeProfile.fitnessLevel,
-        weightLossPerWeek: safeProfile.weightLossPerWeek,
-        exerciseMinutesPerDay: safeProfile.exerciseMinutesPerDay,
-        healthGoals: safeProfile.healthGoals,
+        firstName: safeProfile.firstName || '',
+        lastName: safeProfile.lastName || '',
+        email: safeProfile.email || '',
+        birthDate: safeProfile.birthDate || new Date(),
+        gender: safeProfile.gender || 'other',
+        height: safeProfile.height || 0,
+        currentWeight: safeProfile.currentWeight || 0,
+        targetWeight: safeProfile.targetWeight || 0,
+        fitnessLevel: safeProfile.fitnessLevel || 'moderate',
+        weightLossPerWeek: safeProfile.weightLossPerWeek || 0.5,
+        exerciseMinutesPerDay: safeProfile.exerciseMinutesPerDay || 30,
+        healthGoals: safeProfile.healthGoals || '',
         measurementUnit: safeProfile.measurementUnit || 'imperial',
       });
     }
@@ -58,7 +57,12 @@ export const useProfileForm = () => {
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    console.log('handleSelectChange:', name, value);
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value };
+      console.log('new form data:', newData);
+      return newData;
+    });
   };
 
   const handleDateChange = (name: string, value: string) => {
@@ -82,6 +86,7 @@ export const useProfileForm = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      console.log('Submitting form data:', formData);
       await updateProfile(formData);
       await refreshProfile();
       toast({
