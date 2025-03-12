@@ -1,14 +1,8 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
-import { format } from 'date-fns';
-import { cn } from "@/lib/utils";
 
 interface PersonalInfoTabProps {
   formData: {
@@ -32,37 +26,95 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
 }) => {
   // Ensure the birthDate is a valid Date object
   const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
-  const birthDate = isValidDate ? formData.birthDate : undefined;
+  
+  // Extract date components if we have a valid date
+  const birthYear = isValidDate ? formData.birthDate!.getFullYear() : undefined;
+  const birthMonth = isValidDate ? formData.birthDate!.getMonth() : undefined; // 0-11
+  const birthDay = isValidDate ? formData.birthDate!.getDate() : undefined; // 1-31
+  
+  // Generate arrays for the dropdown options
+  const years = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i);
+  }, []);
+  
+  const months = useMemo(() => [
+    { value: 0, label: 'January' },
+    { value: 1, label: 'February' },
+    { value: 2, label: 'March' },
+    { value: 3, label: 'April' },
+    { value: 4, label: 'May' },
+    { value: 5, label: 'June' },
+    { value: 6, label: 'July' },
+    { value: 7, label: 'August' },
+    { value: 8, label: 'September' },
+    { value: 9, label: 'October' },
+    { value: 10, label: 'November' },
+    { value: 11, label: 'December' }
+  ], []);
+  
+  // Generate days based on selected month and year
+  const days = useMemo(() => {
+    if (birthMonth === undefined || birthYear === undefined) {
+      return Array.from({ length: 31 }, (_, i) => i + 1);
+    }
+    
+    // Get the number of days in the selected month/year
+    const daysInMonth = new Date(birthYear, birthMonth + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  }, [birthMonth, birthYear]);
+  
+  // Handle year change
+  const handleYearChange = (value: string) => {
+    const year = parseInt(value, 10);
+    if (!isNaN(year)) {
+      const newDate = new Date(
+        year,
+        birthMonth !== undefined ? birthMonth : 0,
+        birthDay !== undefined ? birthDay : 1
+      );
+      handleDateChange(newDate);
+    }
+  };
+  
+  // Handle month change
+  const handleMonthChange = (value: string) => {
+    const month = parseInt(value, 10);
+    if (!isNaN(month)) {
+      const year = birthYear || new Date().getFullYear();
+      let day = birthDay || 1;
+      
+      // Check if the day is valid for this month
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      if (day > daysInMonth) {
+        day = daysInMonth;
+      }
+      
+      const newDate = new Date(year, month, day);
+      handleDateChange(newDate);
+    }
+  };
+  
+  // Handle day change
+  const handleDayChange = (value: string) => {
+    const day = parseInt(value, 10);
+    if (!isNaN(day)) {
+      const year = birthYear || new Date().getFullYear();
+      const month = birthMonth !== undefined ? birthMonth : 0;
+      
+      const newDate = new Date(year, month, day);
+      handleDateChange(newDate);
+    }
+  };
   
   // Handle gender value changes
   const onGenderChange = (value: string) => {
-    console.log("Gender changed to:", value);
     handleSelectChange('gender', value);
   };
   
   // Handle measurement unit value changes
   const onMeasurementUnitChange = (value: string) => {
-    console.log("Measurement unit changed to:", value);
     handleSelectChange('measurementUnit', value);
-  };
-  
-  // Handle date selection with proper timezone handling
-  const onDateSelect = (date: Date | undefined) => {
-    if (date) {
-      console.log("Original selected date:", date);
-      
-      // Get only the date parts (year, month, day) and create a new date
-      // Using UTC methods to avoid timezone shifts
-      const year = date.getUTCFullYear();
-      const month = date.getUTCMonth();
-      const day = date.getUTCDate();
-      
-      // Create a new UTC date and then convert to local
-      const selectedDate = new Date(Date.UTC(year, month, day));
-      console.log("Adjusted date (UTC):", selectedDate);
-      
-      handleDateChange(selectedDate);
-    }
   };
   
   return (
@@ -105,34 +157,58 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         </div>
         <div className="space-y-2">
           <Label htmlFor="birthDate" className="text-left block">Birth Date</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="birthDate"
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !isValidDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {isValidDate ? format(birthDate!, "PPP") : <span>Select date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={birthDate}
-                onSelect={onDateSelect}
-                initialFocus
-                className="pointer-events-auto"
-                disabled={(date) => date > new Date()}
-                fromYear={1900}
-                toYear={new Date().getFullYear()}
-                captionLayout="dropdown-buttons"
-              />
-            </PopoverContent>
-          </Popover>
+          <div className="grid grid-cols-3 gap-2">
+            {/* Month dropdown */}
+            <Select
+              value={birthMonth !== undefined ? birthMonth.toString() : ''}
+              onValueChange={handleMonthChange}
+            >
+              <SelectTrigger id="birthMonth">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((month) => (
+                  <SelectItem key={month.value} value={month.value.toString()}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {/* Day dropdown */}
+            <Select
+              value={birthDay !== undefined ? birthDay.toString() : ''}
+              onValueChange={handleDayChange}
+            >
+              <SelectTrigger id="birthDay">
+                <SelectValue placeholder="Day" />
+              </SelectTrigger>
+              <SelectContent>
+                {days.map((day) => (
+                  <SelectItem key={day} value={day.toString()}>
+                    {day}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {/* Year dropdown */}
+            <Select
+              value={birthYear !== undefined ? birthYear.toString() : ''}
+              onValueChange={handleYearChange}
+            >
+              <SelectTrigger id="birthYear">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       
