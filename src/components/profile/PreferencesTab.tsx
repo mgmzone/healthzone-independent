@@ -19,7 +19,7 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({
   return (
     <TabsContent value="preferences" className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="measurementUnit">Measurement Unit</Label>
+        <Label htmlFor="measurementUnit" className="text-left block">Measurement Unit</Label>
         <Select name="measurementUnit" value={formData.measurementUnit || 'metric'} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select measurement unit" />
@@ -32,8 +32,8 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({
       </div>
       <Separator className="my-4" />
       <div className="space-y-2">
-        <h3 className="text-lg font-medium">App Settings</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="text-lg font-medium text-left">App Settings</h3>
+        <p className="text-sm text-muted-foreground text-left">
           More app settings will be added in future updates.
         </p>
       </div>

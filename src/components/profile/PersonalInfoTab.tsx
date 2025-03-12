@@ -88,7 +88,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     <TabsContent value="personal" className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name</Label>
+          <Label htmlFor="firstName" className="text-left block">First Name</Label>
           <Input
             id="firstName"
             name="firstName"
@@ -98,7 +98,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
+          <Label htmlFor="lastName" className="text-left block">Last Name</Label>
           <Input
             id="lastName"
             name="lastName"
@@ -109,7 +109,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email" className="text-left block">Email</Label>
         <Input
           id="email"
           name="email"
@@ -120,7 +120,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="birthDate">Birth Date</Label>
+        <Label htmlFor="birthDate" className="text-left block">Birth Date</Label>
         <div className="grid grid-cols-3 gap-2">
           <div>
             <Select value={birthMonth.toString()} onValueChange={(value) => handleMonthChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
@@ -170,7 +170,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="gender">Gender</Label>
+        <Label htmlFor="gender" className="text-left block">Gender</Label>
         <Select name="gender" value={formData.gender || ''} onValueChange={(value) => handleSelectChange('gender', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select gender" />

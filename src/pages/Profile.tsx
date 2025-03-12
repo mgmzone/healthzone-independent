@@ -35,8 +35,8 @@ const Profile = () => {
   return (
     <Layout>
       <div className="container mx-auto py-8">
-        <Card className="w-full max-w-4xl mx-auto">
-          <CardHeader className="text-center">
+        <Card className="w-full max-w-3xl mx-auto">
+          <CardHeader>
             <ProfileHeader 
               profile={profile} 
               handlePhotoClick={handlePhotoClick} 
@@ -51,7 +51,7 @@ const Profile = () => {
                 <TabsTrigger value="preferences">Preferences</TabsTrigger>
               </TabsList>
             
-              <CardContent>
+              <CardContent className="pt-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <PersonalInfoTab 
                     formData={formData} 

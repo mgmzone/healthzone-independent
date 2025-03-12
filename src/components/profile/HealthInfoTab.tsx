@@ -34,7 +34,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
     <TabsContent value="health" className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="height">Height ({unit === 'metric' ? 'cm' : 'in'})</Label>
+          <Label htmlFor="height" className="text-left block">Height ({unit === 'metric' ? 'cm' : 'in'})</Label>
           <Input
             id="height"
             name="height"
@@ -45,7 +45,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="currentWeight">Current Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
+          <Label htmlFor="currentWeight" className="text-left block">Current Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
           <Input
             id="currentWeight"
             name="currentWeight"
@@ -57,7 +57,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="targetWeight">Target Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
+        <Label htmlFor="targetWeight" className="text-left block">Target Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
         <Input
           id="targetWeight"
           name="targetWeight"
@@ -68,7 +68,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="fitnessLevel">Fitness Level</Label>
+        <Label htmlFor="fitnessLevel" className="text-left block">Fitness Level</Label>
         <Select name="fitnessLevel" value={formData.fitnessLevel || ''} onValueChange={(value) => handleSelectChange('fitnessLevel', value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select fitness level" />
@@ -82,7 +82,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="weightLossPerWeek">Target Weight Loss Per Week ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
+        <Label htmlFor="weightLossPerWeek" className="text-left block">Target Weight Loss Per Week ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
         <Input
           id="weightLossPerWeek"
           name="weightLossPerWeek"
@@ -94,7 +94,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="exerciseMinutesPerDay">Exercise Minutes Per Day</Label>
+        <Label htmlFor="exerciseMinutesPerDay" className="text-left block">Exercise Minutes Per Day</Label>
         <Input
           id="exerciseMinutesPerDay"
           name="exerciseMinutesPerDay"
@@ -105,7 +105,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="healthGoals">Health Goals</Label>
+        <Label htmlFor="healthGoals" className="text-left block">Health Goals</Label>
         <Textarea
           id="healthGoals"
           name="healthGoals"
