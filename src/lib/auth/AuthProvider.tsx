@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import AuthContext from './AuthContext';
 import { useAuthState } from './useAuthState';
 import { useProfileManagement } from './useProfileManagement';
@@ -16,15 +16,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch profile when auth state changes
   useEffect(() => {
-    if (!loading) {
+    if (!loading && user?.id) {
       fetchProfile();
     }
-  }, [user, loading]);
+  }, [loading, user?.id, fetchProfile]);
 
   // Wrapper for the fetchProfile function to use as refreshProfile
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     await fetchProfile();
-  };
+  }, [fetchProfile]);
 
   const value = {
     session,

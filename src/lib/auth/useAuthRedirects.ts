@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { User } from '../types';
 import { isProfileComplete, isAuthOrIndexPage } from './authUtils';
@@ -12,10 +12,12 @@ export const useAuthRedirects = (
   profile: User | null
 ) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   useEffect(() => {
+    // Only perform redirects if both auth and profile loading are complete
     if (!loading && !profileLoading) {
-      const currentPath = window.location.pathname;
       console.log('Checking redirects:', { 
         loading, 
         profileLoading, 
@@ -37,5 +39,5 @@ export const useAuthRedirects = (
         }
       }
     }
-  }, [loading, profileLoading, user, profile, navigate]);
+  }, [loading, profileLoading, user, profile, navigate, currentPath]);
 };

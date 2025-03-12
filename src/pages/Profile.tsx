@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,12 +33,21 @@ const Profile = () => {
 
   // Refresh profile when component mounts to ensure latest data
   useEffect(() => {
+    console.log("Profile component mounted, refreshing profile data");
     refreshProfile();
-  }, [refreshProfile]);
+    // Only refresh on mount, not on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, []);
+
+  const onFormSubmit = useCallback((e: React.FormEvent) => {
+    handleSubmit(e);
+  }, [handleSubmit]);
 
   console.log("Profile Page Render - Current formData:", formData);
-  console.log("Profile gender:", formData.gender);
-  console.log("Profile measurementUnit:", formData.measurementUnit);
 
   return (
     <Layout>
@@ -52,8 +61,8 @@ const Profile = () => {
               handlePhotoChange={handlePhotoChange} 
             />
             
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <form onSubmit={onFormSubmit} className="space-y-4 mt-4">
+              <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid grid-cols-2 w-full">
                   <TabsTrigger value="personal">Personal</TabsTrigger>
                   <TabsTrigger value="health">Health</TabsTrigger>

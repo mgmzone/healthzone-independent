@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { User } from '../types';
 import { getProfile } from '../services/profileService';
 
@@ -7,7 +7,7 @@ export const useProfileManagement = (userId: string | undefined) => {
   const [profile, setProfile] = useState<User | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!userId) {
       setProfile(null);
       setProfileLoading(false);
@@ -28,7 +28,7 @@ export const useProfileManagement = (userId: string | undefined) => {
     } finally {
       setProfileLoading(false);
     }
-  };
+  }, [userId]);
 
   return {
     profile,
