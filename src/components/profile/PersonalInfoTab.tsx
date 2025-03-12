@@ -3,7 +3,12 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
 import { format } from 'date-fns';
+import { cn } from "@/lib/utils";
 
 interface PersonalInfoTabProps {
   formData: {
@@ -78,17 +83,35 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="birthDate" className="text-left block">Birth Date</Label>
-        <Input 
-          id="birthDate"
-          type="date"
-          value={isValidDate ? format(birthDate, 'yyyy-MM-dd') : ''}
-          onChange={(e) => {
-            const newDate = new Date(e.target.value);
-            if (!isNaN(newDate.getTime())) {
-              handleDateChange(newDate);
-            }
-          }}
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              id="birthDate"
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !isValidDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {isValidDate ? format(birthDate, "PPP") : <span>Select date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={birthDate}
+              onSelect={(date) => date && handleDateChange(date)}
+              initialFocus
+              className="pointer-events-auto"
+              disabled={(date) => date > new Date()}
+              fromYear={1900}
+              toYear={new Date().getFullYear()}
+              captionLayout="dropdown-buttons"
+              defaultMonth={new Date(1990, 0)}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
