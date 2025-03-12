@@ -3,7 +3,6 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TabsContent } from '@/components/ui/tabs';
 
 interface PersonalInfoTabProps {
   formData: {
@@ -37,8 +36,8 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const birthMonth = birthDate.getMonth(); // 0-11
   const birthDay = birthDate.getDate();
   
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newYear = parseInt(e.target.value);
+  const handleYearChange = (value: string) => {
+    const newYear = parseInt(value);
     const newDate = new Date(birthDate);
     newDate.setFullYear(newYear);
     
@@ -47,8 +46,8 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     }
   };
   
-  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newMonth = parseInt(e.target.value);
+  const handleMonthChange = (value: string) => {
+    const newMonth = parseInt(value);
     const newDate = new Date(birthDate);
     newDate.setMonth(newMonth);
     
@@ -57,8 +56,8 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     }
   };
   
-  const handleDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newDay = parseInt(e.target.value);
+  const handleDayChange = (value: string) => {
+    const newDay = parseInt(value);
     const newDate = new Date(birthDate);
     newDate.setDate(newDay);
     
@@ -75,7 +74,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   return (
-    <TabsContent value="personal" className="space-y-4">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="firstName" className="text-left block">First Name</Label>
@@ -112,7 +111,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
       <div className="space-y-2">
         <Label htmlFor="birthDate" className="text-left block">Birth Date</Label>
         <div className="grid grid-cols-3 gap-2">
-          <Select value={birthMonth.toString()} onValueChange={(value) => handleMonthChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
+          <Select value={birthMonth.toString()} onValueChange={handleMonthChange}>
             <SelectTrigger>
               <SelectValue placeholder="Month" />
             </SelectTrigger>
@@ -131,7 +130,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
               <SelectItem value="11">December</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={birthDay.toString()} onValueChange={(value) => handleDayChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
+          <Select value={birthDay.toString()} onValueChange={handleDayChange}>
             <SelectTrigger>
               <SelectValue placeholder="Day" />
             </SelectTrigger>
@@ -141,7 +140,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
               ))}
             </SelectContent>
           </Select>
-          <Select value={birthYear.toString()} onValueChange={(value) => handleYearChange({ target: { value } } as React.ChangeEvent<HTMLSelectElement>)}>
+          <Select value={birthYear.toString()} onValueChange={handleYearChange}>
             <SelectTrigger>
               <SelectValue placeholder="Year" />
             </SelectTrigger>
@@ -156,8 +155,11 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="gender" className="text-left block">Gender</Label>
-          <Select name="gender" value={formData.gender || ''} onValueChange={(value) => handleSelectChange('gender', value)}>
-            <SelectTrigger>
+          <Select 
+            value={formData.gender || 'other'} 
+            onValueChange={(value) => handleSelectChange('gender', value)}
+          >
+            <SelectTrigger id="gender">
               <SelectValue placeholder="Select gender" />
             </SelectTrigger>
             <SelectContent>
@@ -169,8 +171,11 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         </div>
         <div className="space-y-2">
           <Label htmlFor="measurementUnit" className="text-left block">Measurement Unit</Label>
-          <Select name="measurementUnit" value={formData.measurementUnit || 'imperial'} onValueChange={(value) => handleSelectChange('measurementUnit', value)}>
-            <SelectTrigger>
+          <Select 
+            value={formData.measurementUnit || 'imperial'} 
+            onValueChange={(value) => handleSelectChange('measurementUnit', value)}
+          >
+            <SelectTrigger id="measurementUnit">
               <SelectValue placeholder="Select measurement unit" />
             </SelectTrigger>
             <SelectContent>
@@ -180,7 +185,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           </Select>
         </div>
       </div>
-    </TabsContent>
+    </div>
   );
 };
 

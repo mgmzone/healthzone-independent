@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { TabsContent } from '@/components/ui/tabs';
 
 interface HealthInfoTabProps {
   formData: {
@@ -28,10 +27,10 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   handleSelectChange,
   handleNumberChange
 }) => {
-  const unit = formData.measurementUnit || 'metric';
+  const unit = formData.measurementUnit || 'imperial';
   
   return (
-    <TabsContent value="health" className="space-y-4">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="height" className="text-left block">Height ({unit === 'metric' ? 'cm' : 'in'})</Label>
@@ -69,8 +68,11 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
       </div>
       <div className="space-y-2">
         <Label htmlFor="fitnessLevel" className="text-left block">Fitness Level</Label>
-        <Select name="fitnessLevel" value={formData.fitnessLevel || ''} onValueChange={(value) => handleSelectChange('fitnessLevel', value)}>
-          <SelectTrigger>
+        <Select 
+          value={formData.fitnessLevel || 'moderate'} 
+          onValueChange={(value) => handleSelectChange('fitnessLevel', value)}
+        >
+          <SelectTrigger id="fitnessLevel">
             <SelectValue placeholder="Select fitness level" />
           </SelectTrigger>
           <SelectContent>
@@ -115,7 +117,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           rows={4}
         />
       </div>
-    </TabsContent>
+    </div>
   );
 };
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Layout from '@/components/Layout';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import PersonalInfoTab from '@/components/profile/PersonalInfoTab';
@@ -53,30 +53,32 @@ const Profile = () => {
                 <TabsTrigger value="personal">Personal</TabsTrigger>
                 <TabsTrigger value="health">Health</TabsTrigger>
               </TabsList>
-            
-              <CardContent className="pt-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
+              
+              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                {activeTab === 'personal' && (
                   <PersonalInfoTab 
                     formData={formData} 
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleDateChange={handleDateChange}
                   />
-                  
+                )}
+                
+                {activeTab === 'health' && (
                   <HealthInfoTab 
                     formData={formData}
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleNumberChange={handleNumberChange}
                   />
+                )}
 
-                  <div className="pt-4">
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
+                <div className="pt-4">
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </form>
             </Tabs>
           </CardHeader>
         </Card>

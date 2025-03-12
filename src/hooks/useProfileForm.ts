@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
 import { updateProfile } from '@/lib/services/profileService';
@@ -58,10 +59,11 @@ export const useProfileForm = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     console.log('handleSelectChange:', name, value);
-    setFormData((prev) => {
-      const newData = { ...prev, [name]: value };
-      console.log('new form data:', newData);
-      return newData;
+    // Fix for select inputs - ensure we're setting the value correctly
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, [name]: value };
+      console.log('Updated formData:', updatedData);
+      return updatedData;
     });
   };
 
