@@ -9,10 +9,15 @@ export function useUpdateWeighIn() {
   const { weighIns } = useWeightQuery();
 
   const updateWeighIn = useMutation({
-    mutationFn: async (
-      id: string,
-      weight: number,
-      date: Date,
+    mutationFn: async ({
+      id,
+      weight,
+      date,
+      additionalMetrics
+    }: {
+      id: string;
+      weight: number;
+      date: Date;
       additionalMetrics: {
         bmi?: number;
         bodyFatPercentage?: number;
@@ -20,7 +25,7 @@ export function useUpdateWeighIn() {
         boneMass?: number;
         bodyWaterPercentage?: number;
       }
-    ) => {
+    }) => {
       const { data, error } = await supabase
         .from('weigh_ins')
         .update({
@@ -80,6 +85,6 @@ export function useUpdateWeighIn() {
         boneMass?: number;
         bodyWaterPercentage?: number;
       }
-    ) => updateWeighIn.mutate([id, weight, date, additionalMetrics])
+    ) => updateWeighIn.mutate({ id, weight, date, additionalMetrics })
   };
 }
