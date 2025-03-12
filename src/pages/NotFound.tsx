@@ -1,15 +1,35 @@
-import { useLocation } from "react-router-dom";
+
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname
     );
-  }, [location.pathname]);
+
+    // Check if we're on GitHub Pages with a 404
+    // This helps handle direct navigation to routes in GitHub Pages
+    const isGitHubPages = window.location.hostname.includes('github.io') || 
+                          window.location.hostname.includes('healthapp.zone');
+    
+    if (isGitHubPages && location.pathname !== '/') {
+      // For GitHub Pages, try to navigate to the route via the SPA router
+      const path = location.pathname;
+      
+      // Reset to base route first
+      window.history.replaceState(null, '', '/');
+      
+      // Then use React Router to navigate
+      setTimeout(() => {
+        navigate(path, { replace: true });
+      }, 100);
+    }
+  }, [location.pathname, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
