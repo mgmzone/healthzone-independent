@@ -15,7 +15,7 @@ const CallToActionSection = () => {
           Sign up today and take the first step towards a healthier you.
         </p>
         <Button size="lg" asChild className="rounded-full px-8 text-base">
-          <Link to="/signup">
+          <Link to="/auth?tab=signup">
             Create Your Free Account
           </Link>
         </Button>
