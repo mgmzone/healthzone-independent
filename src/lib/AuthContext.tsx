@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from './supabase';
@@ -55,21 +54,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    let isSubscribed = true;
+
+    const initialize = async () => {
+      try {
+        // Get initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isSubscribed) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+        if (isSubscribed) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initialize();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (isSubscribed) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
     });
 
     return () => {
+      isSubscribed = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -79,6 +95,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchProfile();
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    if (!loading && !profileLoading && user) {
+      const isProfileComplete = profile?.firstName && 
+        profile?.currentWeight && 
+        profile?.targetWeight && 
+        profile?.height;
+
+      const currentPath = window.location.pathname;
+      const isAuthPage = currentPath === '/auth';
+      const isIndexPage = currentPath === '/';
+      
+      if (isAuthPage || isIndexPage) {
+        navigate(isProfileComplete ? '/dashboard' : '/getting-started', { replace: true });
+      }
+    }
+  }, [loading, profileLoading, user, profile, navigate]);
 
   const refreshProfile = async () => {
     await fetchProfile();
