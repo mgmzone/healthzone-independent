@@ -1,9 +1,12 @@
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import PersonalInfoTab from '@/components/profile/PersonalInfoTab';
@@ -11,11 +14,14 @@ import HealthInfoTab from '@/components/profile/HealthInfoTab';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 import { cn } from '@/lib/utils';
+import { isProfileComplete } from '@/lib/auth';
 
 const Profile = () => {
   const { profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = React.useState('personal');
   const profileFetchedRef = useRef(false);
+  const navigate = useNavigate();
+  const [showSuccess, setShowSuccess] = useState(false);
   
   const {
     formData,
@@ -47,10 +53,19 @@ const Profile = () => {
     setActiveTab(value);
   }, []);
 
-  const onFormSubmit = useCallback((e: React.FormEvent) => {
+  const onFormSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    handleSubmit(e);
-  }, [handleSubmit]);
+    await handleSubmit(e);
+    
+    // Check if profile is complete and show success message
+    if (profile && isProfileComplete(profile)) {
+      setShowSuccess(true);
+    }
+  }, [handleSubmit, profile]);
+
+  const handleContinueToPeriods = () => {
+    navigate('/periods');
+  };
 
   if (!profile) {
     return (
@@ -66,6 +81,8 @@ const Profile = () => {
     );
   }
 
+  const profileComplete = isProfileComplete(profile);
+
   return (
     <Layout>
       <div className="container mx-auto py-8 pt-24">
@@ -77,6 +94,24 @@ const Profile = () => {
               fileInputRef={fileInputRef} 
               handlePhotoChange={handlePhotoChange} 
             />
+            
+            {showSuccess && profileComplete && (
+              <Alert className="mt-4 bg-green-50 border-green-200">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span className="text-green-700">
+                    Your profile has been updated successfully! You've completed all required information.
+                  </span>
+                  <Button 
+                    onClick={handleContinueToPeriods}
+                    className="ml-2"
+                    size="sm"
+                  >
+                    Create a Period <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
             
             <form onSubmit={onFormSubmit} className="space-y-4 mt-4">
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
