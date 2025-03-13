@@ -17,7 +17,6 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   const [timeElapsed, setTimeElapsed] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
   const [timeRemaining, setTimeRemaining] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
   const [progress, setProgress] = useState(0);
-  const [rotations, setRotations] = useState(0);
 
   useEffect(() => {
     if (!activeFast) return;
@@ -51,12 +50,10 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
         seconds: secondsRemaining
       });
       
-      const progressPercentage = (totalSecondsElapsed / totalFastingSeconds) * 100;
-      
-      const completeRotations = Math.floor(progressPercentage / 100);
-      setRotations(completeRotations);
-      
-      setProgress(progressPercentage % 100);
+      // Calculate progress percentage (0-100)
+      // If elapsed time is greater than fasting goal, cap at 100%
+      const progressPercentage = Math.min((totalSecondsElapsed / totalFastingSeconds) * 100, 100);
+      setProgress(progressPercentage);
       
     }, 1000);
     
@@ -72,7 +69,6 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
       <div className="flex-1 flex items-center justify-center mb-2">
         <FastingProgressCircle 
           progress={progress} 
-          rotations={rotations} 
           timeElapsed={timeElapsed} 
           timeRemaining={timeRemaining} 
         />

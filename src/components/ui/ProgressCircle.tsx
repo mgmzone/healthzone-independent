@@ -26,14 +26,17 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   const circleRef = useRef<SVGCircleElement>(null);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const dashOffset = circumference - (percentage / 100) * circumference;
+  
+  // Ensure percentage is between 0 and 100
+  const normalizedPercentage = Math.min(Math.max(percentage, 0), 100);
+  const dashOffset = circumference - (normalizedPercentage / 100) * circumference;
 
   useEffect(() => {
     if (circleRef.current && animate) {
-      circleRef.current.style.setProperty('--progress', percentage.toString());
+      circleRef.current.style.setProperty('--progress', normalizedPercentage.toString());
       circleRef.current.style.strokeDashoffset = dashOffset.toString();
     }
-  }, [percentage, dashOffset, animate]);
+  }, [normalizedPercentage, dashOffset, animate]);
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
@@ -65,7 +68,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
         </svg>
         {showPercentage && (
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold">{Math.round(percentage)}%</span>
+            <span className="text-2xl font-bold">{Math.round(normalizedPercentage)}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
           </div>
         )}

@@ -4,14 +4,12 @@ import { Flame } from "lucide-react";
 
 interface FastingProgressCircleProps {
   progress: number;
-  rotations: number;
   timeElapsed: { hours: number; minutes: number; seconds: number };
   timeRemaining: { hours: number; minutes: number; seconds: number };
 }
 
 const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   progress,
-  rotations,
   timeElapsed,
   timeRemaining
 }) => {
@@ -82,11 +80,6 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
         <div className="text-center">
           <div className="text-xs text-muted-foreground">Fasting for</div>
           <div className="text-3xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
-          {rotations > 0 && (
-            <div className="text-xs text-emerald-500 font-medium mt-1">
-              +{rotations} full rotation{rotations > 1 ? 's' : ''}
-            </div>
-          )}
           <div className="text-xs text-muted-foreground mt-1">Remaining</div>
           <div className="text-base font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div>
         </div>
