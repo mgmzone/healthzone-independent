@@ -30,13 +30,13 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   max,
   className
 }) => {
-  // Handle input changes, allowing numbers and decimal points
+  // Handle input changes, allowing multi-digit numbers and decimal points
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     
-    // Allow empty values, decimal point entry, and numbers
-    // This simpler regex focuses on allowing valid patterns without being too restrictive
-    if (inputValue === '' || /^(\d*\.?\d*)$/.test(inputValue)) {
+    // Allow empty values, decimal points, and numbers with multiple digits
+    // This regex allows any number of digits before and after a decimal point
+    if (inputValue === '' || /^(\d+\.?\d*|\.\d+)$/.test(inputValue)) {
       onChange(inputValue);
     }
   };
