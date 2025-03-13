@@ -24,7 +24,8 @@ export const useAuthRedirects = (
         profileLoading, 
         user, 
         profile,
-        currentPath 
+        currentPath,
+        profileComplete: profile ? isProfileComplete(profile) : false
       });
 
       // Reset redirect flag if user is null (logged out)
@@ -39,13 +40,19 @@ export const useAuthRedirects = (
           const currentIsProfileComplete = isProfileComplete(profile);
           const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
           
+          console.log('Redirect decision:', {
+            currentIsProfileComplete,
+            currentIsAuthOrIndexPage,
+            currentPath
+          });
+          
           // If on auth or index page, redirect based on profile completeness
           if (currentIsAuthOrIndexPage) {
             if (currentIsProfileComplete) {
-              console.log('Redirecting to dashboard');
+              console.log('Redirecting to dashboard from auth/index page');
               navigate('/dashboard', { replace: true });
             } else {
-              console.log('Redirecting to profile page');
+              console.log('Redirecting to profile page from auth/index page');
               navigate('/profile', { replace: true });
             }
             redirectProcessedRef.current = true;

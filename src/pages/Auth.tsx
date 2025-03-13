@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
 import { Navigate } from 'react-router-dom';
@@ -10,6 +10,16 @@ const Auth = () => {
   const { user, profile, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Log for debugging
+  useEffect(() => {
+    if (user && profile) {
+      console.log('Auth page redirect check:', { 
+        profileComplete: isProfileComplete(profile), 
+        profile 
+      });
+    }
+  }, [user, profile]);
 
   // If user is already logged in
   if (user) {

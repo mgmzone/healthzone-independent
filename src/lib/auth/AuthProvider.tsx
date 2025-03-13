@@ -18,7 +18,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch profile when auth state changes and we have a user ID
   useEffect(() => {
     if (!loading && user?.id) {
-      // Only fetch on first load or when user ID changes
+      console.log('Checking initial profile fetch for user:', user.id);
+      // Always fetch profile on login or page refresh for up-to-date info
       if (!initialLoadComplete.current) {
         console.log('Initial profile fetch for user:', user.id);
         initialLoadComplete.current = true;
