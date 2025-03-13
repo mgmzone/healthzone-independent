@@ -53,11 +53,22 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
     }, 0);
     
     const averageHours = totalFastingSeconds / 3600 / completedLogs.length;
-    const percentage = (averageHours / 24) * 100;
+    
+    // Get target fasting hours from period's fasting schedule
+    let targetFastingHours = 16; // Default to 16 hours if no schedule is found
+    if (currentPeriod?.fastingSchedule) {
+      const schedule = currentPeriod.fastingSchedule.split(':');
+      if (schedule.length === 2) {
+        targetFastingHours = parseInt(schedule[0], 10);
+      }
+    }
+    
+    // Calculate percentage based on the target fasting hours
+    const percentage = (averageHours / targetFastingHours) * 100;
     
     return {
       hours: parseFloat(averageHours.toFixed(1)),
-      percentage: Math.min(100, percentage) // Cap at 100% for display purposes
+      percentage: percentage
     };
   };
 
@@ -112,6 +123,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
               strokeWidth={10}
               showPercentage={true}
               valueLabel={`${averageFasting.hours}h per day`}
+              allowExceedGoal={true}
             />
           </CardContent>
         </Card>
