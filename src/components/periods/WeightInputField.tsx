@@ -24,18 +24,18 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   onChange,
   weightUnit,
   placeholder,
-  type = "text", // Changed from "number" to "text"
+  type = "text",
   step = "0.1",
   min,
   max,
   className
 }) => {
-  // Handle input changes, allowing only numbers and decimal point
+  // Handle input changes, allowing numbers, decimal point, and backspace
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     
-    // Only allow numbers and one decimal point
-    if (inputValue === '' || /^[0-9]+\.?[0-9]*$/.test(inputValue)) {
+    // Allow empty values or valid numeric values with at most one decimal point
+    if (inputValue === '' || /^[0-9]*\.?[0-9]*$/.test(inputValue)) {
       onChange(inputValue);
     }
   };
