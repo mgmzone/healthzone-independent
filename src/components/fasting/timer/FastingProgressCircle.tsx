@@ -7,17 +7,18 @@ interface FastingProgressCircleProps {
   timeElapsed: { hours: number; minutes: number; seconds: number };
   timeRemaining: { hours: number; minutes: number; seconds: number };
   fastingHours: number;
+  fastingSchedule: string;
 }
 
 const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   progress,
   timeElapsed,
   timeRemaining,
-  fastingHours
+  fastingHours,
+  fastingSchedule
 }) => {
-  // Calculate angles for the progress circle
-  // Reduce radius to fit better in the container
-  const radius = 80; 
+  // Increase radius for better proportions
+  const radius = 85; 
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
   const dashOffset = circumference - (progress / 100) * circumference;
@@ -48,10 +49,10 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
       {/* Display fasting schedule in corner */}
       <div className="absolute top-0 right-0 text-sm font-medium bg-secondary/50 rounded-full px-2 py-1 flex items-center gap-1">
         <Clock className="w-3 h-3" />
-        {fastingHours}:{24-fastingHours}
+        {fastingSchedule}
       </div>
       
-      <svg className="w-64 h-64 -rotate-90">
+      <svg className="w-72 h-72 -rotate-90">
         {/* Background circle */}
         <circle
           cx="50%"
@@ -95,25 +96,25 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
         ))}
       </svg>
       
-      {/* Center content */}
+      {/* Center content - Add more spacing between elements */}
       <div className="absolute flex flex-col items-center">
-        <Flame className="w-8 h-8 text-orange-500 mb-1" />
+        <Flame className="w-8 h-8 text-orange-500 mb-2" />
         <div className="text-center">
           <div className="text-xs text-muted-foreground">Fasting for</div>
           <div className="text-3xl font-bold">{`${timeElapsed.hours}h ${timeElapsed.minutes}m`}</div>
           
           {/* Goal status indicator */}
           {hasExceededGoal ? (
-            <div className="text-xs text-emerald-500 font-medium mt-1 flex items-center justify-center gap-1">
+            <div className="text-xs text-emerald-500 font-medium mt-2 flex items-center justify-center gap-1">
               <Flag className="w-3 h-3" /> Goal complete! (+{timeElapsed.hours - fastingHours}h {timeElapsed.minutes}m)
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground mt-1">
+            <div className="text-xs text-muted-foreground mt-2">
               Goal: {fastingHours}h ({Math.floor((timeElapsed.hours / fastingHours) * 100)}%)
             </div>
           )}
           
-          <div className="text-xs text-muted-foreground mt-1">Remaining</div>
+          <div className="text-xs text-muted-foreground mt-2">Remaining</div>
           <div className="text-base font-medium">{`${timeRemaining.hours}h ${timeRemaining.minutes}m`}</div>
         </div>
       </div>

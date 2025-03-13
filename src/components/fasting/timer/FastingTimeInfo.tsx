@@ -21,7 +21,7 @@ const FastingTimeInfo: React.FC<FastingTimeInfoProps> = ({
           <div>{format(new Date(startTime), 'h:mm a')}</div>
         </div>
         <div className="text-sm text-right">
-          <div className="text-muted-foreground text-xs">End</div>
+          <div className="text-muted-foreground text-xs">Target End</div>
           <div>Today</div>
           <div>{format(new Date(), 'h:mm a')}</div>
         </div>

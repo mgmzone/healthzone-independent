@@ -64,6 +64,11 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
     return <NoActiveFast />;
   }
 
+  // Calculate fasting schedule to display
+  const fastingHours = activeFast.fastingHours || 16;
+  const eatingHours = 24 - fastingHours;
+  const fastingSchedule = `${fastingHours}:${eatingHours}`;
+
   return (
     <Card className="p-6 w-full flex flex-col">
       <div className="flex-1 flex items-center justify-center mb-2">
@@ -71,7 +76,8 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
           progress={progress} 
           timeElapsed={timeElapsed} 
           timeRemaining={timeRemaining} 
-          fastingHours={activeFast.fastingHours || 16}
+          fastingHours={fastingHours}
+          fastingSchedule={fastingSchedule}
         />
       </div>
       
