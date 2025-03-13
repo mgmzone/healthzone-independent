@@ -69,13 +69,16 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                   key={link.path}
                   to={link.path}
                   className={cn(
-                    "flex items-center space-x-1 font-medium transition-colors hover:text-primary",
+                    "flex items-center space-x-1 font-medium transition-colors hover:text-primary relative py-2",
                     (transparent && !scrolled) ? "text-white/90 hover:text-white" : "text-foreground/80 hover:text-foreground",
                     location.pathname === link.path && "text-primary font-semibold"
                   )}
                 >
                   <link.icon className="h-4 w-4" />
                   <span>{link.name}</span>
+                  {location.pathname === link.path && (
+                    <span className="absolute bottom-0 left-0 h-0.5 w-full bg-primary rounded-full"></span>
+                  )}
                 </Link>
               ))}
               <Button 
@@ -132,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                     key={link.path}
                     to={link.path}
                     className={cn(
-                      "flex items-center space-x-2 p-3 rounded-md transition-colors",
+                      "flex items-center space-x-2 p-3 rounded-md transition-colors relative",
                       location.pathname === link.path 
                         ? "bg-primary/10 text-primary font-medium" 
                         : "hover:bg-secondary"
@@ -141,6 +144,9 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                   >
                     <link.icon className="h-5 w-5" />
                     <span>{link.name}</span>
+                    {location.pathname === link.path && (
+                      <span className="absolute bottom-0 left-0 h-0.5 w-full bg-primary rounded-full"></span>
+                    )}
                   </Link>
                 ))}
                 <Button 
