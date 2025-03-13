@@ -1,3 +1,4 @@
+
 # Welcome to your Lovable project
 
 ## Project info
@@ -52,7 +53,7 @@ npm run dev
 
 ## What technologies are used for this project?
 
-This project is built with .
+This project is built with:
 
 - Vite
 - TypeScript
@@ -60,10 +61,22 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## How can I deploy this project with Netlify?
 
-Simply open [Lovable](https://lovable.dev/projects/b16e0e3d-eb20-49b9-9725-3df916f24ef0) and click on Share -> Publish.
+1. Create a Netlify account at [netlify.com](https://www.netlify.com/)
+2. Connect your GitHub repository to Netlify
+3. Configure the build settings:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+4. Deploy your site
+5. Set up your custom domain in the Netlify dashboard
 
-## I want to use a custom domain - is that possible?
+## Using a custom domain
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+After deploying to Netlify, you can configure your custom domain:
+
+1. In the Netlify dashboard, go to "Domain management"
+2. Click "Add custom domain"
+3. Enter your domain name
+4. Follow the instructions to update your DNS settings
+
