@@ -30,12 +30,13 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   max,
   className
 }) => {
-  // Handle input changes, allowing numbers, decimal point, and backspace
+  // Handle input changes, allowing numbers and decimal points
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     
-    // Allow empty values or valid numeric values with at most one decimal point
-    if (inputValue === '' || /^[0-9]*\.?[0-9]*$/.test(inputValue)) {
+    // Allow empty values, decimal point entry, and numbers
+    // This simpler regex focuses on allowing valid patterns without being too restrictive
+    if (inputValue === '' || /^(\d*\.?\d*)$/.test(inputValue)) {
       onChange(inputValue);
     }
   };
@@ -46,13 +47,11 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
       <Input
         id={id}
         type={type}
-        step={step}
-        min={min}
-        max={max}
         value={value}
         onChange={handleChange}
         placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
         className={className}
+        inputMode="decimal"
       />
     </div>
   );
