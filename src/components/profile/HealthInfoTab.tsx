@@ -47,19 +47,15 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="height" className="text-left block">Height ({unit === 'metric' ? 'cm' : 'in'})</Label>
-          <Input
-            id="height"
-            name="height"
-            type="number"
-            inputMode="decimal"
-            value={formData.height || ''}
-            onChange={(e) => handleNumberChange('height', e.target.value)}
-            placeholder="Height"
-            step="0.01"
-          />
-        </div>
+        <WeightInputField
+          id="height"
+          label="Height"
+          value={formData.height?.toString() || ''}
+          onChange={(value) => handleNumberChange('height', value)}
+          weightUnit={isImperial ? 'in' : 'cm'}
+          type="number"
+          step="0.01"
+        />
         
         <WeightInputField
           id="currentWeight"
