@@ -7,6 +7,7 @@ import FastingProgressCircle from './timer/FastingProgressCircle';
 import FastingTimeInfo from './timer/FastingTimeInfo';
 import FastingTips from './timer/FastingTips';
 import NoActiveFast from './timer/NoActiveFast';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
 
 interface FastingTimerProps {
   activeFast: FastingLog | null;
@@ -17,6 +18,8 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
   const [timeElapsed, setTimeElapsed] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
   const [timeRemaining, setTimeRemaining] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 0, minutes: 0, seconds: 0 });
   const [progress, setProgress] = useState(0);
+  const { getCurrentPeriod } = usePeriodsData();
+  const currentPeriod = getCurrentPeriod();
 
   useEffect(() => {
     if (!activeFast) return;
@@ -24,10 +27,11 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
     const intervalId = setInterval(() => {
       const now = new Date();
       const startTime = new Date(activeFast.startTime);
-      const fastingHours = activeFast.fastingHours || 16; // Default to 16 hours if not specified
+      // Use the fasting hours from the current period, or fall back to the one in the fast itself, or default to 16
+      const fastingHours = activeFast.fastingHours || (currentPeriod?.fastingSchedule?.split(':')[0] || 16);
       
       const totalSecondsElapsed = differenceInSeconds(now, startTime);
-      const totalFastingSeconds = fastingHours * 3600;
+      const totalFastingSeconds = parseInt(fastingHours) * 3600;
       
       const hoursElapsed = Math.floor(totalSecondsElapsed / 3600);
       const minutesElapsed = Math.floor((totalSecondsElapsed % 3600) / 60);
@@ -58,14 +62,15 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
     }, 1000);
     
     return () => clearInterval(intervalId);
-  }, [activeFast]);
+  }, [activeFast, currentPeriod]);
 
   if (!activeFast) {
     return <NoActiveFast />;
   }
 
-  // Calculate fasting schedule to display
-  const fastingHours = activeFast.fastingHours || 16;
+  // Get the fasting schedule from current period or use the one from activeFast or default
+  const periodsSchedule = currentPeriod?.fastingSchedule;
+  const fastingHours = periodsSchedule ? parseInt(periodsSchedule.split(':')[0]) : (activeFast.fastingHours || 16);
   const eatingHours = 24 - fastingHours;
   const fastingSchedule = `${fastingHours}:${eatingHours}`;
 
