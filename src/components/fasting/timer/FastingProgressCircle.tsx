@@ -17,8 +17,8 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
   fastingHours,
   fastingSchedule
 }) => {
-  // Increase radius for better proportions
-  const radius = 85; 
+  // Increase radius for better proportions and prevent text overlap
+  const radius = 90; 
   const circumference = 2 * Math.PI * radius;
   const dashArray = circumference;
   const dashOffset = circumference - (progress / 100) * circumference;
@@ -52,7 +52,7 @@ const FastingProgressCircle: React.FC<FastingProgressCircleProps> = ({
         {fastingSchedule}
       </div>
       
-      <svg className="w-72 h-72 -rotate-90">
+      <svg className="w-80 h-80 -rotate-90">
         {/* Background circle */}
         <circle
           cx="50%"

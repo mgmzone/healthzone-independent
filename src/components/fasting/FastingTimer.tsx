@@ -28,10 +28,13 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
       const now = new Date();
       const startTime = new Date(activeFast.startTime);
       // Use the fasting hours from the current period, or fall back to the one in the fast itself, or default to 16
-      const fastingHours = activeFast.fastingHours || (currentPeriod?.fastingSchedule?.split(':')[0] || 16);
+      const fastingHours = activeFast.fastingHours || 
+                          (currentPeriod?.fastingSchedule ? 
+                            parseInt(currentPeriod.fastingSchedule.split(':')[0]) : 
+                            16);
       
       const totalSecondsElapsed = differenceInSeconds(now, startTime);
-      const totalFastingSeconds = parseInt(fastingHours) * 3600;
+      const totalFastingSeconds = fastingHours * 3600;
       
       const hoursElapsed = Math.floor(totalSecondsElapsed / 3600);
       const minutesElapsed = Math.floor((totalSecondsElapsed % 3600) / 60);
@@ -70,7 +73,9 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
 
   // Get the fasting schedule from current period or use the one from activeFast or default
   const periodsSchedule = currentPeriod?.fastingSchedule;
-  const fastingHours = periodsSchedule ? parseInt(periodsSchedule.split(':')[0]) : (activeFast.fastingHours || 16);
+  const fastingHours = periodsSchedule ? 
+                      parseInt(periodsSchedule.split(':')[0]) : 
+                      (activeFast.fastingHours || 16);
   const eatingHours = 24 - fastingHours;
   const fastingSchedule = `${fastingHours}:${eatingHours}`;
 
