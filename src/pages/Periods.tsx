@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -108,8 +109,7 @@ const Periods = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 pt-24 pb-12">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Periods</h1>
+        <div className="flex justify-end items-center mb-6">
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="mr-2" /> Add Period
           </Button>

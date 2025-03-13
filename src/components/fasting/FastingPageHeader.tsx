@@ -18,8 +18,7 @@ const FastingPageHeader: React.FC<FastingPageHeaderProps> = ({
   onEndFast 
 }) => {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <h1 className="text-3xl font-bold">Fasting Tracker</h1>
+    <div className="flex justify-end items-center mb-6">
       <div className="flex space-x-2">
         {activeFast ? (
           <Button 

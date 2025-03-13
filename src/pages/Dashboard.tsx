@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
@@ -101,8 +100,6 @@ const Dashboard = () => {
     <Layout>
       <div className="container mx-auto p-6 mt-16">
         <div className="w-full max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-          
           <SummaryCards
             latestWeight={latestWeight}
             weightUnit={weightUnit}
