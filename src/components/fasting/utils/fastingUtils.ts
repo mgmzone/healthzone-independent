@@ -120,13 +120,10 @@ export const calculateFastingStats = (fastingLogs: FastingLog[]) => {
 
 // Helper function to calculate eating window hours
 export const calculateEatingWindowHours = (fastingHours: number): number => {
-  // For fasts longer than 24 hours, return remaining hours until next 24-hour period
-  const daysPassed = Math.floor(fastingHours / 24);
-  const remainingFastHours = fastingHours % 24;
-  
-  // If the fast is longer than 24 hours, calculate hours until next 24-hour period
-  if (daysPassed > 0) {
-    return 24 - remainingFastHours;
+  // For fasts that span multiple days, the eating window should be 0
+  // This is because if someone fasts for more than 24 hours, they didn't eat that day
+  if (fastingHours >= 24) {
+    return 0;
   }
   
   // For normal fasts, just return 24 - fasting hours

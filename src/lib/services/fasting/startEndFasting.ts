@@ -1,6 +1,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { transformFastingLogResponse } from './utils';
+import { calculateEatingWindowHours } from '@/components/fasting/utils/fastingUtils';
 
 export async function startFasting(fastingHours: number = 16, eatingWindowHours: number = 8) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -43,9 +44,9 @@ export async function endFasting(fastingId: string) {
 
   const startTime = new Date(fastingData.start_time);
   const durationInHours = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-  const eatingWindowHours = fastingData.fasting_hours 
-    ? 24 - durationInHours 
-    : 24 - durationInHours;
+  
+  // Use the utility function to calculate eating window hours
+  const eatingWindowHours = calculateEatingWindowHours(durationInHours);
 
   const { data, error } = await supabase
     .from('fasting_logs')

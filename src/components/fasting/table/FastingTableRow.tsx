@@ -16,6 +16,19 @@ const FastingTableRow: React.FC<FastingTableRowProps> = ({ log, onEdit, onDelete
   const startTime = new Date(log.startTime);
   const endTime = log.endTime ? new Date(log.endTime) : undefined;
   
+  // Format eating window hours as hours:minutes without decimal places
+  const formatEatingWindow = (hours?: number) => {
+    if (hours === undefined || hours === null) return '-';
+    
+    // If hours is 0, just show 0:00
+    if (hours === 0) return '0:00';
+    
+    const wholeHours = Math.floor(hours);
+    const minutes = Math.round((hours - wholeHours) * 60);
+    
+    return `${wholeHours}:${minutes.toString().padStart(2, '0')}`;
+  };
+  
   return (
     <tr key={log.id}>
       <td className="px-6 py-4 whitespace-nowrap text-sm">{format(startTime, 'MM/dd/yyyy')}</td>
@@ -23,7 +36,7 @@ const FastingTableRow: React.FC<FastingTableRowProps> = ({ log, onEdit, onDelete
       <td className="px-6 py-4 whitespace-nowrap text-sm">{format(startTime, 'h:mm a')}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">{endTime ? format(endTime, 'h:mm a') : '-'}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">{calculateDuration(startTime, endTime)}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{log.eatingWindowHours ? `${log.eatingWindowHours}:00` : '-'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm">{formatEatingWindow(log.eatingWindowHours)}</td>
       <td className="px-6 py-4 whitespace-nowrap">
         {endTime ? (
           <Check className="h-5 w-5 text-green-500" />

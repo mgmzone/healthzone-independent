@@ -1,6 +1,6 @@
-
 import { supabase } from "@/lib/supabase";
 import { transformFastingLogResponse } from './utils';
+import { calculateEatingWindowHours } from '@/components/fasting/utils/fastingUtils';
 
 export async function addFastingLog(fastData: {
   startTime: Date;
@@ -29,11 +29,9 @@ export async function addFastingLog(fastData: {
     }
     
     // Calculate eating window hours if not provided
-    // For historical fasts, we base it on the next fast's start time if available
     if (!fastData.eatingWindowHours) {
-      // For now we'll use default logic: 24 - fasting_hours
-      // This can be improved later to look up the next fast
-      insertData.eating_window_hours = parseFloat((24 - insertData.fasting_hours).toFixed(2));
+      // Use the utility function to calculate eating window hours
+      insertData.eating_window_hours = parseFloat(calculateEatingWindowHours(insertData.fasting_hours).toFixed(2));
     } else {
       insertData.eating_window_hours = fastData.eatingWindowHours;
     }
@@ -98,7 +96,7 @@ export async function updateFastingLog(
     updateData.eating_window_hours = fastData.eatingWindowHours;
   } else if (updateData.fasting_hours && fastData.endTime) {
     // If we have fasting hours and an end time, we can calculate eating window
-    updateData.eating_window_hours = parseFloat((24 - updateData.fasting_hours).toFixed(2));
+    updateData.eating_window_hours = parseFloat(calculateEatingWindowHours(updateData.fasting_hours).toFixed(2));
   }
 
   const { data, error } = await supabase
