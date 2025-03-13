@@ -34,12 +34,9 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     
-    // More permissive regex that allows for entering decimal values
-    // This regex allows empty string, whole numbers, or numbers with up to 2 decimal places
-    // Importantly, it also allows for partial entries like "5." while typing
-    if (newValue === '' || /^(\d+\.?\d{0,2}|\d*\.\d{0,2})$/.test(newValue)) {
-      onChange(newValue);
-    }
+    // Using the same approach as BaseWeightForm - just directly update
+    // This allows proper decimal input without regex restrictions
+    onChange(newValue);
   };
   
   return (
@@ -47,7 +44,7 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
       <Label htmlFor={id}>{label} ({weightUnit})</Label>
       <Input
         id={id}
-        type="text"
+        type="number"
         value={value}
         onChange={handleChange}
         placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
