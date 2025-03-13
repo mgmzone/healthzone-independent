@@ -6,10 +6,9 @@ import { format } from 'date-fns';
 import { 
   calculateChartData, 
   calculateWeightRange,
-  convertWeight,
   formatDateForDisplay,
-  WeeklyWeightData
 } from './weightForecastUtils';
+import { convertWeight } from '@/lib/weight/convertWeight';
 import CustomTooltip from './CustomTooltip';
 
 interface WeightForecastChartProps {

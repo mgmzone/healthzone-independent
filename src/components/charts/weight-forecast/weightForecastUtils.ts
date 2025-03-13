@@ -1,6 +1,7 @@
 
 import { WeighIn, Period } from '@/lib/types';
 import { addWeeks, differenceInWeeks, format } from 'date-fns';
+import { convertWeight as convertWeightUtil } from '@/lib/weight/convertWeight';
 
 export interface WeeklyWeightData {
   week: number;
@@ -13,13 +14,6 @@ export interface ProjectionResult {
   chartData: WeeklyWeightData[];
   targetDate: Date | null;
 }
-
-/**
- * Convert weight based on measurement system
- */
-export const convertWeight = (weight: number, isImperial: boolean): number => {
-  return isImperial ? weight * 2.20462 : weight;
-};
 
 /**
  * Calculate chart data including projections
@@ -38,13 +32,13 @@ export const calculateChartData = (
   const totalWeeks = differenceInWeeks(endDate, startDate) + 1;
   
   // Convert target weight to display units
-  const targetWeight = convertWeight(currentPeriod.targetWeight, isImperial);
+  const targetWeight = convertWeightUtil(currentPeriod.targetWeight, isImperial);
   
   // Group weigh-ins by week
   const weeklyWeights: Map<number, number[]> = new Map();
   
   // Initialize with starting weight
-  const startWeight = convertWeight(currentPeriod.startWeight, isImperial);
+  const startWeight = convertWeightUtil(currentPeriod.startWeight, isImperial);
   weeklyWeights.set(0, [startWeight]);
   
   // Fill in actual weights from weigh-ins
@@ -56,7 +50,7 @@ export const calculateChartData = (
       if (!weeklyWeights.has(weekNum)) {
         weeklyWeights.set(weekNum, []);
       }
-      weeklyWeights.get(weekNum)?.push(convertWeight(entry.weight, isImperial));
+      weeklyWeights.get(weekNum)?.push(convertWeightUtil(entry.weight, isImperial));
     }
   });
   
@@ -165,7 +159,8 @@ export const calculateWeightRange = (chartData: WeeklyWeightData[], targetWeight
     weights.push(targetWeight);
   }
   
-  const minWeight = Math.floor(Math.min(...weights) - 5);
+  // Add padding to the weight range for display
+  const minWeight = Math.max(0, Math.floor(Math.min(...weights) - 5));
   const maxWeight = Math.ceil(Math.max(...weights) + 5);
   
   return { minWeight, maxWeight };
@@ -178,4 +173,3 @@ export const formatDateForDisplay = (date: Date | null): string => {
   if (!date) return 'Unknown';
   return format(date, 'MMM d, yyyy');
 };
-
