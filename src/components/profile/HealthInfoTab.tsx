@@ -59,14 +59,17 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
             placeholder="Height"
           />
         </div>
-        <WeightInputField
-          id="currentWeight"
-          label="Current Weight"
-          value={formatWeight(formData.currentWeight)}
-          onChange={(value) => handleNumberChange('currentWeight', value)}
-          weightUnit={unit === 'metric' ? 'kg' : 'lbs'}
-          placeholder="Current Weight"
-        />
+        
+        <div className="space-y-2">
+          <WeightInputField
+            id="currentWeight"
+            label="Current Weight"
+            value={formatWeight(formData.currentWeight)}
+            onChange={(value) => handleNumberChange('currentWeight', value)}
+            weightUnit={unit === 'metric' ? 'kg' : 'lbs'}
+            placeholder="Current Weight"
+          />
+        </div>
       </div>
       
       {formData.startingWeight ? (
@@ -86,22 +89,27 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
       
       {/* Target Weight and Target Weight Loss Per Week on the same line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <WeightInputField
-          id="targetWeight"
-          label="Target Weight"
-          value={formatWeight(formData.targetWeight)}
-          onChange={(value) => handleNumberChange('targetWeight', value)}
-          weightUnit={unit === 'metric' ? 'kg' : 'lbs'}
-          placeholder="Target Weight"
-        />
-        <WeightInputField
-          id="weightLossPerWeek"
-          label="Weight Loss Per Week"
-          value={formatWeight(formData.weightLossPerWeek)}
-          onChange={(value) => handleNumberChange('weightLossPerWeek', value)}
-          weightUnit={unit === 'metric' ? 'kg' : 'lbs'}
-          placeholder="Weight Loss Per Week"
-        />
+        <div className="space-y-2">
+          <WeightInputField
+            id="targetWeight"
+            label="Target Weight"
+            value={formatWeight(formData.targetWeight)}
+            onChange={(value) => handleNumberChange('targetWeight', value)}
+            weightUnit={unit === 'metric' ? 'kg' : 'lbs'}
+            placeholder="Target Weight"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <WeightInputField
+            id="weightLossPerWeek"
+            label="Weight Loss Per Week"
+            value={formatWeight(formData.weightLossPerWeek)}
+            onChange={(value) => handleNumberChange('weightLossPerWeek', value)}
+            weightUnit={unit === 'metric' ? 'kg' : 'lbs'}
+            placeholder="Weight Loss Per Week"
+          />
+        </div>
       </div>
       
       {/* Fitness Level and Exercise Minutes on the same line */}
