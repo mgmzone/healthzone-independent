@@ -31,14 +31,14 @@ export const calculateChartData = (
   const endDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : addWeeks(new Date(), 12); // Default 12 weeks if no end date
   const totalWeeks = differenceInWeeks(endDate, startDate) + 1;
   
-  // Convert target weight to display units
-  const targetWeight = convertWeightUtil(currentPeriod.targetWeight, isImperial);
+  // Convert target weight to display units (kg to lbs if imperial)
+  const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
   
   // Group weigh-ins by week
   const weeklyWeights: Map<number, number[]> = new Map();
   
   // Initialize with starting weight
-  const startWeight = convertWeightUtil(currentPeriod.startWeight, isImperial);
+  const startWeight = isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
   weeklyWeights.set(0, [startWeight]);
   
   // Fill in actual weights from weigh-ins
@@ -50,7 +50,9 @@ export const calculateChartData = (
       if (!weeklyWeights.has(weekNum)) {
         weeklyWeights.set(weekNum, []);
       }
-      weeklyWeights.get(weekNum)?.push(convertWeightUtil(entry.weight, isImperial));
+      // Convert weight from kg to display unit if needed
+      const entryWeight = isImperial ? entry.weight * 2.20462 : entry.weight;
+      weeklyWeights.get(weekNum)?.push(entryWeight);
     }
   });
   

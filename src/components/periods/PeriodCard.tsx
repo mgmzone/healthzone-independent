@@ -26,8 +26,13 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
     ? format(new Date(period.endDate), "MMM d, yyyy")
     : "Present";
   
-  const progress = latestWeight
-    ? getProgressPercentage(latestWeight, period.startWeight, period.targetWeight)
+  const isImperial = weightUnit === 'lbs';
+  const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
+  const displayTargetWeight = isImperial ? period.targetWeight * 2.20462 : period.targetWeight;
+  
+  // Calculate progress only if latest weight is provided
+  const progress = latestWeight && displayStartWeight
+    ? getProgressPercentage(latestWeight, displayStartWeight, displayTargetWeight)
     : 0;
   
   const statusText = period.type === 'weightLoss' ? 'Weight Loss' : 'Maintenance';
@@ -50,12 +55,12 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Start</p>
-            <p className="text-xl font-semibold">{formatWeight(period.startWeight)} {weightUnit}</p>
+            <p className="text-xl font-semibold">{formatWeight(displayStartWeight)} {weightUnit}</p>
           </div>
           
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Target</p>
-            <p className="text-xl font-semibold">{formatWeight(period.targetWeight)} {weightUnit}</p>
+            <p className="text-xl font-semibold">{formatWeight(displayTargetWeight)} {weightUnit}</p>
           </div>
           
           <div className="text-center">
@@ -76,7 +81,9 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
             <div className="ml-4">
               <p className="text-sm text-muted-foreground">Current</p>
               <p className="text-xl font-semibold">{formatWeight(latestWeight)} {weightUnit}</p>
-              <p className="text-sm">{formatWeight(Math.abs(period.startWeight - latestWeight))} {weightUnit} {latestWeight < period.startWeight ? 'lost' : 'gained'}</p>
+              <p className="text-sm">
+                {formatWeight(Math.abs(displayStartWeight - latestWeight))} {weightUnit} {latestWeight < displayStartWeight ? 'lost' : 'gained'}
+              </p>
             </div>
           </div>
         )}

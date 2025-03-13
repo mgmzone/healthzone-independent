@@ -32,14 +32,13 @@ const Periods = () => {
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
-  const convertWeight = (weight: number) => {
-    if (!weight) return 0;
-    return isImperial ? weight * 2.20462 : weight;
-  };
-
+  // Get latest weight directly in the unit we need to display
   const getLatestWeight = () => {
     if (weighIns.length === 0) return null;
-    return convertWeight(weighIns[0].weight);
+    
+    // Weight is stored in kg, convert to lbs if needed
+    const weightInKg = weighIns[0].weight;
+    return isImperial ? weightInKg * 2.20462 : weightInKg;
   };
 
   const latestWeight = getLatestWeight();
@@ -59,6 +58,7 @@ const Periods = () => {
     endDate?: Date,
     fastingSchedule: string
   }) => {
+    // Convert weight to metric (kg) for storage if coming from imperial
     const startWeight = isImperial ? periodData.startWeight / 2.20462 : periodData.startWeight;
     const targetWeight = isImperial ? periodData.targetWeight / 2.20462 : periodData.targetWeight;
     
@@ -83,18 +83,24 @@ const Periods = () => {
   }
 
   const currentMetrics = currentPeriod ? {
+    // Calculate weight progress correctly
     weightProgress: latestWeight
-      ? getProgressPercentage(latestWeight, convertWeight(currentPeriod.startWeight), convertWeight(currentPeriod.targetWeight))
+      ? getProgressPercentage(
+          latestWeight,
+          isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
+          isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight
+        )
       : 0,
     timeProgress: getTimeProgressPercentage(currentPeriod.startDate, currentPeriod.endDate),
     timeRemaining: getRemainingTimePercentage(currentPeriod.startDate, currentPeriod.endDate),
     daysRemaining: getDaysRemaining(currentPeriod.endDate),
     totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
     totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
+    // Calculate weight change correctly
     weightChange: latestWeight 
-      ? Math.abs(convertWeight(currentPeriod.startWeight) - latestWeight)
+      ? Math.abs((isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight) - latestWeight)
       : 0,
-    weightDirection: latestWeight && latestWeight < convertWeight(currentPeriod.startWeight) 
+    weightDirection: latestWeight && latestWeight < (isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight)
       ? 'lost' as const
       : 'gained' as const
   } : null;
@@ -149,7 +155,7 @@ const Periods = () => {
         onSave={handleSavePeriod}
         defaultValues={{
           startWeight: latestWeight || undefined,
-          targetWeight: profile?.targetWeight ? convertWeight(profile.targetWeight) : undefined
+          targetWeight: profile?.targetWeight ? (isImperial ? profile.targetWeight * 2.20462 : profile.targetWeight) : undefined
         }}
         weightUnit={weightUnit}
       />

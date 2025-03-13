@@ -34,10 +34,6 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
     return weight.toFixed(1);
   };
 
-  const convertWeight = (weight: number): number => {
-    return weightUnit === 'lbs' ? weight * 2.20462 : weight;
-  };
-
   const handleEdit = (period: Period) => {
     setEditingPeriod(period);
   };
@@ -81,13 +77,15 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
               const weeks = getWeeksInPeriod(period.startDate, period.endDate);
               const months = getMonthsInPeriod(period.startDate, period.endDate);
               
-              const convertedStartWeight = convertWeight(period.startWeight);
-              const convertedTargetWeight = convertWeight(period.targetWeight);
+              // Direct use of converted weights from the period object
+              const isImperial = weightUnit === 'lbs';
+              const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
+              const displayTargetWeight = isImperial ? period.targetWeight * 2.20462 : period.targetWeight;
               
               const weightChange = latestWeight 
-                ? Math.abs(convertedStartWeight - latestWeight)
+                ? Math.abs(displayStartWeight - latestWeight)
                 : 0;
-              const weightDirection = latestWeight && latestWeight < convertedStartWeight 
+              const weightDirection = latestWeight && latestWeight < displayStartWeight 
                 ? 'lost' 
                 : 'gained';
                 
@@ -109,8 +107,8 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
                       {period.type === 'weightLoss' ? 'Weight Loss' : 'Maintenance'}
                     </Badge>
                   </td>
-                  <td className="px-4 py-4 text-center">{formatWeight(convertedStartWeight)} {weightUnit}</td>
-                  <td className="px-4 py-4 text-center">{formatWeight(convertedTargetWeight)} {weightUnit}</td>
+                  <td className="px-4 py-4 text-center">{formatWeight(displayStartWeight)} {weightUnit}</td>
+                  <td className="px-4 py-4 text-center">{formatWeight(displayTargetWeight)} {weightUnit}</td>
                   <td className="px-4 py-4">
                     {latestWeight ? (
                       <div className="flex flex-col items-center">
