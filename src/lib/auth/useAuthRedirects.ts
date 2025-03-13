@@ -46,32 +46,36 @@ export const useAuthRedirects = (
       // Only process redirects once per session unless flag is reset
       if (!redirectProcessedRef.current) {
         if (user) {
-          // Check if profile is complete
-          const currentIsProfileComplete = isProfileComplete(profile);
-          const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
-          
-          console.log('Redirect decision:', {
-            currentIsProfileComplete,
-            currentIsAuthOrIndexPage,
-            currentPath
-          });
-          
-          // If on auth or index page, redirect based on profile completeness
-          if (currentIsAuthOrIndexPage) {
-            if (currentIsProfileComplete) {
-              console.log('Redirecting to dashboard from auth/index page');
-              navigate('/dashboard', { replace: true });
-            } else {
-              console.log('Redirecting to profile page from auth/index page');
+          // Only proceed if we have both user and profile data
+          if (profile) {
+            const currentIsProfileComplete = isProfileComplete(profile);
+            const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
+            
+            console.log('Redirect decision:', {
+              currentIsProfileComplete,
+              currentIsAuthOrIndexPage,
+              currentPath
+            });
+            
+            // If on auth or index page, redirect based on profile completeness
+            if (currentIsAuthOrIndexPage) {
+              if (currentIsProfileComplete) {
+                console.log('Redirecting to dashboard from auth/index page');
+                navigate('/dashboard', { replace: true });
+              } else {
+                console.log('Redirecting to profile page from auth/index page');
+                navigate('/profile', { replace: true });
+              }
+              redirectProcessedRef.current = true;
+            } 
+            // If not on profile page and profile is incomplete, redirect to profile
+            else if (!currentIsProfileComplete && currentPath !== '/profile') {
+              console.log('Profile incomplete, redirecting to profile');
               navigate('/profile', { replace: true });
+              redirectProcessedRef.current = true;
             }
-            redirectProcessedRef.current = true;
-          } 
-          // If not on profile page and profile is incomplete, redirect to profile
-          else if (!currentIsProfileComplete && currentPath !== '/profile') {
-            console.log('Profile incomplete, redirecting to profile');
-            navigate('/profile', { replace: true });
-            redirectProcessedRef.current = true;
+          } else {
+            console.log('Have user but profile not loaded yet, waiting for profile data');
           }
         }
       }

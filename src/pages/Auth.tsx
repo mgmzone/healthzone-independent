@@ -22,12 +22,12 @@ const Auth = () => {
   }, [user, profile]);
 
   // If user is already logged in
-  if (user) {
+  if (user && profile) {
     // Use the common isProfileComplete function for consistent behavior
     const profileComplete = isProfileComplete(profile);
     console.log('Auth page redirect check:', { profileComplete, profile });
     
-    return <Navigate to={profileComplete ? "/dashboard" : "/profile"} />;
+    return <Navigate to={profileComplete ? "/dashboard" : "/profile"} replace />;
   }
 
   const handleSignIn = async (email: string, password: string) => {
