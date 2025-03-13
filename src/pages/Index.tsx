@@ -28,7 +28,7 @@ const Index = () => {
   }, [user, profile, loading, profileLoading, location]);
   
   // Show loading state while auth and profile are being determined
-  if (loading || (user && profileLoading)) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -37,8 +37,9 @@ const Index = () => {
   }
 
   // If user is already logged in, don't render the landing page content
+  // but let the auth redirects handle navigation
   if (user) {
-    return null; // Let the auth redirects handle navigation
+    return null;
   }
 
   return (

@@ -15,8 +15,23 @@ export const useAuthRedirects = (
   const location = useLocation();
   const currentPath = location.pathname;
   const redirectProcessedRef = useRef(false);
+  const previousAuthState = useRef<boolean | null>(null);
 
   useEffect(() => {
+    // Track auth state changes
+    const isAuthenticated = !!user;
+    const wasAuthenticated = previousAuthState.current;
+    
+    // If user transitions from logged in to logged out
+    if (wasAuthenticated === true && !isAuthenticated) {
+      console.log('Auth state changed from logged in to logged out');
+      redirectProcessedRef.current = false;
+      // No need to navigate here, we'll let useAuthOperations handle this
+    }
+    
+    // Update previous auth state
+    previousAuthState.current = isAuthenticated;
+    
     // Only perform redirects if both auth and profile loading are complete
     if (!loading && !profileLoading) {
       console.log('Checking redirects:', { 
@@ -27,11 +42,6 @@ export const useAuthRedirects = (
         currentPath,
         profileComplete: profile ? isProfileComplete(profile) : false
       });
-
-      // Reset redirect flag if user is null (logged out)
-      if (!user) {
-        redirectProcessedRef.current = false;
-      }
 
       // Only process redirects once per session unless flag is reset
       if (!redirectProcessedRef.current) {

@@ -15,6 +15,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Handle redirects based on auth state
   useAuthRedirects(loading, profileLoading, user, profile);
 
+  // Reset initial load state on logout
+  useEffect(() => {
+    if (!user) {
+      console.log('User logged out, resetting initial load flag');
+      initialLoadComplete.current = false;
+    }
+  }, [user]);
+
   // Fetch profile when auth state changes and we have a user ID
   useEffect(() => {
     if (!loading && user?.id) {
@@ -25,9 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         initialLoadComplete.current = true;
         fetchProfile();
       }
-    } else if (!user) {
-      // Reset the flag when user logs out
-      initialLoadComplete.current = false;
     }
   }, [loading, user?.id, fetchProfile]);
 
