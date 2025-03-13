@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { transformFastingLogResponse } from './utils';
 import { calculateEatingWindowHours } from '@/components/fasting/utils/fastingUtils';
