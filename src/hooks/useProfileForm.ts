@@ -49,14 +49,14 @@ export const useProfileForm = () => {
         height: profile.height || 0,
         // Convert weights from metric (stored in DB) to display units (imperial/metric)
         currentWeight: profile.currentWeight ? 
-          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.currentWeight, true) : profile.currentWeight)) : 0,
+          (isImperial ? convertWeight(profile.currentWeight, true) : profile.currentWeight) : 0,
         targetWeight: profile.targetWeight ? 
-          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.targetWeight, true) : profile.targetWeight)) : 0,
+          (isImperial ? convertWeight(profile.targetWeight, true) : profile.targetWeight) : 0,
         startingWeight: profile.startingWeight ? 
-          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.startingWeight, true) : profile.startingWeight)) : 0,
+          (isImperial ? convertWeight(profile.startingWeight, true) : profile.startingWeight) : 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',
         weightLossPerWeek: profile.weightLossPerWeek ? 
-          parseFloat(formatWeightValue(isImperial ? convertWeight(profile.weightLossPerWeek, true) : profile.weightLossPerWeek)) : 0.5,
+          (isImperial ? convertWeight(profile.weightLossPerWeek, true) : profile.weightLossPerWeek) : 0.5,
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
@@ -97,12 +97,8 @@ export const useProfileForm = () => {
 
   // Handle number changes
   const handleNumberChange = useCallback((name: string, value: string) => {
-    let numValue = parseFloat(value) || 0;
-    
-    // Format certain fields to have only one decimal place
-    if (['currentWeight', 'targetWeight', 'weightLossPerWeek', 'startingWeight'].includes(name)) {
-      numValue = parseFloat(parseFloat(value).toFixed(1)) || 0;
-    }
+    // Convert the string value to a number if possible, or use 0
+    const numValue = value === '' ? 0 : parseFloat(value) || 0;
     
     console.log(`Number changed: ${name} = ${numValue}`);
     setFormData(prev => ({ ...prev, [name]: numValue }));
