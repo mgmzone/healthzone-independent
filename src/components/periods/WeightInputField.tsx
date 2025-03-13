@@ -14,6 +14,7 @@ interface WeightInputFieldProps {
   step?: string;
   min?: string;
   max?: string;
+  className?: string;
 }
 
 const WeightInputField: React.FC<WeightInputFieldProps> = ({
@@ -23,11 +24,22 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   onChange,
   weightUnit,
   placeholder,
-  type = "number",
+  type = "text", // Changed from "number" to "text"
   step = "0.1",
   min,
-  max
+  max,
+  className
 }) => {
+  // Handle input changes, allowing only numbers and decimal point
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Only allow numbers and one decimal point
+    if (inputValue === '' || /^[0-9]+\.?[0-9]*$/.test(inputValue)) {
+      onChange(inputValue);
+    }
+  };
+  
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label} ({weightUnit})</Label>
@@ -38,8 +50,9 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
         min={min}
         max={max}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleChange}
         placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
+        className={className}
       />
     </div>
   );
