@@ -36,11 +36,12 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
   const weeks = getWeeksInPeriod(period.startDate, period.endDate);
   const months = getMonthsInPeriod(period.startDate, period.endDate);
   
-  // Direct use of converted weights from the period object
+  // Convert weights to display units (kg to lbs if imperial)
   const isImperial = weightUnit === 'lbs';
   const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
   const displayTargetWeight = isImperial ? period.targetWeight * 2.20462 : period.targetWeight;
   
+  // For weight change calculation, ensure latestWeight is in the same unit as displayStartWeight
   const weightChange = latestWeight 
     ? Math.abs(displayStartWeight - latestWeight)
     : 0;

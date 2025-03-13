@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import PeriodsTable from '@/components/periods/PeriodsTable';
+import { convertToMetric } from '@/lib/weight/convertWeight';
 
 const Periods = () => {
   const { profile } = useAuth();
@@ -59,8 +59,8 @@ const Periods = () => {
     fastingSchedule: string
   }) => {
     // Convert weight to metric (kg) for storage if coming from imperial
-    const startWeight = isImperial ? periodData.startWeight / 2.20462 : periodData.startWeight;
-    const targetWeight = isImperial ? periodData.targetWeight / 2.20462 : periodData.targetWeight;
+    const startWeight = isImperial ? convertToMetric(periodData.startWeight, true) : periodData.startWeight;
+    const targetWeight = isImperial ? convertToMetric(periodData.targetWeight, true) : periodData.targetWeight;
     
     addPeriod({
       ...periodData,

@@ -5,6 +5,7 @@ import PeriodEntryModal from './PeriodEntryModal';
 import PeriodTableHeader from './PeriodTableHeader';
 import PeriodTableRow from './PeriodTableRow';
 import DeletePeriodDialog from './DeletePeriodDialog';
+import { convertToMetric } from '@/lib/weight/convertWeight';
 
 interface PeriodsTableProps {
   periods: Period[];
@@ -26,6 +27,7 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [periodToDelete, setPeriodToDelete] = useState<string | null>(null);
   const [editingPeriod, setEditingPeriod] = useState<Period | null>(null);
+  const isImperial = weightUnit === 'lbs';
 
   const handleEdit = (period: Period) => {
     setEditingPeriod(period);
@@ -76,16 +78,23 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
           isOpen={true}
           onClose={() => setEditingPeriod(null)}
           onSave={(updatedPeriod) => {
+            // Convert weights to metric (kg) for storage if imperial units are used
+            const startWeight = isImperial ? convertToMetric(updatedPeriod.startWeight, true) : updatedPeriod.startWeight;
+            const targetWeight = isImperial ? convertToMetric(updatedPeriod.targetWeight, true) : updatedPeriod.targetWeight;
+            
             onUpdatePeriod({
               ...updatedPeriod,
               id: editingPeriod.id,
-              userId: editingPeriod.userId
+              userId: editingPeriod.userId,
+              startWeight,
+              targetWeight
             });
             setEditingPeriod(null);
           }}
           defaultValues={{
-            startWeight: weightUnit === 'lbs' ? editingPeriod.startWeight * 2.20462 : editingPeriod.startWeight,
-            targetWeight: weightUnit === 'lbs' ? editingPeriod.targetWeight * 2.20462 : editingPeriod.targetWeight
+            // Display in the correct unit (lbs for imperial, kg for metric)
+            startWeight: isImperial ? editingPeriod.startWeight * 2.20462 : editingPeriod.startWeight,
+            targetWeight: isImperial ? editingPeriod.targetWeight * 2.20462 : editingPeriod.targetWeight
           }}
           weightUnit={weightUnit}
           initialPeriod={editingPeriod}
