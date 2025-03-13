@@ -15,7 +15,6 @@ import Periods from "./pages/Periods";
 import Fasting from "./pages/Fasting";
 import Profile from "./pages/Profile";
 import Exercise from "./pages/Exercise";
-import GettingStarted from "./pages/GettingStarted";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +31,6 @@ const App = () => (
             
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/getting-started" element={<GettingStarted />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/weight" element={<Weight />} />
               <Route path="/periods" element={<Periods />} />

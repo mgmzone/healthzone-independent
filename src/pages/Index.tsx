@@ -35,12 +35,13 @@ const Index = () => {
         profileComplete, 
         profile,
         firstName: profile?.firstName,
+        birthDate: profile?.birthDate,
         currentWeight: profile?.currentWeight,
         targetWeight: profile?.targetWeight,
         height: profile?.height
       });
       
-      navigate(profileComplete ? '/dashboard' : '/getting-started', { replace: true });
+      navigate(profileComplete ? '/dashboard' : '/profile', { replace: true });
     }
   }, [user, profile, loading, profileLoading, navigate]);
 

@@ -7,12 +7,13 @@ import { User } from '../types';
 export const isProfileComplete = (profile: User | null): boolean => {
   if (!profile) return false;
   
-  // Check for all required fields
+  // Check for all required fields including birthDate
   return !!(
     profile.firstName && 
     profile.currentWeight && 
     profile.targetWeight && 
-    profile.height
+    profile.height &&
+    profile.birthDate
   );
 };
 

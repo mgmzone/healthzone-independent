@@ -17,7 +17,7 @@ const Auth = () => {
     const profileComplete = isProfileComplete(profile);
     console.log('Auth page redirect check:', { profileComplete, profile });
     
-    return <Navigate to={profileComplete ? "/dashboard" : "/getting-started"} />;
+    return <Navigate to={profileComplete ? "/dashboard" : "/profile"} />;
   }
 
   const handleSignIn = async (email: string, password: string) => {

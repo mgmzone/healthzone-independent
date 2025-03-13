@@ -1,3 +1,4 @@
+
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, ArrowRight, AlertCircle } from 'lucide-react';
 import Layout from '@/components/Layout';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import PersonalInfoTab from '@/components/profile/PersonalInfoTab';
@@ -14,6 +15,7 @@ import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 import { cn } from '@/lib/utils';
 import { isProfileComplete } from '@/lib/auth';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const Profile = () => {
   const { profile, refreshProfile } = useAuth();
@@ -21,6 +23,7 @@ const Profile = () => {
   const profileFetchedRef = useRef(false);
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(true);
   
   const {
     formData,
@@ -54,10 +57,16 @@ const Profile = () => {
     e.preventDefault();
     await handleSubmit(e);
     
-    if (profile && isProfileComplete(profile)) {
+    const profileComplete = profile && isProfileComplete(profile);
+    
+    if (profileComplete) {
       setShowSuccess(true);
+      // Allow users to see the success message before redirecting
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     }
-  }, [handleSubmit, profile]);
+  }, [handleSubmit, profile, navigate]);
 
   const handleContinueToPeriods = () => {
     navigate('/periods');
@@ -78,10 +87,38 @@ const Profile = () => {
   }
 
   const profileComplete = isProfileComplete(profile);
+  const needsProfileCompletion = !profileComplete;
 
   return (
     <Layout>
       <div className="container mx-auto py-8 pt-24">
+        {needsProfileCompletion && (
+          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <PopoverTrigger asChild>
+              <span className="sr-only">Show profile message</span>
+            </PopoverTrigger>
+            <PopoverContent className="w-full max-w-md mb-4">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                <div>
+                  <h3 className="font-medium mb-1">Complete Your Profile</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Please complete your profile by entering your personal and health information (both tabs).
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => setPopoverOpen(false)}
+                  >
+                    Got it
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+        
         <Card className="w-full max-w-3xl mx-auto">
           <CardHeader>
             <ProfileHeader 

@@ -32,13 +32,21 @@ export const useAuthRedirects = (
         const currentIsProfileComplete = isProfileComplete(profile);
         const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
         
-        if (currentIsAuthOrIndexPage && !currentIsProfileComplete) {
-          console.log('Redirecting to getting-started');
-          navigate('/getting-started', { replace: true });
+        // If on auth or index page, redirect based on profile completeness
+        if (currentIsAuthOrIndexPage) {
+          if (currentIsProfileComplete) {
+            console.log('Redirecting to dashboard');
+            navigate('/dashboard', { replace: true });
+          } else {
+            console.log('Redirecting to profile page');
+            navigate('/profile', { replace: true });
+          }
           redirectProcessedRef.current = true;
-        } else if (currentIsAuthOrIndexPage && currentIsProfileComplete) {
-          console.log('Redirecting to dashboard');
-          navigate('/dashboard', { replace: true });
+        } 
+        // If not on profile page and profile is incomplete, redirect to profile
+        else if (!currentIsProfileComplete && currentPath !== '/profile') {
+          console.log('Profile incomplete, redirecting to profile');
+          navigate('/profile', { replace: true });
           redirectProcessedRef.current = true;
         }
       }
