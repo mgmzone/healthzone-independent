@@ -6,7 +6,7 @@ import { getProfile } from '../services/profileService';
 export const useProfileManagement = (userId: string | undefined) => {
   const [profile, setProfile] = useState<User | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const isFirstRender = useRef(true);
+  const prevUserId = useRef<string | undefined>(undefined);
   const pendingFetch = useRef(false);
 
   const fetchProfile = useCallback(async () => {
@@ -23,6 +23,7 @@ export const useProfileManagement = (userId: string | undefined) => {
     setProfileLoading(true);
     
     try {
+      console.log('Fetching profile for user:', userId);
       const profileData = await getProfile();
       
       if (profileData && !profileData.measurementUnit) {
@@ -30,18 +31,20 @@ export const useProfileManagement = (userId: string | undefined) => {
       }
       
       setProfile(profileData);
+      console.log('Profile fetched successfully:', profileData?.firstName);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
     } finally {
       setProfileLoading(false);
       pendingFetch.current = false;
     }
   }, [userId]);
 
-  // Only fetch on first render or userId change
+  // Fetch when userId changes
   useEffect(() => {
-    if (isFirstRender.current && userId) {
-      isFirstRender.current = false;
+    if (userId !== prevUserId.current) {
+      prevUserId.current = userId;
       fetchProfile();
     }
   }, [userId, fetchProfile]);

@@ -18,8 +18,7 @@ export const useAuthRedirects = (
 
   useEffect(() => {
     // Only perform redirects if both auth and profile loading are complete
-    // And only process redirects once per auth state change
-    if (!loading && !profileLoading && !redirectProcessedRef.current) {
+    if (!loading && !profileLoading) {
       console.log('Checking redirects:', { 
         loading, 
         profileLoading, 
@@ -28,33 +27,36 @@ export const useAuthRedirects = (
         currentPath 
       });
 
-      if (user) {
-        const currentIsProfileComplete = isProfileComplete(profile);
-        const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
-        
-        // If on auth or index page, redirect based on profile completeness
-        if (currentIsAuthOrIndexPage) {
-          if (currentIsProfileComplete) {
-            console.log('Redirecting to dashboard');
-            navigate('/dashboard', { replace: true });
-          } else {
-            console.log('Redirecting to profile page');
+      // Reset redirect flag if user or profile changes
+      if (!user) {
+        redirectProcessedRef.current = false;
+      }
+
+      // Only process redirects once per session unless flag is reset
+      if (!redirectProcessedRef.current) {
+        if (user) {
+          const currentIsProfileComplete = isProfileComplete(profile);
+          const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
+          
+          // If on auth or index page, redirect based on profile completeness
+          if (currentIsAuthOrIndexPage) {
+            if (currentIsProfileComplete) {
+              console.log('Redirecting to dashboard');
+              navigate('/dashboard', { replace: true });
+            } else {
+              console.log('Redirecting to profile page');
+              navigate('/profile', { replace: true });
+            }
+            redirectProcessedRef.current = true;
+          } 
+          // If not on profile page and profile is incomplete, redirect to profile
+          else if (!currentIsProfileComplete && currentPath !== '/profile') {
+            console.log('Profile incomplete, redirecting to profile');
             navigate('/profile', { replace: true });
+            redirectProcessedRef.current = true;
           }
-          redirectProcessedRef.current = true;
-        } 
-        // If not on profile page and profile is incomplete, redirect to profile
-        else if (!currentIsProfileComplete && currentPath !== '/profile') {
-          console.log('Profile incomplete, redirecting to profile');
-          navigate('/profile', { replace: true });
-          redirectProcessedRef.current = true;
         }
       }
     }
   }, [loading, profileLoading, user, profile, navigate, currentPath]);
-
-  // Reset the redirect flag when auth state changes
-  useEffect(() => {
-    redirectProcessedRef.current = false;
-  }, [user, profile]);
 };

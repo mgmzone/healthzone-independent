@@ -15,18 +15,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Handle redirects based on auth state
   useAuthRedirects(loading, profileLoading, user, profile);
 
-  // Fetch profile only when auth state first changes
+  // Fetch profile when auth state changes and we have a user ID
   useEffect(() => {
-    if (!loading && user?.id && !initialLoadComplete.current) {
-      initialLoadComplete.current = true;
-      fetchProfile();
+    if (!loading && user?.id) {
+      // Only fetch on first load or when user ID changes
+      if (!initialLoadComplete.current) {
+        console.log('Initial profile fetch for user:', user.id);
+        initialLoadComplete.current = true;
+        fetchProfile();
+      }
+    } else if (!user) {
+      // Reset the flag when user logs out
+      initialLoadComplete.current = false;
     }
   }, [loading, user?.id, fetchProfile]);
 
   // Wrapper for the fetchProfile function to use as refreshProfile
   const refreshProfile = useCallback(async () => {
-    // Clear the initial load flag when manually refreshing
-    initialLoadComplete.current = false;
+    console.log('Manual profile refresh requested');
+    // We're explicitly refreshing, so fetch regardless of initial load state
     await fetchProfile();
   }, [fetchProfile]);
 

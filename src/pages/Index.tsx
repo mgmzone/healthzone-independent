@@ -18,38 +18,26 @@ const Index = () => {
   // Add console log for debugging
   useEffect(() => {
     console.log('Index page loaded', { 
-      user, 
-      profile, 
+      user: user?.id, 
+      profile: profile?.firstName, 
       loading, 
       profileLoading,
       pathname: location.pathname 
     });
   }, [user, profile, loading, profileLoading, location]);
   
-  // Redirect logged-in users appropriately
-  useEffect(() => {
-    if (!loading && !profileLoading && user) {
-      const profileComplete = isProfileComplete(profile);
-      
-      console.log('Index redirect logic', { 
-        profileComplete, 
-        profile,
-        firstName: profile?.firstName,
-        birthDate: profile?.birthDate,
-        currentWeight: profile?.currentWeight,
-        targetWeight: profile?.targetWeight,
-        height: profile?.height
-      });
-      
-      navigate(profileComplete ? '/dashboard' : '/profile', { replace: true });
-    }
-  }, [user, profile, loading, profileLoading, navigate]);
+  // Show loading state while auth and profile are being determined
+  if (loading || (user && profileLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  // If user is logged in, don't render the landing page content
-  if (loading || profileLoading || user) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-    </div>;
+  // If user is already logged in, don't render the landing page content
+  if (user) {
+    return null; // Let the auth redirects handle navigation
   }
 
   return (
