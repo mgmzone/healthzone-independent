@@ -44,6 +44,16 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
     handleSelectChange('fitnessLevel', value);
   };
   
+  // Handle height changes with decimal values
+  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    
+    // Allow empty input, digits, and up to 2 decimal places
+    if (newValue === '' || /^(\d+\.?\d{0,2}|\d*\.\d{0,2})$/.test(newValue)) {
+      handleNumberChange('height', newValue);
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,7 +65,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
             type="text"
             inputMode="decimal"
             value={formData.height || ''}
-            onChange={(e) => handleNumberChange('height', e.target.value)}
+            onChange={handleHeightChange}
             placeholder="Height"
           />
         </div>

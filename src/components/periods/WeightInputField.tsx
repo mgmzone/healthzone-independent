@@ -34,8 +34,10 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     
-    // Allow empty input, digits, and up to 2 decimal places
-    if (newValue === '' || /^\d*\.?\d{0,2}$/.test(newValue)) {
+    // More permissive regex that allows for entering decimal values
+    // This regex allows empty string, whole numbers, or numbers with up to 2 decimal places
+    // Importantly, it also allows for partial entries like "5." while typing
+    if (newValue === '' || /^(\d+\.?\d{0,2}|\d*\.\d{0,2})$/.test(newValue)) {
       onChange(newValue);
     }
   };
