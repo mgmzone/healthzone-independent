@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -72,6 +71,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         </div>
       </div>
       
+      {/* Starting Weight (if exists) */}
       {formData.startingWeight ? (
         <div className="space-y-2">
           <Label htmlFor="startingWeight" className="text-left block">Starting Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>

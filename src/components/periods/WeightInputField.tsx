@@ -30,14 +30,11 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   max,
   className
 }) => {
-  // Allow any number of digits before and after decimal point
+  // Handle input changes with direct value passing
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    
-    // Allow empty input or valid number format (any digits before decimal, optional decimal with digits after)
-    if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
-      onChange(inputValue);
-    }
+    // Pass the value directly without regex validation
+    // The input type="number" will handle proper number formatting
+    onChange(e.target.value);
   };
   
   return (
@@ -45,12 +42,14 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
       <Label htmlFor={id}>{label} ({weightUnit})</Label>
       <Input
         id={id}
-        type={type}
+        type="number"
         value={value}
         onChange={handleChange}
         placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
         className={className}
-        inputMode="decimal"
+        step={step}
+        min={min}
+        max={max}
       />
     </div>
   );
