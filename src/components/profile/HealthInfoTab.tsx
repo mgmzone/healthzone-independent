@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { formatWeightForDisplay } from '@/lib/weight/formatWeight';
 import WeightInputField from '@/components/periods/WeightInputField';
 
 interface HealthInfoTabProps {
@@ -33,7 +32,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
-  // Format weight values for display (already converted in useProfileForm)
+  // Format weight values for display
   const formatWeight = (weight: number | undefined): string => {
     if (weight === undefined || weight === 0) return '';
     return weight.toString();
@@ -61,18 +60,13 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="currentWeight" className="text-left block">Current Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
-          <Input
-            id="currentWeight"
-            name="currentWeight"
-            type="text"
-            inputMode="decimal"
-            value={formatWeight(formData.currentWeight)}
-            onChange={(e) => handleNumberChange('currentWeight', e.target.value)}
-            placeholder="Current Weight"
-          />
-        </div>
+        <WeightInputField
+          id="currentWeight"
+          label="Current Weight"
+          value={formatWeight(formData.currentWeight)}
+          onChange={(value) => handleNumberChange('currentWeight', value)}
+          weightUnit={isImperial ? 'lbs' : 'kg'}
+        />
       </div>
       
       {/* Starting Weight (if exists) */}
@@ -93,31 +87,21 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
       
       {/* Target Weight and Target Weight Loss Per Week on the same line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="targetWeight" className="text-left block">Target Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
-          <Input
-            id="targetWeight"
-            name="targetWeight"
-            type="text"
-            inputMode="decimal"
-            value={formatWeight(formData.targetWeight)}
-            onChange={(e) => handleNumberChange('targetWeight', e.target.value)}
-            placeholder="Target Weight"
-          />
-        </div>
+        <WeightInputField
+          id="targetWeight"
+          label="Target Weight"
+          value={formatWeight(formData.targetWeight)}
+          onChange={(value) => handleNumberChange('targetWeight', value)}
+          weightUnit={isImperial ? 'lbs' : 'kg'}
+        />
         
-        <div className="space-y-2">
-          <Label htmlFor="weightLossPerWeek" className="text-left block">Weight Loss Per Week ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
-          <Input
-            id="weightLossPerWeek"
-            name="weightLossPerWeek"
-            type="text"
-            inputMode="decimal"
-            value={formatWeight(formData.weightLossPerWeek)}
-            onChange={(e) => handleNumberChange('weightLossPerWeek', e.target.value)}
-            placeholder="Weight Loss Per Week"
-          />
-        </div>
+        <WeightInputField
+          id="weightLossPerWeek"
+          label="Weight Loss Per Week"
+          value={formatWeight(formData.weightLossPerWeek)}
+          onChange={(value) => handleNumberChange('weightLossPerWeek', value)}
+          weightUnit={isImperial ? 'lbs' : 'kg'}
+        />
       </div>
       
       {/* Fitness Level and Exercise Minutes on the same line */}

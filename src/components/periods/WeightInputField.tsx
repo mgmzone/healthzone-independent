@@ -25,15 +25,19 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   weightUnit,
   placeholder,
   type = "text",
-  step = "0.1",
+  step = "0.01",
   min,
   max,
   className
 }) => {
-  // Handle input changes without any formatting - let the form handle it
+  // Handle input changes with support for decimal values
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Just pass the raw input value to the parent component
-    onChange(e.target.value);
+    const newValue = e.target.value;
+    
+    // Allow empty input, digits, and up to 2 decimal places
+    if (newValue === '' || /^\d*\.?\d{0,2}$/.test(newValue)) {
+      onChange(newValue);
+    }
   };
   
   return (
@@ -47,6 +51,9 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
         placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
         className={className}
         inputMode="decimal"
+        step={step}
+        min={min}
+        max={max}
       />
     </div>
   );
