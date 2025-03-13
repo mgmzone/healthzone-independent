@@ -28,7 +28,7 @@ const FastingTimeInfo: React.FC<FastingTimeInfoProps> = ({
       </div>
       
       <Button 
-        className="w-full bg-blue-500 hover:bg-blue-600" 
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white" 
         onClick={onEndFast}
       >
         End Fast

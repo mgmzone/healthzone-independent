@@ -51,7 +51,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
       });
       
       // Calculate progress percentage (0-100)
-      // If elapsed time is greater than fasting goal, cap at 100%
+      // For visual clarity, cap at 100% for the circle display
       const progressPercentage = Math.min((totalSecondsElapsed / totalFastingSeconds) * 100, 100);
       setProgress(progressPercentage);
       
@@ -71,6 +71,7 @@ const FastingTimer: React.FC<FastingTimerProps> = ({ activeFast, onEndFast }) =>
           progress={progress} 
           timeElapsed={timeElapsed} 
           timeRemaining={timeRemaining} 
+          fastingHours={activeFast.fastingHours || 16}
         />
       </div>
       
