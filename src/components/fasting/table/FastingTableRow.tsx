@@ -20,8 +20,10 @@ const FastingTableRow: React.FC<FastingTableRowProps> = ({ log, onEdit, onDelete
   const formatEatingWindow = (hours?: number) => {
     if (hours === undefined || hours === null) return '-';
     
-    // If hours is 0, just show 0:00
-    if (hours === 0) return '0:00';
+    // If hours is 0 or for fasts longer than 24 hours, show 0:00
+    if (hours === 0 || (log.fastingHours && log.fastingHours >= 24)) {
+      return '0:00';
+    }
     
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);

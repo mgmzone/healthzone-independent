@@ -1,3 +1,4 @@
+
 import { differenceInSeconds, differenceInDays, startOfWeek, endOfWeek } from 'date-fns';
 import { FastingLog } from '@/lib/types';
 
@@ -120,8 +121,8 @@ export const calculateFastingStats = (fastingLogs: FastingLog[]) => {
 
 // Helper function to calculate eating window hours
 export const calculateEatingWindowHours = (fastingHours: number): number => {
-  // For fasts that span multiple days, the eating window should be 0
-  // This is because if someone fasts for more than 24 hours, they didn't eat that day
+  // For fasts that span 24 hours or more, the eating window should be 0
+  // This is because if someone fasts for 24+ hours, they didn't eat that day
   if (fastingHours >= 24) {
     return 0;
   }

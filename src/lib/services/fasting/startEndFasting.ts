@@ -53,7 +53,7 @@ export async function endFasting(fastingId: string) {
     .update({
       end_time: now.toISOString(),
       fasting_hours: parseFloat(durationInHours.toFixed(2)),
-      eating_window_hours: parseFloat(eatingWindowHours.toFixed(2))
+      eating_window_hours: eatingWindowHours
     })
     .eq('id', fastingId)
     .eq('user_id', session.user.id)

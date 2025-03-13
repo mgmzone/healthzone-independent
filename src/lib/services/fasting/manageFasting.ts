@@ -32,7 +32,7 @@ export async function addFastingLog(fastData: {
     // Calculate eating window hours if not provided
     if (!fastData.eatingWindowHours) {
       // Use the utility function to calculate eating window hours
-      insertData.eating_window_hours = parseFloat(calculateEatingWindowHours(insertData.fasting_hours).toFixed(2));
+      insertData.eating_window_hours = calculateEatingWindowHours(insertData.fasting_hours);
     } else {
       insertData.eating_window_hours = fastData.eatingWindowHours;
     }
@@ -93,11 +93,11 @@ export async function updateFastingLog(
   }
 
   // Only update eatingWindowHours if explicitly provided
-  if (fastData.eatingWindowHours) {
+  if (fastData.eatingWindowHours !== undefined) {
     updateData.eating_window_hours = fastData.eatingWindowHours;
-  } else if (updateData.fasting_hours && fastData.endTime) {
-    // If we have fasting hours and an end time, we can calculate eating window
-    updateData.eating_window_hours = parseFloat(calculateEatingWindowHours(updateData.fasting_hours).toFixed(2));
+  } else if (updateData.fasting_hours !== undefined) {
+    // If we have fasting hours, we can calculate eating window
+    updateData.eating_window_hours = calculateEatingWindowHours(updateData.fasting_hours);
   }
 
   const { data, error } = await supabase
