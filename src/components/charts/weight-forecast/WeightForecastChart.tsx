@@ -60,6 +60,11 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     (targetDate <= new Date(currentPeriod.endDate) ? targetDate : null) : 
     targetDate;
 
+  // Format function for YAxis to remove the large numbers
+  const formatYAxis = (value: number) => {
+    return value.toFixed(1);
+  };
+
   return (
     <>
       <div className="w-full h-[220px]">
@@ -79,6 +84,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             />
             <YAxis 
               domain={[minWeight, maxWeight]} 
+              tickFormatter={formatYAxis}
               tickLine={false}
               axisLine={false}
               tick={{ fontSize: 12 }}

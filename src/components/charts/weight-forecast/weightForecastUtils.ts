@@ -159,9 +159,9 @@ export const calculateWeightRange = (chartData: WeeklyWeightData[], targetWeight
     weights.push(targetWeight);
   }
   
-  // Add padding to the weight range for display
-  const minWeight = Math.max(0, Math.floor(Math.min(...weights) - 5));
-  const maxWeight = Math.ceil(Math.max(...weights) + 5);
+  // Calculate a reasonable min/max range for the chart - round to nearest 5
+  const minWeight = Math.floor(Math.min(...weights) / 5) * 5;
+  const maxWeight = Math.ceil(Math.max(...weights) / 5) * 5;
   
   return { minWeight, maxWeight };
 };

@@ -27,7 +27,7 @@ export const useAuthRedirects = (
         currentPath 
       });
 
-      // Reset redirect flag if user or profile changes
+      // Reset redirect flag if user is null (logged out)
       if (!user) {
         redirectProcessedRef.current = false;
       }
@@ -35,6 +35,7 @@ export const useAuthRedirects = (
       // Only process redirects once per session unless flag is reset
       if (!redirectProcessedRef.current) {
         if (user) {
+          // Check if profile is complete
           const currentIsProfileComplete = isProfileComplete(profile);
           const currentIsAuthOrIndexPage = isAuthOrIndexPage(currentPath);
           

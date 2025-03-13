@@ -20,6 +20,7 @@ const Index = () => {
     console.log('Index page loaded', { 
       user: user?.id, 
       profile: profile?.firstName, 
+      profileComplete: profile ? isProfileComplete(profile) : false,
       loading, 
       profileLoading,
       pathname: location.pathname 
