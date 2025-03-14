@@ -30,11 +30,9 @@ const Dashboard = () => {
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
-  // Get latest weight directly in the unit we need to display
   const getLatestWeight = () => {
     if (weighIns.length === 0) return null;
     
-    // Weight is stored in kg, convert to lbs if needed
     const weightInKg = weighIns[0].weight;
     return isImperial ? weightInKg * 2.20462 : weightInKg;
   };
@@ -48,9 +46,9 @@ const Dashboard = () => {
     type: 'weightLoss' | 'maintenance',
     startDate: Date,
     endDate?: Date,
-    fastingSchedule: string
+    fastingSchedule: string,
+    weightLossPerWeek: number
   }) => {
-    // Convert weights to kg for storage if current unit is imperial
     const startWeight = isImperial ? periodData.startWeight / 2.20462 : periodData.startWeight;
     const targetWeight = isImperial ? periodData.targetWeight / 2.20462 : periodData.targetWeight;
     
@@ -74,7 +72,6 @@ const Dashboard = () => {
   }
 
   const currentMetrics = currentPeriod ? {
-    // Calculate weight progress correctly
     weightProgress: latestWeight
       ? getProgressPercentage(
           latestWeight,
@@ -87,7 +84,6 @@ const Dashboard = () => {
     daysRemaining: getDaysRemaining(currentPeriod.endDate),
     totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
     totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
-    // Calculate weight change correctly
     weightChange: latestWeight 
       ? Math.abs((isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight) - latestWeight)
       : 0,

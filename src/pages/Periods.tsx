@@ -57,7 +57,8 @@ const Periods = () => {
     type: 'weightLoss' | 'maintenance',
     startDate: Date,
     endDate?: Date,
-    fastingSchedule: string
+    fastingSchedule: string,
+    weightLossPerWeek: number
   }) => {
     // Convert weight to metric (kg) for storage if coming from imperial
     const startWeight = isImperial ? convertToMetric(periodData.startWeight, true) : periodData.startWeight;

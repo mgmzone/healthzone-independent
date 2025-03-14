@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -93,7 +92,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
                       ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(1) 
                       : Math.abs(currentAvgWeightLoss).toFixed(1)
                     } {isImperial ? 'lbs' : 'kg'}/week
-                    <Badge variant={currentAvgWeightLoss < 0 ? "success" : "destructive"} className="ml-2 text-xs">
+                    <Badge variant={currentAvgWeightLoss < 0 ? "secondary" : "destructive"} className="ml-2 text-xs">
                       {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
                     </Badge>
                   </span>
@@ -126,7 +125,6 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         />
       </div>
       
-      {/* Starting Weight (if exists) */}
       {formData.startingWeight ? (
         <div className="space-y-2">
           <Label htmlFor="startingWeight" className="text-left block">Starting Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
@@ -142,7 +140,6 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
         </div>
       ) : null}
       
-      {/* Fitness Level and Exercise Minutes on the same line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="fitnessLevel" className="text-left block">Fitness Level</Label>

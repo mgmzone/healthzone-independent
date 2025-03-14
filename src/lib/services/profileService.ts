@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { User } from "@/lib/types";
 import { getProfilePhotoUrl } from "./storageService";
@@ -45,7 +44,6 @@ export async function getProfile() {
       currentWeight: data.current_weight || 0,
       targetWeight: data.target_weight || 0,
       fitnessLevel: data.fitness_level as 'sedentary' | 'light' | 'moderate' | 'active' || 'moderate',
-      weightLossPerWeek: data.weight_loss_per_week || 0,
       exerciseMinutesPerDay: data.exercise_minutes_per_day || 0,
       healthGoals: data.health_goals || '',
       measurementUnit: data.measurement_unit as 'imperial' | 'metric' || 'imperial', // Default to imperial
@@ -83,7 +81,6 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.currentWeight !== undefined) dbProfileData.current_weight = profileData.currentWeight;
   if (profileData.targetWeight !== undefined) dbProfileData.target_weight = profileData.targetWeight;
   if (profileData.fitnessLevel !== undefined) dbProfileData.fitness_level = profileData.fitnessLevel;
-  if (profileData.weightLossPerWeek !== undefined) dbProfileData.weight_loss_per_week = profileData.weightLossPerWeek;
   if (profileData.exerciseMinutesPerDay !== undefined) dbProfileData.exercise_minutes_per_day = profileData.exerciseMinutesPerDay;
   if (profileData.healthGoals !== undefined) dbProfileData.health_goals = profileData.healthGoals;
   if (profileData.measurementUnit !== undefined) dbProfileData.measurement_unit = profileData.measurementUnit;
