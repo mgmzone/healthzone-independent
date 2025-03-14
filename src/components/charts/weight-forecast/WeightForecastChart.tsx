@@ -36,6 +36,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const formatDateForAxis = createDateFormatter();
   const renderDot = createDotRenderer();
   
+  console.log('WeightForecastChart - Rendering with data points:', chartData.length);
+  console.log('WeightForecastChart - Current period:', currentPeriod?.id);
+  
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading forecast...</div>;
   }
@@ -57,7 +60,10 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
-        data={chartData}
+        data={chartData.map(item => ({
+          ...item,
+          date: new Date(item.date)
+        }))}
         margin={{
           top: 10,
           right: 30,

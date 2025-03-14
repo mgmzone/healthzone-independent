@@ -14,11 +14,15 @@ export const calculateChartData = async (
   isImperial: boolean
 ): Promise<ProjectionResult> => {
   if (!currentPeriod || weighIns.length === 0) {
+    console.warn('No period or weigh-ins available for chart data calculation');
     return { chartData: [], targetDate: null };
   }
   
   const startDate = new Date(currentPeriod.startDate);
   const endDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : addWeeks(new Date(), 12); // Default 12 weeks if no end date
+  
+  console.log('calculateChartData - Period start:', startDate);
+  console.log('calculateChartData - Period end:', endDate);
   
   // Initially, we'll set up for a projection that could go as far as the period end date
   // plus some additional weeks for reasonable extrapolation
@@ -35,8 +39,10 @@ export const calculateChartData = async (
     isImperial
   );
   
+  console.log('calculateChartData - Actual data points:', actualData.length);
+  
   // Calculate projections using the processed data
-  return await calculateWeightProjection(
+  const result = await calculateWeightProjection(
     actualData,
     isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
     targetWeight,
@@ -44,4 +50,8 @@ export const calculateChartData = async (
     totalWeeks,
     isImperial
   );
+  
+  console.log('calculateChartData - Projection result:', result.chartData.length, 'data points');
+  
+  return result;
 };

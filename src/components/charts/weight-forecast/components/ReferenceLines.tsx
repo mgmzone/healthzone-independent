@@ -28,31 +28,49 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   const periodEndStr = periodEndDate ? formatDateToString(periodEndDate) : null;
   
   // Find the exact dates in the chartData for reference lines
-  const findExactOrClosestDate = (dateStr: string | null): string | null => {
+  const findExactOrClosestDate = (dateStr: string | null): Date | null => {
     if (!dateStr) return null;
     
-    // First try to find exact match
-    const found = chartData.find(item => formatDateToString(new Date(item.date)) === dateStr);
-    if (found) return formatDateToString(new Date(found.date));
+    // Convert string date to Date object for comparison
+    const targetDate = new Date(dateStr);
+    
+    // First try to find exact match by comparing date strings
+    for (const item of chartData) {
+      const itemDateStr = formatDateToString(new Date(item.date));
+      if (itemDateStr === dateStr) {
+        return new Date(item.date);
+      }
+    }
     
     // If not found, find closest future date
-    const targetTime = new Date(dateStr).getTime();
-    const closestFuture = chartData
+    const targetTime = targetDate.getTime();
+    const futureDates = chartData
       .filter(item => new Date(item.date).getTime() >= targetTime)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
-    return closestFuture ? formatDateToString(new Date(closestFuture.date)) : null;
+    return futureDates.length > 0 ? new Date(futureDates[0].date) : null;
   };
   
+  // Find exact or closest dates from chart data
   const exactTodayDate = findExactOrClosestDate(todayStr);
   const exactTargetDate = findExactOrClosestDate(targetDateStr);
   const exactPeriodEndDate = findExactOrClosestDate(periodEndStr);
 
+  // Convert back to strings for the ReferenceLine component
+  const todayDateStr = exactTodayDate ? formatDateToString(exactTodayDate) : null;
+  const targetDateRefStr = exactTargetDate ? formatDateToString(exactTargetDate) : null;
+  const periodEndDateStr = exactPeriodEndDate ? formatDateToString(exactPeriodEndDate) : null;
+
+  console.log('ReferenceLines - Chart Data Points:', chartData.map(d => formatDateToString(new Date(d.date))));
+  console.log('ReferenceLines - Today:', todayStr, '-> exact/closest:', todayDateStr);
+  console.log('ReferenceLines - Target:', targetDateStr, '-> exact/closest:', targetDateRefStr);
+  console.log('ReferenceLines - Period End:', periodEndStr, '-> exact/closest:', periodEndDateStr);
+
   return (
     <>
-      {exactTodayDate && (
+      {todayDateStr && (
         <ReferenceLine
-          x={exactTodayDate}
+          x={todayDateStr}
           stroke="#2563eb"
           strokeWidth={2}
           label={{ 
@@ -64,9 +82,9 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
         />
       )}
       
-      {exactTargetDate && (
+      {targetDateRefStr && (
         <ReferenceLine
-          x={exactTargetDate}
+          x={targetDateRefStr}
           stroke="#16a34a"
           strokeWidth={2}
           strokeDasharray="3 3"
@@ -79,9 +97,9 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
         />
       )}
       
-      {exactPeriodEndDate && (
+      {periodEndDateStr && (
         <ReferenceLine
-          x={exactPeriodEndDate}
+          x={periodEndDateStr}
           stroke="#dc2626"
           strokeWidth={2}
           label={{ 
