@@ -1,9 +1,9 @@
 
-import React, { ReactNode } from 'react';
+import React, { ReactElement, JSXElementConstructor } from 'react';
 import { ResponsiveContainer } from 'recharts';
 
 interface ChartContainerProps {
-  children: ReactNode;
+  children: ReactElement<any, string | JSXElementConstructor<any>>;
 }
 
 const ChartContainer: React.FC<ChartContainerProps> = ({ children }) => {
