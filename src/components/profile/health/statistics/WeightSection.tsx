@@ -1,6 +1,7 @@
 
 import React from 'react';
 import StatisticInput from './StatisticInput';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface WeightSectionProps {
   startingWeight?: number;
@@ -30,7 +31,8 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       <StatisticInput
         id="startingWeight"
         label="Starting Weight"
-        value={startingWeight ? `${formatWeight(startingWeight)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={startingWeight ? 
+          `${formatWeight(isImperial ? (startingWeight * 2.20462).toFixed(1) : startingWeight.toFixed(1))} ${isImperial ? 'lbs' : 'kg'}` : ''}
       />
       <StatisticInput
         id="targetWeight"
@@ -41,12 +43,12 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       <StatisticInput
         id="targetLoss"
         label="Target Loss"
-        value={targetLoss ? `${targetLoss.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={targetLoss ? `${isImperial ? (targetLoss * 2.20462).toFixed(1) : targetLoss.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
       />
       <StatisticInput
         id="lostThusFar"
         label="Lost Thus Far"
-        value={totalWeightLoss ? `${totalWeightLoss.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={totalWeightLoss ? `${isImperial ? (totalWeightLoss * 2.20462).toFixed(1) : totalWeightLoss.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
       />
     </>
   );
