@@ -9,6 +9,7 @@ import PeriodTypeSelector from './PeriodTypeSelector';
 import DateRangePickerField from './DateRangePickerField';
 import FastingScheduleSelector from './FastingScheduleSelector';
 import { convertToMetric } from '@/lib/weight/convertWeight';
+import { addWeeks } from 'date-fns';
 
 interface PeriodEntryModalProps {
   isOpen: boolean;
@@ -45,6 +46,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
   const [type, setType] = useState<'weightLoss' | 'maintenance'>('weightLoss');
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [calculatedEndDate, setCalculatedEndDate] = useState<Date | undefined>(undefined);
   const [fastingSchedule, setFastingSchedule] = useState<string>('16:8');
   const { toast } = useToast();
   const isImperial = weightUnit === 'lbs';
@@ -67,6 +69,37 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       }
     }
   }, [initialPeriod, defaultValues, isImperial]);
+  
+  // Calculate end date whenever relevant inputs change
+  useEffect(() => {
+    if (type === 'weightLoss' && startWeight && targetWeight && weightLossPerWeek && parseFloat(weightLossPerWeek) > 0) {
+      try {
+        const startWeightNum = parseFloat(startWeight);
+        const targetWeightNum = parseFloat(targetWeight);
+        const weightLossPerWeekNum = parseFloat(weightLossPerWeek);
+        
+        if (startWeightNum > targetWeightNum && weightLossPerWeekNum > 0) {
+          // Calculate total weight to lose
+          const totalWeightToLose = startWeightNum - targetWeightNum;
+          
+          // Calculate number of weeks needed
+          const weeksNeeded = Math.ceil(totalWeightToLose / weightLossPerWeekNum);
+          
+          // Calculate projected end date by adding the weeks to start date
+          const projectedEndDate = addWeeks(startDate, weeksNeeded);
+          setCalculatedEndDate(projectedEndDate);
+          
+          // If no end date was manually set yet, or if we're creating a new period, 
+          // automatically set the end date to the calculated one
+          if (!initialPeriod || !endDate) {
+            setEndDate(projectedEndDate);
+          }
+        }
+      } catch (e) {
+        console.error("Error calculating end date:", e);
+      }
+    }
+  }, [startWeight, targetWeight, weightLossPerWeek, startDate, type, initialPeriod, endDate]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,10 +135,11 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       return;
     }
     
-    if (endDate && startDate > endDate) {
+    // For weight loss periods, ensure a valid end date is calculated
+    if (type === 'weightLoss' && !endDate && startWeightValue <= targetWeightValue) {
       toast({
-        title: "Invalid date range",
-        description: "End date must be after start date",
+        title: "Invalid weight goal",
+        description: "Target weight must be lower than starting weight for weight loss periods",
         variant: "destructive",
       });
       return;
@@ -132,6 +166,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
     setType('weightLoss');
     setStartDate(new Date());
     setEndDate(undefined);
+    setCalculatedEndDate(undefined);
     setFastingSchedule('16:8');
   };
   
@@ -180,6 +215,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
               endDate={endDate}
               onStartDateChange={setStartDate}
               onEndDateChange={setEndDate}
+              calculatedEndDate={calculatedEndDate}
             />
             
             <FastingScheduleSelector

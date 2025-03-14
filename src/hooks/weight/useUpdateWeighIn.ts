@@ -1,12 +1,58 @@
-
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { useWeightQuery } from './useWeightQuery';
 import { updateProfile } from '@/lib/services/profileService';
+import { addWeeks, differenceInDays } from 'date-fns';
 
 export function useUpdateWeighIn() {
-  const { toast, queryClient, supabase } = useWeightBase();
+  const { toast, queryClient, supabase, getCurrentPeriod } = useWeightBase();
   const { weighIns } = useWeightQuery();
+
+  const calculateNewProjectedEndDate = async (periodId: string, currentWeight: number) => {
+    try {
+      const { data: periodData, error: periodError } = await supabase
+        .from('periods')
+        .select('*')
+        .eq('id', periodId)
+        .single();
+      
+      if (periodError || !periodData) return null;
+      
+      const { data: weighIns, error: weighInsError } = await supabase
+        .from('weigh_ins')
+        .select('*')
+        .eq('period_id', periodId)
+        .order('date', { ascending: true });
+      
+      if (weighInsError || !weighIns || weighIns.length < 2) return null;
+      
+      const oldestWeighIn = weighIns[0];
+      const latestWeighIn = weighIns[weighIns.length - 1];
+      
+      const startDate = new Date(oldestWeighIn.date);
+      const latestDate = new Date(latestWeighIn.date);
+      const daysDifference = differenceInDays(latestDate, startDate);
+      
+      if (daysDifference < 1) return null;
+      
+      const totalWeightLoss = oldestWeighIn.weight - latestWeighIn.weight;
+      const weightLossPerDay = totalWeightLoss / daysDifference;
+      const weightLossPerWeek = weightLossPerDay * 7;
+      
+      if (weightLossPerWeek <= 0.05) return null;
+      
+      const remainingWeightToLose = currentWeight - periodData.target_weight;
+      
+      if (remainingWeightToLose <= 0) return null;
+      
+      const weeksNeeded = Math.ceil(remainingWeightToLose / weightLossPerWeek);
+      
+      return addWeeks(new Date(), weeksNeeded);
+    } catch (error) {
+      console.error("Error calculating projected end date:", error);
+      return null;
+    }
+  };
 
   const updateWeighIn = useMutation({
     mutationFn: async ({
@@ -43,13 +89,40 @@ export function useUpdateWeighIn() {
 
       if (error) throw error;
 
-      // If this is the latest weigh-in, update the profile
       if (weighIns.length > 0 && weighIns[0].id === id) {
         try {
           await updateProfile({ currentWeight: weight });
         } catch (profileError) {
           console.error('Error updating profile with edited weight:', profileError);
-          // We don't throw here to still consider the weigh-in update successful
+        }
+      }
+      
+      const { data: weighInData } = await supabase
+        .from('weigh_ins')
+        .select('period_id')
+        .eq('id', id)
+        .single();
+      
+      if (weighInData?.period_id) {
+        const { data: periodData } = await supabase
+          .from('periods')
+          .select('type')
+          .eq('id', weighInData.period_id)
+          .single();
+        
+        if (periodData?.type === 'weightLoss') {
+          try {
+            const newProjectedEndDate = await calculateNewProjectedEndDate(weighInData.period_id, weight);
+            
+            if (newProjectedEndDate) {
+              await supabase
+                .from('periods')
+                .update({ projected_end_date: newProjectedEndDate.toISOString() })
+                .eq('id', weighInData.period_id);
+            }
+          } catch (e) {
+            console.error("Error updating projected end date:", e);
+          }
         }
       }
 
@@ -57,8 +130,8 @@ export function useUpdateWeighIn() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weighIns'] });
-      // Also invalidate the profile data
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['periods'] });
       toast({
         title: 'Weight updated',
         description: 'Your weight entry has been updated successfully.',
