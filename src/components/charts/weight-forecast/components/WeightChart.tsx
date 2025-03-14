@@ -39,23 +39,25 @@ const WeightChart: React.FC<WeightChartProps> = ({
   const lastActualDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
   
   // Filter forecast data to only include points after the last actual data point
+  // Ensure we're not duplicating the lastActualPoint in both datasets when we render
   const forecastData = displayData.filter(d => 
-    !d.isActual && new Date(d.date) >= lastActualDate
+    (d.isForecast === true || new Date(d.date) > lastActualDate) && !d.isActual
   );
   
-  // If we have a last actual point, make sure it's included in the forecast data
+  // If we have a last actual point, make sure it's included as the first point in forecast data
   // This ensures the forecast line starts exactly at the last actual weigh-in
   if (lastActualPoint && forecastData.length > 0 && activeView === 'forecast') {
-    // Find if the last actual point is already in the forecast data
-    const hasLastActualPoint = forecastData.some(
+    // Find if the last actual point date is already in the forecast data
+    const hasLastActualPointDate = forecastData.some(
       d => new Date(d.date).getTime() === lastActualDate.getTime()
     );
     
-    // If not, add it at the beginning of the forecast data
-    if (!hasLastActualPoint) {
+    // If not, add a forecast point that matches the last actual data point exactly
+    if (!hasLastActualPointDate) {
       forecastData.unshift({
-        ...lastActualPoint,
-        isActual: false, // Mark as forecast for styling purposes
+        date: lastActualPoint.date,
+        weight: lastActualPoint.weight,
+        isActual: false,
         isForecast: true
       });
     }
