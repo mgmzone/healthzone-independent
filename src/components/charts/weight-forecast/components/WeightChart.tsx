@@ -8,10 +8,11 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Line
+  ReferenceLine,
 } from 'recharts';
 import { format } from 'date-fns';
 import CustomTooltip from '../CustomTooltip';
+import { ReferenceLines } from './ReferenceLines';
 
 interface WeightChartProps {
   displayData: any[];
@@ -28,12 +29,24 @@ const WeightChart: React.FC<WeightChartProps> = ({
   isImperial,
   activeView,
 }) => {
+  // Find out where actual data stops and forecast begins
+  const today = new Date();
+  const actualData = displayData.filter(d => d.isActual || new Date(d.date) <= today);
+  const forecastData = displayData.filter(d => (d.isForecast || new Date(d.date) > today) && !d.isActual);
+  
+  // Find target date (the last date in the forecast)
+  const targetDate = forecastData.length > 0 ? new Date(forecastData[forecastData.length - 1].date) : null;
+  
+  // Find the end date of the period (if any)
+  const periodEndDate = displayData.length > 0 ? 
+    new Date(displayData[displayData.length - 1].date) : null;
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart
         data={displayData}
         margin={{
-          top: 30, // Increased top margin to make space for the buttons
+          top: 30,
           right: 30,
           left: 20,
           bottom: 30,
@@ -64,10 +77,11 @@ const WeightChart: React.FC<WeightChartProps> = ({
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         
-        {/* Actual Weight Area */}
+        {/* Actual Weight Area (Blue) */}
         <Area 
           type="monotone" 
           dataKey="weight" 
+          data={actualData}
           stroke="#0066CC" 
           strokeWidth={2}
           fill="#0066CC20"
@@ -78,31 +92,33 @@ const WeightChart: React.FC<WeightChartProps> = ({
             stroke: '#fff',
             strokeWidth: 1
           }}
+          isAnimationActive={false}
         />
         
-        {/* Forecast Line - Only visible in forecast view with muted orange color */}
+        {/* Forecast Weight Area (Orange) - Only visible in forecast view */}
         {activeView === 'forecast' && (
-          <Line
+          <Area
             type="monotone"
             dataKey="weight"
-            stroke="#FEC6A1"  // Muted orange color
+            data={forecastData}
+            stroke="#FEC6A1"
             strokeWidth={2}
-            strokeDasharray="5 5"  // Dotted line
+            fill="#FEC6A120"
+            strokeDasharray="5 5"
+            activeDot={false}
+            dot={false}
+            isAnimationActive={false}
             connectNulls={true}
-            dot={(props) => {
-              // Only show dots for actual data points, not for forecast
-              const { payload } = props;
-              if (payload.isForecast) return null;
-              return null; // No dots on the forecast line
-            }}
-            activeDot={(props) => {
-              // Only show active dots for actual points
-              const { payload } = props;
-              if (payload.isForecast) return null;
-              return null; // No active dots on the forecast line
-            }}
           />
         )}
+        
+        {/* Reference lines for current date and target date */}
+        <ReferenceLines 
+          chartData={displayData}
+          today={today}
+          targetDate={targetDate}
+          periodEndDate={periodEndDate}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

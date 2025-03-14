@@ -2,10 +2,9 @@
 import React from 'react';
 import { ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
-import { WeeklyWeightData } from '../utils/types';
 
 interface ReferenceLinesProps {
-  chartData: WeeklyWeightData[];
+  chartData: any[];
   today: Date;
   targetDate: Date | null;
   periodEndDate: Date | null;
@@ -25,7 +24,6 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   // Get the date strings for reference lines
   const todayStr = formatDateToString(today);
   const targetDateStr = targetDate ? formatDateToString(targetDate) : null;
-  const periodEndStr = periodEndDate ? formatDateToString(periodEndDate) : null;
   
   // Find date objects in chartData that match (or are closest to) our reference dates
   const findClosestDate = (targetDateStr: string | null): string | null => {
@@ -54,50 +52,37 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   // Find closest dates in chart data
   const closestTodayDate = findClosestDate(todayStr);
   const closestTargetDate = findClosestDate(targetDateStr);
-  const closestPeriodEndDate = findClosestDate(periodEndStr);
   
   return (
     <>
-      {closestPeriodEndDate && (
-        <ReferenceLine
-          x={closestPeriodEndDate}
-          stroke="#dc2626"
-          strokeDasharray="3 3"
-          strokeWidth={1.5}
-          label={{ 
-            value: 'Period End', 
-            position: 'insideTopRight',
-            fill: '#dc2626',
-            fontSize: 11
-          }}
-        />
-      )}
-      
+      {/* Current Date line (red) */}
       {closestTodayDate && (
         <ReferenceLine
           x={closestTodayDate}
-          stroke="#2563eb"
-          strokeWidth={1.5}
+          stroke="#E63946"
+          strokeWidth={2}
           label={{ 
-            value: 'Today', 
-            position: 'insideTopRight',
-            fill: '#2563eb',
-            fontSize: 11
+            value: 'Current Date', 
+            position: 'top',
+            fill: '#E63946',
+            fontSize: 14,
+            fontWeight: 600
           }}
         />
       )}
       
+      {/* Forecast Goal line (red) */}
       {closestTargetDate && (
         <ReferenceLine
           x={closestTargetDate}
-          stroke="#16a34a"
-          strokeDasharray="3 3"
-          strokeWidth={1.5}
+          stroke="#E63946"
+          strokeWidth={2}
           label={{ 
-            value: 'Goal Date', 
-            position: 'insideTopRight',
-            fill: '#16a34a',
-            fontSize: 11
+            value: 'Forecast Goal', 
+            position: 'top',
+            fill: '#E63946', 
+            fontSize: 14,
+            fontWeight: 600
           }}
         />
       )}

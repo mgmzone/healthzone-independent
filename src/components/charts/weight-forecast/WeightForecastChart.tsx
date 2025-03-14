@@ -11,7 +11,7 @@ interface WeightForecastChartProps {
   weighIns: WeighIn[];
   currentPeriod: Period | undefined;
   isImperial?: boolean;
-  targetWeight?: number; // Added target weight parameter
+  targetWeight?: number;
 }
 
 const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
@@ -20,13 +20,13 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   isImperial = false,
   targetWeight,
 }) => {
-  const [activeView, setActiveView] = useState<ChartView>('actual');
+  const [activeView, setActiveView] = useState<ChartView>('forecast'); // Default to forecast view
   
   const { chartData, forecastData, minWeight, maxWeight, hasValidData } = useWeightForecastData(
     weighIns,
     currentPeriod,
     isImperial,
-    targetWeight // Pass target weight to the hook
+    targetWeight
   );
   
   if (!hasValidData) {
