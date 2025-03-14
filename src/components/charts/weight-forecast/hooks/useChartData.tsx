@@ -20,9 +20,11 @@ export const useChartData = (
         setLoading(true);
         
         if (!currentPeriod || weighIns.length === 0) {
+          console.log('useChartData - No period or weigh-ins available');
           setChartData([]);
           setTargetDate(null);
           setError(null);
+          setLoading(false);
           return;
         }
         
@@ -34,6 +36,10 @@ export const useChartData = (
         
         console.log('useChartData - Chart data points:', newChartData.length);
         console.log('useChartData - Target date:', newTargetDate);
+        console.log('useChartData - Sample data:', 
+          newChartData.length > 0 ? 
+            { date: newChartData[0].date, weight: newChartData[0].weight } : 
+            'No data');
         
         setChartData(newChartData);
         setTargetDate(newTargetDate);

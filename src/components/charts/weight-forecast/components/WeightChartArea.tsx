@@ -1,10 +1,20 @@
 
 import React from 'react';
 import { Area, Dot } from 'recharts';
-import { WeeklyWeightData } from '../utils/types';
+
+// Define a more specific type for the renderDot function
+type DotRendererProps = {
+  cx: number;
+  cy: number;
+  payload: any;
+  value: number;
+  index: number;
+};
+
+type DotRenderer = (props: DotRendererProps) => React.ReactElement | null;
 
 interface WeightChartAreaProps {
-  renderDot: (props: any) => React.ReactElement | null;
+  renderDot: DotRenderer;
 }
 
 export const WeightChartArea: React.FC<WeightChartAreaProps> = ({ renderDot }) => {
@@ -20,21 +30,23 @@ export const WeightChartArea: React.FC<WeightChartAreaProps> = ({ renderDot }) =
   );
 };
 
-export const createDotRenderer = () => {
-  return (props: any): React.ReactElement | null => {
+export const createDotRenderer = (): DotRenderer => {
+  return (props: DotRendererProps): React.ReactElement | null => {
     const { cx, cy, payload } = props;
-    if (!payload.isProjected) {
-      return (
-        <Dot 
-          cx={cx} 
-          cy={cy} 
-          r={4}
-          fill="#33C3F0"
-          stroke="#fff"
-          strokeWidth={2}
-        />
-      );
+    
+    if (!payload || payload.isProjected) {
+      return null;
     }
-    return null;
+    
+    return (
+      <Dot 
+        cx={cx} 
+        cy={cy} 
+        r={4}
+        fill="#33C3F0"
+        stroke="#fff"
+        strokeWidth={2}
+      />
+    );
   };
 };

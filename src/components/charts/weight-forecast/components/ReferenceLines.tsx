@@ -27,50 +27,44 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   const targetDateStr = targetDate ? formatDateToString(targetDate) : null;
   const periodEndStr = periodEndDate ? formatDateToString(periodEndDate) : null;
   
-  // Find the exact dates in the chartData for reference lines
-  const findExactOrClosestDate = (dateStr: string | null): Date | null => {
-    if (!dateStr) return null;
+  // Find date objects in chartData that match (or are closest to) our reference dates
+  const findClosestDate = (targetDateStr: string | null): string | null => {
+    if (!targetDateStr || !chartData || chartData.length === 0) return null;
     
-    // Convert string date to Date object for comparison
-    const targetDate = new Date(dateStr);
+    const targetDate = new Date(targetDateStr);
+    const targetTime = targetDate.getTime();
     
-    // First try to find exact match by comparing date strings
+    // Find the closest date in chartData
+    let closestDate = null;
+    let minDiff = Number.MAX_VALUE;
+    
     for (const item of chartData) {
-      const itemDateStr = formatDateToString(new Date(item.date));
-      if (itemDateStr === dateStr) {
-        return new Date(item.date);
+      const itemDate = new Date(item.date);
+      const diff = Math.abs(itemDate.getTime() - targetTime);
+      
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestDate = item.date;
       }
     }
     
-    // If not found, find closest future date
-    const targetTime = targetDate.getTime();
-    const futureDates = chartData
-      .filter(item => new Date(item.date).getTime() >= targetTime)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-    return futureDates.length > 0 ? new Date(futureDates[0].date) : null;
+    return closestDate ? formatDateToString(new Date(closestDate)) : null;
   };
   
-  // Find exact or closest dates from chart data
-  const exactTodayDate = findExactOrClosestDate(todayStr);
-  const exactTargetDate = findExactOrClosestDate(targetDateStr);
-  const exactPeriodEndDate = findExactOrClosestDate(periodEndStr);
-
-  // Convert back to strings for the ReferenceLine component
-  const todayDateStr = exactTodayDate ? formatDateToString(exactTodayDate) : null;
-  const targetDateRefStr = exactTargetDate ? formatDateToString(exactTargetDate) : null;
-  const periodEndDateStr = exactPeriodEndDate ? formatDateToString(exactPeriodEndDate) : null;
-
-  console.log('ReferenceLines - Chart Data Points:', chartData.map(d => formatDateToString(new Date(d.date))));
-  console.log('ReferenceLines - Today:', todayStr, '-> exact/closest:', todayDateStr);
-  console.log('ReferenceLines - Target:', targetDateStr, '-> exact/closest:', targetDateRefStr);
-  console.log('ReferenceLines - Period End:', periodEndStr, '-> exact/closest:', periodEndDateStr);
-
+  // Find closest dates in chart data
+  const closestTodayDate = findClosestDate(todayStr);
+  const closestTargetDate = findClosestDate(targetDateStr);
+  const closestPeriodEndDate = findClosestDate(periodEndStr);
+  
+  console.log('ReferenceLines - Today closest:', closestTodayDate);
+  console.log('ReferenceLines - Target closest:', closestTargetDate);
+  console.log('ReferenceLines - Period End closest:', closestPeriodEndDate);
+  
   return (
     <>
-      {todayDateStr && (
+      {closestTodayDate && (
         <ReferenceLine
-          x={todayDateStr}
+          x={closestTodayDate}
           stroke="#2563eb"
           strokeWidth={2}
           label={{ 
@@ -82,9 +76,9 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
         />
       )}
       
-      {targetDateRefStr && (
+      {closestTargetDate && (
         <ReferenceLine
-          x={targetDateRefStr}
+          x={closestTargetDate}
           stroke="#16a34a"
           strokeWidth={2}
           strokeDasharray="3 3"
@@ -97,9 +91,9 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
         />
       )}
       
-      {periodEndDateStr && (
+      {closestPeriodEndDate && (
         <ReferenceLine
-          x={periodEndDateStr}
+          x={closestPeriodEndDate}
           stroke="#dc2626"
           strokeWidth={2}
           label={{ 

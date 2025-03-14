@@ -38,6 +38,8 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   
   console.log('WeightForecastChart - Rendering with data points:', chartData.length);
   console.log('WeightForecastChart - Current period:', currentPeriod?.id);
+  console.log('WeightForecastChart - First data point:', chartData[0]?.date, chartData[0]?.weight);
+  console.log('WeightForecastChart - Weight range:', minWeight, maxWeight);
   
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading forecast...</div>;
@@ -57,13 +59,16 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 
   const periodEndDate = currentPeriod?.endDate ? new Date(currentPeriod.endDate) : null;
   
+  // Make sure all dates are properly converted to Date objects
+  const formattedChartData = chartData.map(item => ({
+    ...item,
+    date: typeof item.date === 'string' ? new Date(item.date) : item.date
+  }));
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
-        data={chartData.map(item => ({
-          ...item,
-          date: new Date(item.date)
-        }))}
+        data={formattedChartData}
         margin={{
           top: 10,
           right: 30,
@@ -84,7 +89,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         <WeightChartArea renderDot={renderDot} />
         
         <ReferenceLines 
-          chartData={chartData} 
+          chartData={formattedChartData} 
           today={today} 
           targetDate={targetDate} 
           periodEndDate={periodEndDate} 
