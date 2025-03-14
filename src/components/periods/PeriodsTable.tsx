@@ -81,8 +81,10 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
             // Convert weights to metric (kg) for storage if imperial units are used
             const startWeight = isImperial ? convertToMetric(updatedPeriod.startWeight, true) : updatedPeriod.startWeight;
             const targetWeight = isImperial ? convertToMetric(updatedPeriod.targetWeight, true) : updatedPeriod.targetWeight;
-            // Convert weightLossPerWeek to metric if imperial
-            const weightLossPerWeek = isImperial ? convertToMetric(updatedPeriod.weightLossPerWeek, true) : updatedPeriod.weightLossPerWeek;
+            
+            // For weight loss per week, the value from the form is already properly converted in PeriodEntryModal
+            // so we should use it directly without additional conversion
+            const weightLossPerWeek = updatedPeriod.weightLossPerWeek;
             
             onUpdatePeriod({
               ...updatedPeriod,
