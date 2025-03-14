@@ -143,12 +143,16 @@ export const calculateWeightProjection = (
         targetDate = projectionDate;
         targetWeekNum = week;
         targetWeightFound = true;
+        
+        // We've found the target date, but we'll continue projecting for a bit beyond it
+        // so we can see the trend continue on the chart
       }
     }
     
-    // If we found the target date, keep only projections up to 2 weeks after target date
+    // If we found the target date, keep projections up to 4 weeks after target date
+    // to ensure we always have a target date visible on the chart
     if (targetWeekNum > 0) {
-      const maxProjectionWeek = targetWeekNum + 2; // target week plus 2 additional weeks
+      const maxProjectionWeek = targetWeekNum + 4; // target week plus 4 additional weeks
       
       // Filter out projections beyond our cut-off
       const filteredData = weeklyData.filter(data => 
@@ -159,5 +163,5 @@ export const calculateWeightProjection = (
     }
   }
   
-  return { chartData: weeklyData, targetDate };
+  return { chartData: weeklyData, targetDate: null };
 };

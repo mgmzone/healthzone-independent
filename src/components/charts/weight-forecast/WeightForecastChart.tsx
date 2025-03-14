@@ -132,7 +132,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                 strokeDasharray="3 3" 
                 label={{ 
                   value: 'Target date', 
-                  position: hasOverlappingDates() ? 'insideBottomRight' : 'insideTopRight', 
+                  position: hasOverlappingDates() ? 'insideTopLeft' : 'insideTopRight', 
                   fill: '#F59E0B',
                   fontSize: 10
                 }} 
@@ -148,7 +148,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                 strokeDasharray="3 3" 
                 label={{ 
                   value: 'Period end', 
-                  position: hasOverlappingDates() ? 'insideTopLeft' : 'insideTopRight', 
+                  position: hasOverlappingDates() ? 'insideBottomLeft' : 'insideBottomRight', 
                   fill: '#64748B',
                   fontSize: 10
                 }} 

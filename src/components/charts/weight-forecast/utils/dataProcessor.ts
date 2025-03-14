@@ -1,3 +1,4 @@
+
 import { WeighIn, Period } from '@/lib/types';
 import { addWeeks, differenceInWeeks } from 'date-fns';
 import { WeeklyWeightData } from './types';
@@ -102,8 +103,12 @@ export const processDailyData = (
   
   // Add each unique weigh-in
   sortedWeighIns.forEach(entry => {
-    const dateKey = new Date(entry.date).toISOString().split('T')[0];
-    uniqueEntries.set(dateKey, entry);
+    const entryDate = new Date(entry.date);
+    // Only include entries that are after the period start date
+    if (entryDate >= startDate) {
+      const dateKey = entryDate.toISOString().split('T')[0];
+      uniqueEntries.set(dateKey, entry);
+    }
   });
   
   // Convert to our data format
@@ -112,10 +117,11 @@ export const processDailyData = (
   Array.from(uniqueEntries.values())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .forEach(entry => {
-      if (new Date(entry.date) > startDate) {
+      const entryDate = new Date(entry.date);
+      if (entryDate > startDate) {
         dailyData.push({
-          week: differenceInWeeks(new Date(entry.date), startDate),
-          date: new Date(entry.date),
+          week: differenceInWeeks(entryDate, startDate),
+          date: entryDate,
           weight: isImperial ? entry.weight * 2.20462 : entry.weight,
           isProjected: false
         });

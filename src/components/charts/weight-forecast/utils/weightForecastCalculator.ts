@@ -22,7 +22,7 @@ export const calculateChartData = (
   
   // Initially, we'll set up for a projection that could go as far as the period end date
   // plus some additional weeks for reasonable extrapolation
-  const maxInitialProjectionDate = addWeeks(endDate, 2); // Extend past period end date by 2 weeks
+  const maxInitialProjectionDate = addWeeks(endDate, 4); // Extend past period end date by 4 weeks to ensure target date is visible
   const totalWeeks = differenceInWeeks(maxInitialProjectionDate, startDate) + 1;
   
   // Convert target weight to display units (kg to lbs if imperial)
