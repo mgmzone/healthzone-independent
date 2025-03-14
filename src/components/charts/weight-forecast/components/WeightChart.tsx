@@ -36,29 +36,30 @@ const WeightChart: React.FC<WeightChartProps> = ({
   
   // Get the last actual data point
   const lastActualPoint = actualData.length > 0 ? actualData[actualData.length - 1] : null;
-  const lastActualDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
   
-  // Create forecast data - ensure it includes the last actual point as its first point
-  let forecastData = displayData.filter(d => !d.isActual && d.isForecast);
+  // Process forecast data
+  let forecastData = [];
   
-  // Ensure the forecast data starts with the last actual point
-  if (lastActualPoint && activeView === 'forecast') {
-    // Remove any existing duplicate of the last actual point in forecast data
-    forecastData = forecastData.filter(
-      d => new Date(d.date).getTime() !== lastActualDate.getTime()
+  if (activeView === 'forecast' && lastActualPoint) {
+    // Extract all forecast points (those marked with isForecast)
+    forecastData = displayData.filter(d => d.isForecast);
+    
+    // Ensure forecastData starts with the last actual point
+    const lastActualExists = forecastData.some(
+      d => new Date(d.date).getTime() === new Date(lastActualPoint.date).getTime()
     );
     
-    // Insert the last actual point at the beginning of forecast data
-    forecastData.unshift({
-      date: lastActualPoint.date,
-      weight: lastActualPoint.weight,
-      isActual: false,
-      isForecast: true
-    });
+    if (!lastActualExists) {
+      forecastData.unshift({
+        ...lastActualPoint,
+        isActual: false,
+        isForecast: true
+      });
+    }
+    
+    // Sort by date
+    forecastData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
-  
-  // Sort the forecast data by date to ensure proper rendering
-  forecastData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Find target date (the last date in the forecast)
   const targetDate = forecastData.length > 0 ? new Date(forecastData[forecastData.length - 1].date) : null;

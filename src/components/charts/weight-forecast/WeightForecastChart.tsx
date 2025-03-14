@@ -22,7 +22,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('forecast'); // Default to forecast view
   
-  const { chartData, forecastData, minWeight, maxWeight, hasValidData } = useWeightForecastData(
+  const { chartData, minWeight, maxWeight, hasValidData } = useWeightForecastData(
     weighIns,
     currentPeriod,
     isImperial,
@@ -37,15 +37,14 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     );
   }
 
-  // Get the appropriate data based on the active view
-  const displayData = activeView === 'actual' ? chartData : forecastData;
-  
+  // For the actual view, we show only actual data points
+  // For the forecast view, we show all data points (the chart component will handle the styling)
   return (
     <div className="h-[400px] w-full relative">
       <ViewToggleButtons activeView={activeView} setActiveView={setActiveView} />
       
       <WeightChart
-        displayData={displayData}
+        displayData={chartData}
         minWeight={minWeight}
         maxWeight={maxWeight}
         isImperial={isImperial}

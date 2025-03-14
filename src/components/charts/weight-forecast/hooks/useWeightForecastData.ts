@@ -47,7 +47,7 @@ export const useWeightForecastData = (
       chartData.push({
         date: periodStartDate,
         weight: isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
-        isActual: false
+        isActual: true  // Mark as actual data point
       });
     }
     
@@ -70,17 +70,14 @@ export const useWeightForecastData = (
     // Generate the forecast data
     const generateForecastData = () => {
       // If we have less than 2 points, we can't make a forecast
-      if (chartData.length < 2) return chartData;
+      if (chartData.length < 2) return [];
 
       // Get the converted target weight if provided
       const convertedTargetWeight = targetWeight !== undefined ? 
         (isImperial ? targetWeight * 2.20462 : targetWeight) : null;
 
       // Get the last actual weigh-in (this is where the forecast should start)
-      const actualPoints = chartData.filter(point => point.isActual);
-      if (actualPoints.length === 0) return chartData;
-      
-      const lastActualPoint = actualPoints[actualPoints.length - 1];
+      const lastActualPoint = chartData[chartData.length - 1];
       
       // Calculate the average daily weight change based on the actual data
       const firstPoint = chartData[0];
@@ -103,12 +100,12 @@ export const useWeightForecastData = (
         avgDailyChange = Math.min(avgDailyChange, maxDailyGain);
       }
 
-      // Start with ONLY the last actual point as first forecast point for a clean connection
+      // Start with the last actual point as the beginning of forecast
       const forecastData = [{
         date: lastActualPoint.date,
         weight: lastActualPoint.weight,
-        isActual: false,
-        isForecast: true
+        isActual: false,  // Mark as not actual
+        isForecast: true  // Mark as forecast
       }];
 
       // If we already reached the end date, no need to forecast further
@@ -179,20 +176,23 @@ export const useWeightForecastData = (
     // Get forecast data points
     const forecastData = generateForecastData();
     
-    // Add forecast points to the overall chart data
-    // but flag them as forecast so the chart can handle them specially
+    // Combine actual data with forecast data for the full display
+    // For displaying in different views, we'll filter based on the isActual and isForecast flags
     const combinedData = [...chartData];
+    
+    // Only add forecast points that don't overlap with actual data
     forecastData.forEach(point => {
-      // Only add forecast points that aren't duplicates of existing actual points
-      const isExistingActualPoint = chartData.some(
-        cp => cp.isActual && new Date(cp.date).getTime() === new Date(point.date).getTime()
+      const existingPoint = chartData.find(
+        cp => new Date(cp.date).getTime() === new Date(point.date).getTime()
       );
       
-      if (!isExistingActualPoint) {
-        // Add to the combined data
+      if (!existingPoint) {
         combinedData.push(point);
       }
     });
+    
+    // Sort combined data by date
+    combinedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
     // Get the max weight considering both actual data and forecast data
     const allWeights = [...combinedData.map(item => item.weight)];
@@ -200,7 +200,7 @@ export const useWeightForecastData = (
 
     return {
       chartData: combinedData,
-      forecastData, // Keep separate for reference
+      forecastData,
       minWeight,
       maxWeight,
       hasValidData: true
