@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { LineChart } from 'lucide-react';
 import { format } from 'date-fns';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface HealthStatisticsProps {
   formData: {
@@ -92,15 +93,21 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
           <>
             <div className="space-y-2">
               <Label htmlFor="startDate" className="text-left block">Session Start Date</Label>
-              <div className="text-base">
-                {formatDisplayDate(currentPeriod.startDate)}
-              </div>
+              <Input
+                id="startDate"
+                value={formatDisplayDate(currentPeriod.startDate)}
+                disabled
+                className="bg-muted/50"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="endDate" className="text-left block">Session End Date</Label>
-              <div className="text-base">
-                {formatDisplayDate(currentPeriod.endDate)}
-              </div>
+              <Input
+                id="endDate"
+                value={formatDisplayDate(currentPeriod.endDate)}
+                disabled
+                className="bg-muted/50"
+              />
             </div>
           </>
         )}
@@ -108,76 +115,69 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
         {/* Second row: Starting and Target Weight */}
         <div className="space-y-2">
           <Label htmlFor="startingWeight" className="text-left block">Starting Weight</Label>
-          <div className="text-base">
-            {formatWeight(formData.startingWeight)}
-            {formData.startingWeight ? <span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span> : ''}
-          </div>
+          <Input
+            id="startingWeight"
+            value={formData.startingWeight ? `${formatWeight(formData.startingWeight)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="targetWeight" className="text-left block">Target Weight</Label>
-          <div className="text-base">
-            {currentPeriod?.targetWeight ? (
-              <>
-                {isImperial 
-                  ? (currentPeriod.targetWeight * 2.20462).toFixed(1) 
-                  : currentPeriod.targetWeight.toFixed(1)}
-                <span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
-              </>
-            ) : ''}
-          </div>
+          <Input
+            id="targetWeight"
+            value={currentPeriod?.targetWeight ? 
+              `${isImperial ? (currentPeriod.targetWeight * 2.20462).toFixed(1) : currentPeriod.targetWeight.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
         
         {/* Third row: Target Loss and Lost Thus Far */}
         <div className="space-y-2">
           <Label htmlFor="targetLoss" className="text-left block">Target Loss</Label>
-          <div className="text-base">
-            {targetLoss ? (
-              <>
-                {targetLoss.toFixed(1)}<span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
-              </>
-            ) : ''}
-          </div>
+          <Input
+            id="targetLoss"
+            value={targetLoss ? `${targetLoss.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="lostThusFar" className="text-left block">Lost Thus Far</Label>
-          <div className="text-base">
-            {totalWeightLoss ? (
-              <>
-                {totalWeightLoss.toFixed(1)}<span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
-              </>
-            ) : ''}
-          </div>
+          <Input
+            id="lostThusFar"
+            value={totalWeightLoss ? `${totalWeightLoss.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
         
         {/* Fourth row: Target Loss/Week and Actual Loss/Week */}
         <div className="space-y-2">
           <Label htmlFor="targetLossPerWeek" className="text-left block">Target Loss/Week</Label>
-          <div className="text-base">
-            {currentPeriod?.weightLossPerWeek ? (
-              <>
-                {isImperial 
-                  ? (currentPeriod.weightLossPerWeek * 2.20462).toFixed(2) 
-                  : currentPeriod.weightLossPerWeek.toFixed(2)}
-                <span className="ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
-              </>
-            ) : ''}
-          </div>
+          <Input
+            id="targetLossPerWeek"
+            value={currentPeriod?.weightLossPerWeek ? 
+              `${isImperial ? (currentPeriod.weightLossPerWeek * 2.20462).toFixed(2) : currentPeriod.weightLossPerWeek.toFixed(2)} ${isImperial ? 'lbs' : 'kg'}/week` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="actualLossPerWeek" className="text-left block">Actual Loss/Week</Label>
-          <div className="text-base">
-            {currentAvgWeightLoss !== undefined ? (
-              <>
-                {isImperial 
-                  ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(2) 
-                  : Math.abs(currentAvgWeightLoss).toFixed(2)}
-                <span className="ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
-                <Badge variant={currentAvgWeightLoss < 0 ? "secondary" : "destructive"} className="ml-2 text-xs">
-                  {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
-                </Badge>
-              </>
-            ) : (
-              'Not enough data'
+          <div className="flex items-center gap-2">
+            <Input
+              id="actualLossPerWeek"
+              value={currentAvgWeightLoss !== undefined ? 
+                `${isImperial ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(2) : Math.abs(currentAvgWeightLoss).toFixed(2)} ${isImperial ? 'lbs' : 'kg'}/week` : 'Not enough data'}
+              disabled
+              className="bg-muted/50"
+            />
+            {currentAvgWeightLoss !== undefined && (
+              <Badge variant={currentAvgWeightLoss < 0 ? "secondary" : "destructive"} className="text-xs">
+                {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
+              </Badge>
             )}
           </div>
         </div>
@@ -185,25 +185,23 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
         {/* Fifth row: Progress percentage */}
         <div className="space-y-2">
           <Label htmlFor="weightLossProgress" className="text-left block">Weight Loss Progress</Label>
-          <div className="text-base">
-            {currentPeriod && progressPercentage !== null ? (
-              <>
-                {progressPercentage.toFixed(2)}<span className="ml-1">%</span>
-              </>
-            ) : ''}
-          </div>
+          <Input
+            id="weightLossProgress"
+            value={currentPeriod && progressPercentage !== null ? `${progressPercentage.toFixed(2)}%` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
         
         {/* Current Weight (read-only) */}
         <div className="space-y-2">
           <Label htmlFor="currentWeight" className="text-left block">Current Weight</Label>
-          <div className="text-base">
-            {formData.currentWeight ? (
-              <>
-                {formData.currentWeight.toFixed(1)}<span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
-              </>
-            ) : ''}
-          </div>
+          <Input
+            id="currentWeight"
+            value={formData.currentWeight ? `${formData.currentWeight.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+            disabled
+            className="bg-muted/50"
+          />
         </div>
       </div>
     </div>
