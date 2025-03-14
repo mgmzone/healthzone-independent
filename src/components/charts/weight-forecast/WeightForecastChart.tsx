@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart,
@@ -9,10 +8,12 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  Dot,
 } from 'recharts';
 import { WeeklyWeightData, calculateChartData, calculateWeightRange, formatDateForDisplay } from './weightForecastUtils';
 import { Period, WeighIn } from '@/lib/types';
 import CustomTooltip from './CustomTooltip';
+import { format } from 'date-fns';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -55,7 +56,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     if (!currentPeriod) return { minWeight: 0, maxWeight: 100 };
     
     const allWeights = chartData.map(item => item.weight);
-    // Fix here: Pass only the chartData array and targetWeight as optional second parameter
     const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
     const { minWeight, maxWeight } = calculateWeightRange(chartData, targetWeight);
     
@@ -79,34 +79,25 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
       </div>
     );
   }
+
+  const today = new Date();
+  const formattedToday = formatDateForDisplay(today);
   
-  const hasOverlappingDates = (data: WeeklyWeightData[]): boolean => {
-    if (data.length < 2) return false;
-    
-    for (let i = 1; i < data.length; i++) {
-      if (data[i].date.getTime() === data[i - 1].date.getTime()) {
-        return true;
-      }
+  const renderDot = (props: any) => {
+    const { cx, cy, payload } = props;
+    if (!payload.isProjected) {
+      return (
+        <Dot 
+          cx={cx} 
+          cy={cy} 
+          r={4}
+          fill="#8884d8"
+          stroke="#fff"
+          strokeWidth={2}
+        />
+      );
     }
-    
-    return false;
-  };
-  
-  const targetDatePosition = targetDate ? chartData.findIndex(item => item.date >= targetDate) : -1;
-  
-  const getTargetDatePosition = (): number | null => {
-    if (!targetDate) return null;
-    
-    const index = chartData.findIndex(item => item.date >= targetDate);
-    return index !== -1 ? index : null;
-  };
-  
-  const getPeriodEndPosition = (): number | null => {
-    if (!currentPeriod?.endDate) return null;
-    
-    const endDate = new Date(currentPeriod.endDate);
-    const index = chartData.findIndex(item => item.date >= endDate);
-    return index !== -1 ? index : null;
+    return null;
   };
   
   return (
@@ -131,7 +122,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
-          // Fix here: Ensure value is a number before calling toFixed
           tickFormatter={(value) => typeof value === 'number' ? value.toFixed(1) : value.toString()}
         />
         <Tooltip 
@@ -143,16 +133,46 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           stroke="#8884d8"
           fill="#8884d8"
           name="Weight"
+          dot={renderDot}
         />
+        
+        <ReferenceLine
+          x={formattedToday}
+          stroke="#2563eb"
+          strokeWidth={2}
+          label={{ 
+            value: 'Today', 
+            position: 'insideTopRight',
+            fill: '#2563eb',
+            fontSize: 12
+          }}
+        />
+        
         {targetDate && (
           <ReferenceLine
             x={formatDateForDisplay(targetDate)}
-            stroke="green"
+            stroke="#16a34a"
+            strokeWidth={2}
             strokeDasharray="3 3"
             label={{ 
-              value: `Target Date: ${formatDateForDisplay(targetDate)}`, 
+              value: 'Target Date', 
               position: 'insideTopRight',
-              fill: 'green'
+              fill: '#16a34a',
+              fontSize: 12
+            }}
+          />
+        )}
+        
+        {currentPeriod.endDate && (
+          <ReferenceLine
+            x={formatDateForDisplay(new Date(currentPeriod.endDate))}
+            stroke="#dc2626"
+            strokeWidth={2}
+            label={{ 
+              value: 'Period End', 
+              position: 'insideTopRight',
+              fill: '#dc2626',
+              fontSize: 12
             }}
           />
         )}
