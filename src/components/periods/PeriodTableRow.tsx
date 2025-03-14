@@ -41,8 +41,10 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
     ? format(projectedEndDate, "MMM d, yyyy")
     : "N/A";
   
-  const weeks = getWeeksInPeriod(period.startDate, period.endDate);
-  const months = getMonthsInPeriod(period.startDate, period.endDate);
+  // Calculate durations correctly using the projected end date when available
+  const endDateForDuration = projectedEndDate || endDate;
+  const weeks = getWeeksInPeriod(period.startDate, endDateForDuration);
+  const months = getMonthsInPeriod(period.startDate, endDateForDuration);
   
   const isImperial = weightUnit === 'lbs';
   const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
@@ -74,9 +76,9 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
             Projected completion: {formattedProjectedEndDate}
           </div>
         )}
-        {period.endDate && period.projectedEndDate && (
+        {endDate && endDate !== projectedEndDate && (
           <div className="text-xs text-muted-foreground">
-            Original goal: {format(ensureDate(period.endDate), "MMM d, yyyy")}
+            Original goal: {formattedEndDate}
           </div>
         )}
       </td>

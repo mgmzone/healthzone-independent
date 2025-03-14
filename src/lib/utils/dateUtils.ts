@@ -9,6 +9,8 @@ export const getWeeksInPeriod = (startDate: Date | string, endDate: Date | strin
   const start = ensureDate(startDate);
   const end = ensureDate(endDate);
   if (!end || !start) return 0;
+  
+  // Calculate weeks and round up to nearest whole number
   return Math.ceil(differenceInWeeks(end, start));
 };
 
@@ -16,7 +18,9 @@ export const getMonthsInPeriod = (startDate: Date | string, endDate: Date | stri
   const start = ensureDate(startDate);
   const end = ensureDate(endDate);
   if (!end || !start) return 0;
-  return Math.ceil(differenceInMonths(end, start));
+  
+  // Calculate months and round to nearest whole number
+  return Math.round(differenceInMonths(end, start));
 };
 
 export const getTimeProgressPercentage = (startDate: Date | string, endDate: Date | string | undefined, projectedEndDate?: Date | string | undefined): number => {
