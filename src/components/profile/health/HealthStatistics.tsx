@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { LineChart } from 'lucide-react';
-import { formatDate } from '@/lib/utils/dateUtils';
+import { format } from 'date-fns';
 
 interface HealthStatisticsProps {
   formData: {
@@ -75,7 +75,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   // Format date for display
   const formatDisplayDate = (dateString?: string): string => {
     if (!dateString) return 'Present';
-    return formatDate(new Date(dateString), "MM/dd/yyyy");
+    return format(new Date(dateString), "MM/dd/yyyy");
   };
   
   return (
@@ -93,13 +93,13 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               <div className="text-xl font-semibold">
                 {formatDisplayDate(currentPeriod.startDate)}
               </div>
-              <div className="text-xs text-muted-foreground">Session Start Date</div>
+              <div className="text-sm text-muted-foreground">Session Start Date</div>
             </div>
             <div>
               <div className="text-xl font-semibold">
                 {formatDisplayDate(currentPeriod.endDate)}
               </div>
-              <div className="text-xs text-muted-foreground">Session End Date</div>
+              <div className="text-sm text-muted-foreground">Session End Date</div>
             </div>
           </>
         )}
@@ -110,7 +110,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
             {formatWeight(formData.startingWeight)}
             {formData.startingWeight ? <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span> : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Starting Weight</div>
+          <div className="text-sm text-muted-foreground">Starting Weight</div>
         </div>
         <div>
           <div className="text-xl font-semibold">
@@ -123,7 +123,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               </>
             ) : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Target Weight</div>
+          <div className="text-sm text-muted-foreground">Target Weight</div>
         </div>
         
         {/* Third row: Target Loss and Lost Thus Far */}
@@ -135,7 +135,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               </>
             ) : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Target Loss</div>
+          <div className="text-sm text-muted-foreground">Target Loss</div>
         </div>
         <div>
           <div className="text-xl font-semibold">
@@ -145,7 +145,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               </>
             ) : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Lost Thus Far</div>
+          <div className="text-sm text-muted-foreground">Lost Thus Far</div>
         </div>
         
         {/* Fourth row: Target Loss/Week and Actual Loss/Week */}
@@ -160,7 +160,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               </>
             ) : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Target Loss/Week</div>
+          <div className="text-sm text-muted-foreground">Target Loss/Week</div>
         </div>
         <div>
           <div className="text-xl font-semibold">
@@ -178,7 +178,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               'Not enough data'
             )}
           </div>
-          <div className="text-xs text-muted-foreground">Actual Loss/Week</div>
+          <div className="text-sm text-muted-foreground">Actual Loss/Week</div>
         </div>
         
         {/* Fifth row: Progress percentage */}
@@ -190,7 +190,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               </>
             ) : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Weight Loss Progress</div>
+          <div className="text-sm text-muted-foreground">Weight Loss Progress</div>
         </div>
         
         {/* Current Weight (read-only) */}
@@ -202,7 +202,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               </>
             ) : ''}
           </div>
-          <div className="text-xs text-muted-foreground">Current Weight</div>
+          <div className="text-sm text-muted-foreground">Current Weight</div>
         </div>
       </div>
     </div>
