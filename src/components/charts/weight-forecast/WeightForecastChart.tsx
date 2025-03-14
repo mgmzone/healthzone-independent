@@ -7,9 +7,16 @@ import {
   calculateChartData, 
   calculateWeightRange,
   formatDateForDisplay,
-} from './weightForecastUtils';
+} from './utils/weightForecastCalculator';
 import { convertWeight } from '@/lib/weight/convertWeight';
 import CustomTooltip from './CustomTooltip';
+
+// Import everything from the calculator module
+import { 
+  calculateChartData as calculateChartDataFromCalc,
+  calculateWeightRange as calculateWeightRangeFromCalc,
+  formatDateForDisplay as formatDateFromCalc 
+} from './weightForecastUtils';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -22,8 +29,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   currentPeriod,
   isImperial 
 }) => {
+  // Use the re-exported functions to maintain backward compatibility
   const { chartData, targetDate } = useMemo(() => {
-    return calculateChartData(weighIns, currentPeriod, isImperial);
+    return calculateChartDataFromCalc(weighIns, currentPeriod, isImperial);
   }, [weighIns, currentPeriod, isImperial]);
   
   const targetWeight = useMemo(() => {
@@ -31,7 +39,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   }, [currentPeriod, isImperial]);
   
   const { minWeight, maxWeight } = useMemo(() => {
-    return calculateWeightRange(chartData, targetWeight);
+    return calculateWeightRangeFromCalc(chartData, targetWeight);
   }, [chartData, targetWeight]);
 
   const today = new Date();
@@ -176,7 +184,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
       
       {targetDate && (
         <div className="text-xs text-muted-foreground mt-2 text-center">
-          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateForDisplay(targetDate)}</span>
+          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateFromCalc(targetDate)}</span>
         </div>
       )}
     </>
