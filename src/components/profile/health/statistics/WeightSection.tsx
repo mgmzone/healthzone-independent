@@ -20,39 +20,41 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   targetLoss,
   isImperial
 }) => {
-  // For debugging
-  console.log('Weight Stats (Before Calculation):', { 
-    startingWeight, 
-    currentWeight, 
-    targetWeight, 
-    totalWeightLoss, 
-    targetLoss
+  // Debug inputs
+  console.log('Weight Section Input Values:', {
+    startingWeight,
+    currentWeight,
+    targetWeight,
+    totalWeightLoss,
+    targetLoss,
+    isImperial
   });
 
-  // IMPORTANT: Calculate the actual weight loss
-  // This matches the same calculation used on the Weight page
-  // We need to show the actual loss value regardless of whether it's negative or positive
-  const actualWeightLoss = startingWeight && currentWeight 
+  // Calculate weight loss - this should match exactly with the Weight page
+  const weightLoss = startingWeight && currentWeight 
     ? startingWeight - currentWeight 
     : 0;
   
-  console.log('Actual weight loss calculation:', {
+  console.log('Direct weight loss calculation:', {
     startingWeight,
     currentWeight,
-    calculation: `${startingWeight} - ${currentWeight} = ${actualWeightLoss}`
+    weightLoss
   });
   
-  // Format the weight loss for display
-  const formattedWeightLoss = actualWeightLoss 
-    ? formatWeightWithUnit(Math.abs(actualWeightLoss), isImperial) 
-    : '0.0 ' + (isImperial ? 'lbs' : 'kg');
+  // Format with proper weight units
+  let weightLossDisplay;
   
-  // Add a "+" prefix for weight gain, "-" for weight loss
-  const weightLossDisplay = actualWeightLoss !== 0 
-    ? (actualWeightLoss < 0 ? '+' : '-') + formattedWeightLoss.trim()
-    : formattedWeightLoss;
+  if (weightLoss === 0) {
+    weightLossDisplay = '0.0 ' + (isImperial ? 'lbs' : 'kg');
+  } else if (weightLoss > 0) {
+    // Weight LOSS (positive number = weight went down)
+    weightLossDisplay = '-' + formatWeightWithUnit(Math.abs(weightLoss), isImperial).trim();
+  } else {
+    // Weight GAIN (negative number = weight went up)
+    weightLossDisplay = '+' + formatWeightWithUnit(Math.abs(weightLoss), isImperial).trim();
+  }
   
-  console.log('Final displayed weight loss:', weightLossDisplay);
+  console.log('Final display value:', weightLossDisplay);
 
   return (
     <>

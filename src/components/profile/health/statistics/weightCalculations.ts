@@ -27,6 +27,7 @@ export const calculateProgressPercentage = (
 
 /**
  * Calculate total weight loss (difference between starting and current weight)
+ * Positive value means weight loss, negative means weight gain
  */
 export const calculateTotalWeightLoss = (
   startingWeight: number | undefined,
@@ -35,7 +36,7 @@ export const calculateTotalWeightLoss = (
   // If either value is missing, we can't calculate
   if (!startingWeight || !currentWeight) return null;
   
-  // Calculate the actual weight difference (can be positive or negative)
+  // Simply return the raw difference
   return startingWeight - currentWeight;
 };
 
