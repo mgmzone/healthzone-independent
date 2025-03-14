@@ -34,9 +34,6 @@ export const useProfileFormState = () => {
     if (profile && !profileLoadedRef.current) {
       console.log('Setting profile data:', profile);
       
-      // Determine if we're using imperial units
-      const isImperial = profile.measurementUnit === 'imperial';
-      
       // Create a fresh object without reference issues
       const newFormData = {
         firstName: profile.firstName || '',
@@ -45,7 +42,7 @@ export const useProfileFormState = () => {
         birthDate: profile.birthDate instanceof Date ? new Date(profile.birthDate) : new Date(),
         gender: profile.gender || 'other',
         height: profile.height || 0,
-        // Current weight comes in KG and needs to be displayed in the user's unit
+        // All weights from server are in KG (metric)
         currentWeight: profile.currentWeight || 0,
         startingWeight: profile.startingWeight || 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',

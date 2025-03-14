@@ -28,6 +28,14 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
     ? `${Math.abs(isImperial ? (currentAvgWeightLoss * 2.20462) : currentAvgWeightLoss).toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
     : 'Not enough data';
     
+  console.log("ProgressSection values:", {
+    progressPercentage,
+    currentWeight,
+    weightLossPerWeek,
+    currentAvgWeightLoss,
+    isImperial
+  });
+  
   return (
     <>
       <StatisticInput

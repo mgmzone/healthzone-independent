@@ -20,7 +20,20 @@ export const calculateProgressPercentage = (
   // Calculate percentage of progress
   if (totalToLose <= 0) return 0; // Prevent division by zero or negative values
   
+  // If current weight is above starting weight, progress is 0%
+  if (lostSoFar < 0) return 0;
+  
   const percentage = (lostSoFar / totalToLose) * 100;
+  
+  console.log('Progress calculation:', {
+    startingWeight,
+    currentWeight,
+    targetWeight,
+    totalToLose,
+    lostSoFar,
+    percentage
+  });
+  
   return Math.min(Math.max(percentage, 0), 100); // Clamp between 0-100%
 };
 
@@ -36,7 +49,9 @@ export const calculateTotalWeightLoss = (
   if (!startingWeight || !currentWeight) return null;
   
   // Return the raw difference - positive means loss, negative means gain
-  return startingWeight - currentWeight;
+  const weightLoss = startingWeight - currentWeight;
+  console.log('Total weight loss calc:', { startingWeight, currentWeight, weightLoss });
+  return weightLoss;
 };
 
 /**
@@ -48,5 +63,5 @@ export const calculateTargetLoss = (
 ): number | null => {
   if (!startingWeight || !targetWeight) return null;
   
-  return Math.abs(startingWeight - targetWeight);
+  return startingWeight - targetWeight;
 };

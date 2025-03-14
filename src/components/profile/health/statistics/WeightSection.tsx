@@ -2,7 +2,6 @@
 import React from 'react';
 import StatisticInput from './StatisticInput';
 import { formatWeightWithUnit } from '@/lib/weight/formatWeight';
-import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface WeightSectionProps {
   startingWeight?: number;
@@ -21,7 +20,6 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   targetLoss,
   isImperial
 }) => {
-  // Format weight display - all inputs are in kg, convert for display if needed
   let weightLossDisplay;
   
   if (totalWeightLoss === null || !startingWeight || !currentWeight) {
@@ -34,10 +32,19 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       weightLossDisplay = formatWeightWithUnit(totalWeightLoss, isImperial);
     } else {
       // Weight GAIN (negative number = weight went up)
-      const displayValue = Math.abs(isImperial ? convertWeight(totalWeightLoss, true) : totalWeightLoss);
-      weightLossDisplay = '+' + displayValue.toFixed(1) + ' ' + (isImperial ? 'lbs' : 'kg');
+      const gainAmount = Math.abs(totalWeightLoss);
+      weightLossDisplay = '+' + formatWeightWithUnit(gainAmount, isImperial);
     }
   }
+  
+  console.log("WeightSection values:", {
+    startingWeight,
+    currentWeight,
+    targetWeight,
+    totalWeightLoss,
+    weightLossDisplay,
+    isImperial
+  });
   
   return (
     <>

@@ -4,6 +4,7 @@ import DateSection from './statistics/DateSection';
 import WeightSection from './statistics/WeightSection';
 import ProgressSection from './statistics/ProgressSection';
 import { calculateProgressPercentage, calculateTotalWeightLoss, calculateTargetLoss } from './statistics/weightCalculations';
+import { convertToMetric, convertWeight } from '@/lib/weight/convertWeight';
 
 interface HealthStatisticsProps {
   formData: {
@@ -30,13 +31,12 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
-  // Use currentPeriod's startWeight as the starting weight (stored in metric/kg)
+  // All weights come in from database as kg (metric)
   const startingWeightKg = currentPeriod?.startWeight;
-  
-  // Current weight from formData is already in the correct display unit (from profileFormState)
-  // For imperial users, this is already in lbs
-  const currentWeightKg = formData.currentWeight;
   const targetWeightKg = currentPeriod?.targetWeight;
+  
+  // Current weight from profile service is in kg
+  const currentWeightKg = formData.currentWeight;
   
   // Calculate derived values (all calculations done with metric values)
   const progressPercentage = calculateProgressPercentage(
@@ -54,6 +54,14 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
     startingWeightKg,
     targetWeightKg
   );
+  
+  console.log('Weight values (kg):', {
+    startingWeightKg,
+    currentWeightKg,
+    targetWeightKg,
+    totalWeightLoss,
+    progressPercentage
+  });
   
   return (
     <div className="mb-6 bg-muted/30 rounded-lg p-4 border">
