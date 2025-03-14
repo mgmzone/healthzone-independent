@@ -18,12 +18,13 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
   currentWeight,
   isImperial
 }) => {
-  // Format the target loss per week
+  // Format the target loss per week - this is already in the correct display units
+  // from the database (unlike other weight values which are stored in kg)
   const formattedTargetLoss = weightLossPerWeek !== undefined
     ? `${weightLossPerWeek.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
     : '';
     
-  // Format the actual loss per week
+  // Format the actual loss per week - (also already in display units)
   const formattedActualLoss = currentAvgWeightLoss !== undefined
     ? `${Math.abs(currentAvgWeightLoss).toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
     : 'Not enough data';
@@ -33,7 +34,7 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
       <StatisticInput
         id="targetLossPerWeek"
         label="Target Loss/Week"
-        value={weightLossPerWeek ? formattedTargetLoss : ''}
+        value={formattedTargetLoss}
       />
       <StatisticInput
         id="actualLossPerWeek"

@@ -1,14 +1,11 @@
 
-import { convertWeight } from '@/lib/weight/convertWeight';
-
 /**
  * Calculate the percentage of progress towards weight loss goal
  */
 export const calculateProgressPercentage = (
   startingWeight: number | undefined,
   currentWeight: number | undefined,
-  targetWeight: number | undefined,
-  isImperial: boolean
+  targetWeight: number | undefined
 ): number | null => {
   if (!startingWeight || !currentWeight || !targetWeight) {
     return null;
@@ -47,8 +44,7 @@ export const calculateTotalWeightLoss = (
  */
 export const calculateTargetLoss = (
   startingWeight: number | undefined,
-  targetWeight: number | undefined,
-  isImperial: boolean
+  targetWeight: number | undefined
 ): number | null => {
   if (!startingWeight || !targetWeight) return null;
   
