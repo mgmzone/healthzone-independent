@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import ViewToggleButtons from './components/ViewToggleButtons';
 import WeightChart from './components/WeightChart';
@@ -29,6 +29,17 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     isImperial,
     targetWeight
   );
+  
+  useEffect(() => {
+    // Log the state of the chart data when it changes
+    console.log('WeightForecastChart data updated:', {
+      hasValidData,
+      chartDataLength: chartData.length,
+      targetLineLength: targetLine.length,
+      chartDataSample: chartData.slice(0, 2),
+      targetLineSample: targetLine.slice(0, 2)
+    });
+  }, [chartData, targetLine, hasValidData]);
   
   if (!hasValidData) {
     return (

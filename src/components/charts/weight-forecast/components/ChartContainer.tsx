@@ -42,20 +42,28 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
     dataSample: data.slice(0, 5)
   });
 
-  // Ensure we have processed data with proper timestamp values
+  // Ensure we have processed data with properly normalized timestamp values for Recharts
   const processedData = data.map(point => {
-    // Convert Date objects to timestamps for Recharts
-    const date = point.date instanceof Date 
-      ? point.date.getTime() 
-      : (typeof point.date === 'object' && point.date?._type === 'Date') 
-        ? point.date.value.value 
-        : new Date(point.date).getTime();
-        
+    // Extract the date value, handling different possible formats
+    let timestamp: number;
+    
+    if (point.date instanceof Date) {
+      timestamp = point.date.getTime();
+    } else if (typeof point.date === 'object' && point.date?._type === 'Date') {
+      timestamp = point.date.value.value;
+    } else if (typeof point.date === 'number') {
+      timestamp = point.date;
+    } else {
+      timestamp = new Date(point.date).getTime();
+    }
+    
     return {
       ...point,
-      date
+      date: timestamp
     };
   });
+
+  console.log('ChartContainer processed data example:', processedData.slice(0, 2));
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -73,6 +81,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
           dataKey="date"
           tickFormatter={(timestamp) => {
             try {
+              if (!timestamp) return '';
               return format(new Date(timestamp), 'MMM d');
             } catch (err) {
               console.error('Error formatting date:', timestamp, err);

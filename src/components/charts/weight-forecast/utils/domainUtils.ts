@@ -1,145 +1,16 @@
 
-import { SimpleWeightData } from './types';
+import { addDays } from 'date-fns';
 
 /**
- * Helper function to ensure date is a timestamp
+ * Separates chart data into actual and forecast data points
  */
-const ensureTimestamp = (dateValue: any): number => {
-  if (typeof dateValue === 'number') {
-    return dateValue;
-  }
+export const separateChartData = (chartData: any[]) => {
+  const actualData = chartData.filter(point => point.isActual === true);
+  const forecastData = chartData.filter(point => point.isForecast === true);
   
-  if (dateValue instanceof Date) {
-    return dateValue.getTime();
-  }
-  
-  // Handle serialized Date objects from console logs
-  if (typeof dateValue === 'object' && dateValue?._type === 'Date') {
-    return dateValue.value.value;
-  }
-  
-  try {
-    return new Date(dateValue).getTime();
-  } catch (e) {
-    console.error('Failed to convert date to timestamp:', dateValue, e);
-    return Date.now();
-  }
-};
-
-/**
- * Calculates the domain start and end timestamps for the chart x-axis
- */
-export const calculateChartDomain = (
-  displayData: any[],
-  targetLine: any[],
-  activeView: 'actual' | 'forecast'
-): { domainStart: number; domainEnd: number } => {
-  const today = new Date();
-  
-  if (!displayData || displayData.length === 0) {
-    return {
-      domainStart: today.getTime() - (7 * 24 * 60 * 60 * 1000), // 1 week ago
-      domainEnd: today.getTime() + (7 * 24 * 60 * 60 * 1000)    // 1 week from now
-    };
-  }
-  
-  // Get domain start date (earliest date in the dataset)
-  let earliestDate = today;
-  let foundEarlier = false;
-  
-  // Check displayData for earliest date
-  displayData.forEach(d => {
-    if (d && d.date) {
-      const dateTimestamp = ensureTimestamp(d.date);
-      const date = new Date(dateTimestamp);
-      if (!foundEarlier || date < earliestDate) {
-        earliestDate = date;
-        foundEarlier = true;
-      }
-    }
-  });
-  
-  // Check target line for earlier dates
-  if (targetLine && targetLine.length > 0) {
-    targetLine.forEach(point => {
-      if (point && point.date) {
-        const dateTimestamp = ensureTimestamp(point.date);
-        const date = new Date(dateTimestamp);
-        if (!foundEarlier || date < earliestDate) {
-          earliestDate = date;
-          foundEarlier = true;
-        }
-      }
-    });
-  }
-  
-  // Get domain end date based on active view
-  let latestDate = today;
-  
-  if (activeView === 'actual') {
-    // In actual view, just use actual data for domain
-    const actualData = displayData.filter(d => d.isActual);
-    if (actualData.length > 0) {
-      actualData.forEach(point => {
-        if (point && point.date) {
-          const dateTimestamp = ensureTimestamp(point.date);
-          const date = new Date(dateTimestamp);
-          if (date > latestDate) {
-            latestDate = date;
-          }
-        }
-      });
-    }
-  } else {
-    // In forecast view, use the latest end date from all data
-    const allPoints = [...displayData];
-    if (targetLine && targetLine.length > 0) {
-      allPoints.push(...targetLine);
-    }
-    
-    allPoints.forEach(point => {
-      if (point && point.date) {
-        const dateTimestamp = ensureTimestamp(point.date);
-        const date = new Date(dateTimestamp);
-        if (date > latestDate) {
-          latestDate = date;
-        }
-      }
-    });
-  }
-  
-  console.log('Domain calculation:', {
-    earliestDate,
-    latestDate,
-    activeView,
-    displayDataLength: displayData.length,
-    targetLineLength: targetLine.length
-  });
-  
-  return {
-    domainStart: earliestDate.getTime(),
-    domainEnd: latestDate.getTime()
-  };
-};
-
-/**
- * Separates data into actual and forecast datasets
- */
-export const separateChartData = (
-  displayData: any[]
-): { actualData: any[]; forecastData: any[] } => {
-  if (!displayData || displayData.length === 0) {
-    return { actualData: [], forecastData: [] };
-  }
-  
-  // Get actual data (those with isActual flag)
-  const actualData = displayData.filter(d => d && d.isActual === true);
-  
-  // Get forecast data (those with isForecast flag)
-  const forecastData = displayData.filter(d => d && d.isForecast === true);
-  
+  // Log the separation results
   console.log('Separated chart data:', {
-    originalLength: displayData.length,
+    originalLength: chartData.length,
     actualLength: actualData.length,
     forecastLength: forecastData.length,
     actualSample: actualData.length > 0 ? actualData[0] : null,
@@ -147,4 +18,82 @@ export const separateChartData = (
   });
   
   return { actualData, forecastData };
+};
+
+/**
+ * Calculates appropriate domain for chart axis
+ */
+export const calculateChartDomain = (chartData: any[], targetLine: any[], activeView: 'actual' | 'forecast') => {
+  // Extract dates safely regardless of date format
+  const extractDate = (point: any) => {
+    if (!point || !point.date) return null;
+    
+    // Handle various date formats
+    let date;
+    if (point.date instanceof Date) {
+      date = point.date;
+    } else if (typeof point.date === 'object' && point.date?._type === 'Date') {
+      date = new Date(point.date.value.value);
+    } else if (typeof point.date === 'number') {
+      date = new Date(point.date);
+    } else {
+      date = new Date(point.date);
+    }
+    
+    return date;
+  };
+  
+  // Get all valid dates
+  const allDates = [
+    ...chartData.map(point => extractDate(point)),
+    ...targetLine.map(point => extractDate(point))
+  ].filter(Boolean) as Date[];
+  
+  if (allDates.length === 0) {
+    // If no valid dates, use defaults
+    return {
+      domainStart: new Date().getTime(),
+      domainEnd: addDays(new Date(), 30).getTime()
+    };
+  }
+  
+  // Find earliest and latest dates
+  const timeValues = allDates.map(d => d.getTime());
+  const earliestDate = new Date(Math.min(...timeValues));
+  const latestDate = new Date(Math.max(...timeValues));
+  
+  console.log('Domain calculation:', {
+    earliestDate,
+    latestDate,
+    activeView,
+    displayDataLength: chartData.length,
+    targetLineLength: targetLine.length
+  });
+  
+  // For 'actual' view, only show the actual data range
+  if (activeView === 'actual') {
+    const actualData = chartData.filter(point => point.isActual === true);
+    if (actualData.length > 0) {
+      const actualDates = actualData
+        .map(point => extractDate(point))
+        .filter(Boolean) as Date[];
+      
+      if (actualDates.length > 0) {
+        const actualTimeValues = actualDates.map(d => d.getTime());
+        const earliestActualDate = new Date(Math.min(...actualTimeValues));
+        const latestActualDate = new Date(Math.max(...actualTimeValues));
+        
+        return {
+          domainStart: earliestActualDate.getTime(),
+          domainEnd: latestActualDate.getTime()
+        };
+      }
+    }
+  }
+  
+  // For forecast view or fallback, show the full range
+  return {
+    domainStart: earliestDate.getTime(),
+    domainEnd: latestDate.getTime()
+  };
 };
