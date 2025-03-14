@@ -101,39 +101,38 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     return null;
   };
   
-  // Find the index of today in the chart data or the closest date after today
-  const findTodayIndex = () => {
-    const todayTime = today.getTime();
-    return chartData.findIndex(item => {
-      const itemDate = new Date(item.date);
-      return itemDate.getTime() >= todayTime;
-    });
+  // Format date to string for use with ReferenceLine
+  const formatDateToString = (date: Date): string => {
+    return format(date, 'yyyy-MM-dd');
   };
   
-  // Find the index of the target date in the chart data
-  const findTargetDateIndex = () => {
-    if (!targetDate) return -1;
-    const targetTime = targetDate.getTime();
-    return chartData.findIndex(item => {
-      const itemDate = new Date(item.date);
-      return itemDate.getTime() >= targetTime;
-    });
+  // Get the date strings for reference lines
+  const todayStr = formatDateToString(today);
+  const targetDateStr = targetDate ? formatDateToString(targetDate) : null;
+  const periodEndStr = currentPeriod?.endDate ? formatDateToString(new Date(currentPeriod.endDate)) : null;
+  
+  // Find the exact dates in the chartData for reference lines
+  const findExactOrClosestDate = (dateStr: string | null): string | null => {
+    if (!dateStr) return null;
+    
+    // First try to find exact match
+    const found = chartData.find(item => formatDateToString(new Date(item.date)) === dateStr);
+    if (found) return formatDateToString(new Date(found.date));
+    
+    // If not found, find closest future date
+    const targetTime = new Date(dateStr).getTime();
+    const closestFuture = chartData
+      .filter(item => new Date(item.date).getTime() >= targetTime)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+      
+    return closestFuture ? formatDateToString(new Date(closestFuture.date)) : null;
   };
   
-  // Find the index of the period end date in the chart data
-  const findPeriodEndIndex = () => {
-    if (!currentPeriod.endDate) return -1;
-    const endDate = new Date(currentPeriod.endDate);
-    const endTime = endDate.getTime();
-    return chartData.findIndex(item => {
-      const itemDate = new Date(item.date);
-      return itemDate.getTime() >= endTime;
-    });
-  };
+  const exactTodayDate = findExactOrClosestDate(todayStr);
+  const exactTargetDate = findExactOrClosestDate(targetDateStr);
+  const exactPeriodEndDate = findExactOrClosestDate(periodEndStr);
   
-  const todayIndex = findTodayIndex();
-  const targetDateIndex = findTargetDateIndex();
-  const periodEndIndex = findPeriodEndIndex();
+  console.log('Reference lines:', { exactTodayDate, exactTargetDate, exactPeriodEndDate });
   
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -173,9 +172,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           dot={renderDot}
         />
         
-        {todayIndex >= 0 && (
+        {exactTodayDate && (
           <ReferenceLine
-            x={todayIndex}
+            x={exactTodayDate}
             stroke="#2563eb"
             strokeWidth={2}
             label={{ 
@@ -187,9 +186,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           />
         )}
         
-        {targetDateIndex >= 0 && (
+        {exactTargetDate && (
           <ReferenceLine
-            x={targetDateIndex}
+            x={exactTargetDate}
             stroke="#16a34a"
             strokeWidth={2}
             strokeDasharray="3 3"
@@ -202,9 +201,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           />
         )}
         
-        {periodEndIndex >= 0 && (
+        {exactPeriodEndDate && (
           <ReferenceLine
-            x={periodEndIndex}
+            x={exactPeriodEndDate}
             stroke="#dc2626"
             strokeWidth={2}
             label={{ 
