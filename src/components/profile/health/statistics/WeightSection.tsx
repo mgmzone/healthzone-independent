@@ -29,6 +29,11 @@ const WeightSection: React.FC<WeightSectionProps> = ({
     targetLoss 
   });
 
+  // Calculate the weight loss directly to ensure it matches the Weight page
+  const weightLoss = startingWeight && currentWeight && startingWeight > currentWeight 
+    ? startingWeight - currentWeight 
+    : 0;
+
   return (
     <>
       <StatisticInput
@@ -48,8 +53,8 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       />
       <StatisticInput
         id="lostThusFar"
-        label="Lost Thus Far"
-        value={totalWeightLoss !== null && totalWeightLoss > 0 ? formatWeightWithUnit(totalWeightLoss, isImperial) : '0.0 ' + (isImperial ? 'lbs' : 'kg')}
+        label="Lost This Period"
+        value={weightLoss > 0 ? formatWeightWithUnit(weightLoss, isImperial) : '0.0 ' + (isImperial ? 'lbs' : 'kg')}
       />
     </>
   );

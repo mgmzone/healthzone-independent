@@ -1,4 +1,3 @@
-
 /**
  * Calculate the percentage of progress towards weight loss goal
  */
@@ -35,10 +34,9 @@ export const calculateTotalWeightLoss = (
   // If either value is missing, we can't calculate
   if (!startingWeight || !currentWeight) return null;
   
-  // Calculate the absolute difference for weight change
-  // If startingWeight > currentWeight, there's weight loss (positive number)
-  // This matches the calculation on the Weight page
-  return startingWeight - currentWeight > 0 ? startingWeight - currentWeight : 0;
+  // Calculate weight loss - only return positive value when there's actual loss
+  // This exactly matches the calculation on the Weight page
+  return startingWeight > currentWeight ? startingWeight - currentWeight : 0;
 };
 
 /**
