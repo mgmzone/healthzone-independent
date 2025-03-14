@@ -31,6 +31,7 @@ export const calculateChartData = async (
   
   // Convert target weight to display units (kg to lbs if imperial)
   const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
+  const startWeight = isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
   
   // Process the daily weight data instead of weekly to get all recent weigh-ins
   const actualData = processDailyData(
@@ -44,7 +45,7 @@ export const calculateChartData = async (
   // Calculate projections using the processed data
   const result = await calculateWeightProjection(
     actualData,
-    isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
+    startWeight,
     targetWeight,
     startDate,
     totalWeeks,

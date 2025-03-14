@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { WeighIn, Period } from '@/lib/types';
 import { 
@@ -50,12 +49,10 @@ export function useChartData(
         const targetWeight = currentPeriod.targetWeight || startWeight;
 
         // Calculate chart data with projection
+        // Passing currentPeriod as a single argument to match the function signature
         const projectionResult: ProjectionResult = await calculateChartData(
           sortedWeighIns,
-          startWeight,
-          targetWeight,
-          startDate,
-          totalWeeks,
+          currentPeriod,
           isImperial
         );
 
