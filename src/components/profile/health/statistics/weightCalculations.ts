@@ -32,15 +32,13 @@ export const calculateTotalWeightLoss = (
   startingWeight: number | undefined,
   currentWeight: number | undefined
 ): number | null => {
+  // If either value is missing, we can't calculate
   if (!startingWeight || !currentWeight) return null;
   
-  // If starting weight is greater than current weight, there's a loss
-  if (startingWeight > currentWeight) {
-    return startingWeight - currentWeight;
-  }
-  
-  // No weight loss (or weight gain)
-  return 0;
+  // Calculate the absolute difference for weight change
+  // If startingWeight > currentWeight, there's weight loss (positive number)
+  // This matches the calculation on the Weight page
+  return startingWeight - currentWeight > 0 ? startingWeight - currentWeight : 0;
 };
 
 /**

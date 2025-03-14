@@ -49,7 +49,7 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       <StatisticInput
         id="lostThusFar"
         label="Lost Thus Far"
-        value={totalWeightLoss !== null ? formatWeightWithUnit(totalWeightLoss, isImperial) : ''}
+        value={totalWeightLoss !== null && totalWeightLoss > 0 ? formatWeightWithUnit(totalWeightLoss, isImperial) : '0.0 ' + (isImperial ? 'lbs' : 'kg')}
       />
     </>
   );
