@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { LineChart } from 'lucide-react';
 import { format } from 'date-fns';
+import { Label } from '@/components/ui/label';
 
 interface HealthStatisticsProps {
   formData: {
@@ -89,87 +90,88 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
         {/* First row: Dates */}
         {currentPeriod && (
           <>
-            <div>
-              <div className="text-xl font-semibold">
+            <div className="space-y-2">
+              <Label htmlFor="startDate" className="text-left block">Session Start Date</Label>
+              <div className="text-base">
                 {formatDisplayDate(currentPeriod.startDate)}
               </div>
-              <div className="text-sm text-muted-foreground">Session Start Date</div>
             </div>
-            <div>
-              <div className="text-xl font-semibold">
+            <div className="space-y-2">
+              <Label htmlFor="endDate" className="text-left block">Session End Date</Label>
+              <div className="text-base">
                 {formatDisplayDate(currentPeriod.endDate)}
               </div>
-              <div className="text-sm text-muted-foreground">Session End Date</div>
             </div>
           </>
         )}
         
         {/* Second row: Starting and Target Weight */}
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="startingWeight" className="text-left block">Starting Weight</Label>
+          <div className="text-base">
             {formatWeight(formData.startingWeight)}
-            {formData.startingWeight ? <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span> : ''}
+            {formData.startingWeight ? <span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span> : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Starting Weight</div>
         </div>
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="targetWeight" className="text-left block">Target Weight</Label>
+          <div className="text-base">
             {currentPeriod?.targetWeight ? (
               <>
                 {isImperial 
                   ? (currentPeriod.targetWeight * 2.20462).toFixed(1) 
                   : currentPeriod.targetWeight.toFixed(1)}
-                <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                <span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
               </>
             ) : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Target Weight</div>
         </div>
         
         {/* Third row: Target Loss and Lost Thus Far */}
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="targetLoss" className="text-left block">Target Loss</Label>
+          <div className="text-base">
             {targetLoss ? (
               <>
-                {targetLoss.toFixed(1)}<span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                {targetLoss.toFixed(1)}<span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
               </>
             ) : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Target Loss</div>
         </div>
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="lostThusFar" className="text-left block">Lost Thus Far</Label>
+          <div className="text-base">
             {totalWeightLoss ? (
               <>
-                {totalWeightLoss.toFixed(1)}<span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                {totalWeightLoss.toFixed(1)}<span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
               </>
             ) : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Lost Thus Far</div>
         </div>
         
         {/* Fourth row: Target Loss/Week and Actual Loss/Week */}
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="targetLossPerWeek" className="text-left block">Target Loss/Week</Label>
+          <div className="text-base">
             {currentPeriod?.weightLossPerWeek ? (
               <>
                 {isImperial 
                   ? (currentPeriod.weightLossPerWeek * 2.20462).toFixed(2) 
                   : currentPeriod.weightLossPerWeek.toFixed(2)}
-                <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
+                <span className="ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
               </>
             ) : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Target Loss/Week</div>
         </div>
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="actualLossPerWeek" className="text-left block">Actual Loss/Week</Label>
+          <div className="text-base">
             {currentAvgWeightLoss !== undefined ? (
               <>
                 {isImperial 
                   ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(2) 
                   : Math.abs(currentAvgWeightLoss).toFixed(2)}
-                <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
+                <span className="ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
                 <Badge variant={currentAvgWeightLoss < 0 ? "secondary" : "destructive"} className="ml-2 text-xs">
                   {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
                 </Badge>
@@ -178,31 +180,30 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
               'Not enough data'
             )}
           </div>
-          <div className="text-sm text-muted-foreground">Actual Loss/Week</div>
         </div>
         
         {/* Fifth row: Progress percentage */}
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="weightLossProgress" className="text-left block">Weight Loss Progress</Label>
+          <div className="text-base">
             {currentPeriod && progressPercentage !== null ? (
               <>
-                {progressPercentage.toFixed(2)}<span className="text-sm ml-1">%</span>
+                {progressPercentage.toFixed(2)}<span className="ml-1">%</span>
               </>
             ) : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Weight Loss Progress</div>
         </div>
         
         {/* Current Weight (read-only) */}
-        <div>
-          <div className="text-xl font-semibold">
+        <div className="space-y-2">
+          <Label htmlFor="currentWeight" className="text-left block">Current Weight</Label>
+          <div className="text-base">
             {formData.currentWeight ? (
               <>
-                {formData.currentWeight.toFixed(1)}<span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                {formData.currentWeight.toFixed(1)}<span className="ml-1">{isImperial ? 'lbs' : 'kg'}</span>
               </>
             ) : ''}
           </div>
-          <div className="text-sm text-muted-foreground">Current Weight</div>
         </div>
       </div>
     </div>
