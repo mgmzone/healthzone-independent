@@ -56,22 +56,33 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   const closestTargetDate = findClosestDate(targetDateStr);
   const closestPeriodEndDate = findClosestDate(periodEndStr);
   
-  console.log('ReferenceLines - Today closest:', closestTodayDate);
-  console.log('ReferenceLines - Target closest:', closestTargetDate);
-  console.log('ReferenceLines - Period End closest:', closestPeriodEndDate);
-  
   return (
     <>
+      {closestPeriodEndDate && (
+        <ReferenceLine
+          x={closestPeriodEndDate}
+          stroke="#dc2626"
+          strokeDasharray="3 3"
+          strokeWidth={1.5}
+          label={{ 
+            value: 'Period End', 
+            position: 'insideTopRight',
+            fill: '#dc2626',
+            fontSize: 11
+          }}
+        />
+      )}
+      
       {closestTodayDate && (
         <ReferenceLine
           x={closestTodayDate}
           stroke="#2563eb"
-          strokeWidth={2}
+          strokeWidth={1.5}
           label={{ 
             value: 'Today', 
             position: 'insideTopRight',
             fill: '#2563eb',
-            fontSize: 10
+            fontSize: 11
           }}
         />
       )}
@@ -80,27 +91,13 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
         <ReferenceLine
           x={closestTargetDate}
           stroke="#16a34a"
-          strokeWidth={2}
           strokeDasharray="3 3"
+          strokeWidth={1.5}
           label={{ 
-            value: 'Target Date', 
+            value: 'Goal Date', 
             position: 'insideTopRight',
             fill: '#16a34a',
-            fontSize: 10
-          }}
-        />
-      )}
-      
-      {closestPeriodEndDate && (
-        <ReferenceLine
-          x={closestPeriodEndDate}
-          stroke="#dc2626"
-          strokeWidth={2}
-          label={{ 
-            value: 'Period End', 
-            position: 'insideTopRight',
-            fill: '#dc2626',
-            fontSize: 10
+            fontSize: 11
           }}
         />
       )}

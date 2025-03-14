@@ -16,20 +16,25 @@ export const ChartAxes: React.FC<ChartAxesProps> = ({
 }) => {
   return (
     <>
-      <CartesianGrid strokeDasharray="3 3" />
+      <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.5} />
       <XAxis 
         dataKey="date"
         tickFormatter={(date) => formatDateForAxis(date)}
-        angle={-45}
-        textAnchor="end"
-        height={80}
+        angle={0}
+        textAnchor="middle"
+        height={50}
         interval="preserveStartEnd"
-        tick={{ fontSize: 10 }}
+        tick={{ fontSize: 12, fill: '#666' }}
+        axisLine={{ stroke: '#E0E0E0' }}
+        tickLine={{ stroke: '#E0E0E0' }}
       />
       <YAxis 
         domain={[minWeight, maxWeight]}
         tickFormatter={(value) => typeof value === 'number' ? value.toFixed(1) : value.toString()}
-        tick={{ fontSize: 10 }}
+        tick={{ fontSize: 11, fill: '#666' }}
+        axisLine={{ stroke: '#E0E0E0' }}
+        tickLine={{ stroke: '#E0E0E0' }}
+        width={50}
       />
     </>
   );
@@ -37,6 +42,9 @@ export const ChartAxes: React.FC<ChartAxesProps> = ({
 
 export const createDateFormatter = () => {
   return (date: Date): string => {
-    return format(date, 'MM/dd/yy');
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return '';
+    }
+    return format(date, 'MMM yyyy');
   };
 };

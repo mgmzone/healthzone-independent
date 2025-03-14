@@ -21,11 +21,11 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isImperi
   const data = payload[0].payload as ChartData;
   const unit = isImperial ? 'lbs' : 'kg';
   const weightValue = data.weight.toFixed(1);
-  const dateText = format(data.date, 'MM/dd/yy');
+  const dateText = format(new Date(data.date), 'MMM dd, yyyy');
   const isPrediction = data.isProjected;
 
   return (
-    <div className="bg-white p-2 border border-gray-200 shadow-sm rounded-md text-xs">
+    <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md text-sm">
       <p className="font-semibold mb-1">{dateText}</p>
       <p className="text-gray-700">
         {isPrediction ? 'Projected: ' : 'Actual: '}

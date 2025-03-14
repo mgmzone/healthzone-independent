@@ -1,16 +1,18 @@
 
 import React from 'react';
 import {
-  AreaChart,
+  LineChart,
+  Line,
   Tooltip,
   ResponsiveContainer,
+  Text
 } from 'recharts';
 import { Period, WeighIn } from '@/lib/types';
 import CustomTooltip from './CustomTooltip';
 import { useChartData } from './hooks/useChartData';
 import { ReferenceLines } from './components/ReferenceLines';
-import { WeightChartArea, createDotRenderer } from './components/WeightChartArea';
 import { ChartAxes, createDateFormatter } from './components/ChartAxes';
+import { WeightLabels } from './components/WeightLabels';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -26,6 +28,8 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const {
     chartData,
     targetDate,
+    trendLineData,
+    goalLineData,
     loading,
     error,
     minWeight,
@@ -34,12 +38,8 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   
   const today = new Date();
   const formatDateForAxis = createDateFormatter();
-  const renderDot = createDotRenderer();
   
   console.log('WeightForecastChart - Rendering with data points:', chartData.length);
-  console.log('WeightForecastChart - Current period:', currentPeriod?.id);
-  console.log('WeightForecastChart - First data point:', chartData[0]?.date, chartData[0]?.weight);
-  console.log('WeightForecastChart - Weight range:', minWeight, maxWeight);
   
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading forecast...</div>;
@@ -67,13 +67,13 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <AreaChart
+      <LineChart
         data={formattedChartData}
         margin={{
-          top: 10,
+          top: 20,
           right: 30,
-          left: 0,
-          bottom: 0,
+          left: 10,
+          bottom: 30,
         }}
       >
         <ChartAxes 
@@ -86,7 +86,60 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           content={<CustomTooltip isImperial={isImperial} />}
         />
         
-        <WeightChartArea renderDot={renderDot} />
+        {/* Goal line (dotted light blue) */}
+        {goalLineData && goalLineData.length > 0 && (
+          <Line
+            type="monotone"
+            data={goalLineData}
+            dataKey="weight"
+            stroke="#33C3F0"
+            strokeWidth={1}
+            strokeDasharray="3 3"
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+        )}
+        
+        {/* Trend line (dashed red) */}
+        {trendLineData && trendLineData.length > 0 && (
+          <Line
+            type="monotone"
+            data={trendLineData}
+            dataKey="weight"
+            stroke="#ea384c"
+            strokeWidth={1.5}
+            strokeDasharray="5 5"
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+        )}
+        
+        {/* Main weight line (solid blue) */}
+        <Line 
+          type="monotone" 
+          dataKey="weight" 
+          stroke="#0066CC" 
+          strokeWidth={2.5}
+          dot={{ 
+            r: 4, 
+            fill: '#0066CC',
+            stroke: '#fff',
+            strokeWidth: 2
+          }}
+          activeDot={{ 
+            r: 6, 
+            fill: '#0066CC',
+            stroke: '#fff',
+            strokeWidth: 2
+          }}
+        />
+        
+        <WeightLabels 
+          data={formattedChartData} 
+          isImperial={isImperial} 
+        />
         
         <ReferenceLines 
           chartData={formattedChartData} 
@@ -94,7 +147,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           targetDate={targetDate} 
           periodEndDate={periodEndDate} 
         />
-      </AreaChart>
+      </LineChart>
     </ResponsiveContainer>
   );
 };
