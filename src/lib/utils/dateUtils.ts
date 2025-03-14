@@ -19,9 +19,10 @@ export const getMonthsInPeriod = (startDate: Date | string, endDate: Date | stri
   return Math.ceil(differenceInMonths(end, start));
 };
 
-export const getTimeProgressPercentage = (startDate: Date | string, endDate: Date | string | undefined): number => {
+export const getTimeProgressPercentage = (startDate: Date | string, endDate: Date | string | undefined, projectedEndDate?: Date | string | undefined): number => {
   const start = ensureDate(startDate);
-  const end = ensureDate(endDate);
+  // Use projected end date for calculation if available
+  const end = ensureDate(projectedEndDate || endDate);
   
   if (!start || !end) return 0;
   
@@ -36,15 +37,16 @@ export const getTimeProgressPercentage = (startDate: Date | string, endDate: Dat
   return Math.min(Math.max(Math.round((daysPassed / totalDays) * 100), 0), 100);
 };
 
-export const getRemainingTimePercentage = (startDate: Date | string, endDate: Date | string | undefined): number => {
-  if (!endDate) return 100;
+export const getRemainingTimePercentage = (startDate: Date | string, endDate: Date | string | undefined, projectedEndDate?: Date | string | undefined): number => {
+  if (!endDate && !projectedEndDate) return 100;
   
-  const timeProgress = getTimeProgressPercentage(startDate, endDate);
+  const timeProgress = getTimeProgressPercentage(startDate, endDate, projectedEndDate);
   return 100 - timeProgress;
 };
 
-export const getDaysRemaining = (endDate: Date | string | undefined): number => {
-  const end = ensureDate(endDate);
+export const getDaysRemaining = (endDate: Date | string | undefined, projectedEndDate?: Date | string | undefined): number => {
+  // Use projected end date for calculation if available
+  const end = ensureDate(projectedEndDate || endDate);
   if (!end) return 0;
   
   const today = new Date();

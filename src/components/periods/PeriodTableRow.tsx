@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,9 +61,11 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
   return (
     <tr className={`border-b ${isActive ? 'bg-blue-50 dark:bg-blue-900/10' : ''}`}>
       <td className="px-4 py-4">
-        <div className="font-medium">{formattedStartDate} - {formattedEndDate}</div>
+        <div className="text-sm">
+          {formattedStartDate} - {formattedEndDate}
+        </div>
         {isActive && (
-          <span className="inline-block px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full mt-1">
+          <span className="inline-block px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full mt-1">
             Active
           </span>
         )}
@@ -71,28 +74,33 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
             Projected completion: {formattedProjectedEndDate}
           </div>
         )}
+        {period.originalEndDate && period.projectedEndDate && (
+          <div className="text-xs text-muted-foreground">
+            Original goal: {format(ensureDate(period.originalEndDate), "MMM d, yyyy")}
+          </div>
+        )}
       </td>
       <td className="px-4 py-4">
-        <Badge variant={period.type === 'weightLoss' ? 'default' : 'secondary'}>
+        <Badge variant={period.type === 'weightLoss' ? 'default' : 'secondary'} className="text-xs">
           {period.type === 'weightLoss' ? 'Weight Loss' : 'Maintenance'}
         </Badge>
       </td>
-      <td className="px-4 py-4 text-center">{formatWeight(displayStartWeight)} {weightUnit}</td>
-      <td className="px-4 py-4 text-center">{formatWeight(displayTargetWeight)} {weightUnit}</td>
-      <td className="px-4 py-4 text-center">{formatWeight(displayWeightLossPerWeek)} {weightUnit}/week</td>
+      <td className="px-4 py-4 text-center text-sm">{formatWeight(displayStartWeight)} {weightUnit}</td>
+      <td className="px-4 py-4 text-center text-sm">{formatWeight(displayTargetWeight)} {weightUnit}</td>
+      <td className="px-4 py-4 text-center text-sm">{formatWeight(displayWeightLossPerWeek)} {weightUnit}/week</td>
       <td className="px-4 py-4">
         {latestWeight ? (
           <div className="flex flex-col items-center">
-            <div className="font-medium">{formatWeight(latestWeight)} {weightUnit}</div>
+            <div className="text-sm">{formatWeight(latestWeight)} {weightUnit}</div>
             <div className="text-xs text-muted-foreground">
               {formatWeight(weightChange)} {weightUnit} {weightDirection}
             </div>
           </div>
         ) : (
-          <div className="text-center">-</div>
+          <div className="text-center text-sm">-</div>
         )}
       </td>
-      <td className="px-4 py-4 text-center">{period.fastingSchedule}</td>
+      <td className="px-4 py-4 text-center text-sm">{period.fastingSchedule}</td>
       <td className="px-4 py-4">
         <div className="flex flex-col items-center">
           <div className="text-sm">{weeks} weeks</div>

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Period } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { ensureDate } from '@/lib/utils/dateUtils';
 
 export function usePeriodsData() {
   const { toast } = useToast();
@@ -31,6 +32,7 @@ export function usePeriodsData() {
         userId: item.user_id,
         startDate: new Date(item.start_date),
         endDate: item.end_date ? new Date(item.end_date) : undefined,
+        originalEndDate: item.original_end_date ? new Date(item.original_end_date) : undefined,
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
@@ -60,6 +62,7 @@ export function usePeriodsData() {
           type: period.type,
           start_date: period.startDate.toISOString(),
           end_date: period.endDate ? period.endDate.toISOString() : null,
+          original_end_date: period.endDate ? period.endDate.toISOString() : null,
           fasting_schedule: period.fastingSchedule,
           user_id: (await supabase.auth.getUser()).data.user?.id
         }])
@@ -86,8 +89,8 @@ export function usePeriodsData() {
 
   const updatePeriod = useMutation({
     mutationFn: async (period: Period) => {
-      const startDate = period.startDate instanceof Date ? period.startDate : new Date(period.startDate);
-      const endDate = period.endDate ? (period.endDate instanceof Date ? period.endDate : new Date(period.endDate)) : null;
+      const startDate = ensureDate(period.startDate);
+      const endDate = period.endDate ? ensureDate(period.endDate) : null;
       
       const { data, error } = await supabase
         .from('periods')
@@ -96,7 +99,7 @@ export function usePeriodsData() {
           target_weight: period.targetWeight,
           weight_loss_per_week: period.weightLossPerWeek,
           type: period.type,
-          start_date: startDate.toISOString(),
+          start_date: startDate?.toISOString(),
           end_date: endDate ? endDate.toISOString() : null,
           fasting_schedule: period.fastingSchedule
         })
@@ -150,10 +153,10 @@ export function usePeriodsData() {
   const getCurrentPeriod = () => {
     const today = new Date();
     return periods.find(period => {
-      const startDate = period.startDate instanceof Date ? period.startDate : new Date(period.startDate);
-      const endDate = period.endDate ? (period.endDate instanceof Date ? period.endDate : new Date(period.endDate)) : null;
+      const startDate = ensureDate(period.startDate);
+      const endDate = ensureDate(period.endDate);
       
-      return startDate <= today && (!endDate || endDate >= today);
+      return startDate && startDate <= today && (!endDate || endDate >= today);
     });
   };
 
