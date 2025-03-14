@@ -22,7 +22,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('forecast'); // Default to forecast view
   
-  const { chartData, minWeight, maxWeight, hasValidData } = useWeightForecastData(
+  const { chartData, targetLine, minWeight, maxWeight, hasValidData } = useWeightForecastData(
     weighIns,
     currentPeriod,
     isImperial,
@@ -49,6 +49,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         maxWeight={maxWeight}
         isImperial={isImperial}
         activeView={activeView}
+        targetLine={targetLine}
       />
     </div>
   );

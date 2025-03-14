@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import { processWeighInData } from '../utils/weightDataProcessor';
 import { generateForecastData } from '../utils/forecastGenerator';
+import { generateTargetLine } from '../utils/targetLineGenerator';
 import { getWeightRangeFromData } from '../utils/forecastUtils';
 import { combineChartData } from '../utils/weightDataProcessor';
 
@@ -26,12 +27,19 @@ export const useWeightForecastData = (
     if (!hasValidData || !currentPeriod) {
       return {
         chartData: [],
-        forecastData: [],
+        targetLine: [],
         minWeight: 0,
         maxWeight: 0,
         hasValidData: false
       };
     }
+    
+    // Generate the target line based on the period's settings
+    const targetLine = generateTargetLine(
+      currentPeriod,
+      isImperial,
+      targetWeight
+    );
     
     // Generate forecast data based on actual data
     const periodEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
@@ -40,18 +48,23 @@ export const useWeightForecastData = (
       periodEndDate,
       targetWeight,
       isImperial,
-      currentPeriod.weightLossPerWeek // Pass the period's weight loss per week
+      currentPeriod.weightLossPerWeek
     );
     
     // Combine actual and forecast data
     const combinedData = combineChartData(actualData, forecastData);
     
-    // Calculate min and max weights for y-axis
-    const allWeights = combinedData.map(item => item.weight);
+    // Calculate min and max weights for y-axis based on target, actual, and forecast data
+    const allWeights = [
+      ...combinedData.map(item => item.weight),
+      ...targetLine.map(item => item.weight)
+    ];
+    
     const { minWeight, maxWeight } = getWeightRangeFromData(allWeights);
 
     return {
       chartData: combinedData,
+      targetLine,
       forecastData,
       minWeight,
       maxWeight,

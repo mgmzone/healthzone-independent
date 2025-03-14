@@ -21,28 +21,32 @@ export const generateForecastData = (
 
   // Get the converted target weight if provided
   const convertedTargetWeight = targetWeight !== undefined ? 
-    (isImperial ? targetWeight * 2.20462 : targetWeight) : null;
+    (isImperial ? targetWeight : targetWeight / 2.20462) : null;
 
   // Get the last actual weigh-in (this is where the forecast should start)
   const lastActualPoint = chartData[chartData.length - 1];
   
-  // Calculate the average daily weight change based on the actual data
+  // Calculate the average daily weight change based on actual data
+  // This will give us the real trend based on user's actual progress
   const firstPoint = chartData[0];
   const daysElapsed = differenceInDays(lastActualPoint.date, firstPoint.date) || 1;
   let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
   let avgDailyChange = totalWeightChange / daysElapsed;
   
-  // If we have a target weight loss per week, override the calculated average
-  if (weightLossPerWeek !== undefined) {
-    // Convert to daily change
-    const targetDailyChange = -(weightLossPerWeek / 7);
-    // Apply realistic limits to the weight change rate
-    avgDailyChange = calculateRealisticWeightChangeRate(targetDailyChange, isImperial);
-  } else {
-    // Apply realistic limits to the weight change rate
-    avgDailyChange = calculateRealisticWeightChangeRate(avgDailyChange, isImperial);
-  }
-
+  // Apply realistic limits to the calculated weight change rate
+  avgDailyChange = calculateRealisticWeightChangeRate(avgDailyChange, isImperial);
+  
+  console.log('Forecast calculations:', {
+    firstPointDate: firstPoint.date,
+    firstPointWeight: firstPoint.weight,
+    lastPointDate: lastActualPoint.date,
+    lastPointWeight: lastActualPoint.weight,
+    daysElapsed,
+    totalWeightChange,
+    avgDailyChange,
+    weightLossPerWeek
+  });
+  
   // Start with the last actual point as the beginning of forecast
   const forecastData = [{
     date: lastActualPoint.date,
@@ -54,22 +58,29 @@ export const generateForecastData = (
   // If we already reached the end date, no need to forecast further
   if (new Date() >= periodEndDate) return forecastData;
 
-  // Generate forecast points from the day after last actual weigh-in to end date
+  // Generate forecast points from the day after last actual weigh-in
+  // We'll forecast either until we reach the target weight or a maximum of 365 days
   const lastDate = lastActualPoint.date;
-  const daysToForecast = differenceInDays(periodEndDate, lastDate);
-
+  const maxDaysToForecast = 365; // Cap at a year of forecasting
+  
   let previousWeight = lastActualPoint.weight;
   
   // Check if the current trend aligns with the target weight goal
   const isWeightLoss = avgDailyChange < 0;
   
-  // If the trend is opposite from the target goal, don't forecast
-  if (!isGoalDirectionCompatible(isWeightLoss, convertedTargetWeight, lastActualPoint.weight)) {
-    return forecastData;
+  if (convertedTargetWeight !== null) {
+    // Check if trend aligns with goal
+    const isTargetLower = convertedTargetWeight < lastActualPoint.weight;
+    // If losing weight but target is higher, or gaining weight but target is lower, trend doesn't align
+    if ((isWeightLoss && !isTargetLower) || (!isWeightLoss && isTargetLower)) {
+      console.log('Trend does not align with goal direction');
+      // Return only the last actual point for the forecast
+      return forecastData;
+    }
   }
 
   // Start forecast FROM the day after the last actual weigh-in
-  for (let i = 1; i <= daysToForecast; i++) {
+  for (let i = 1; i <= maxDaysToForecast; i++) {
     const forecastDate = addDays(lastDate, i);
     const forecastWeight = previousWeight + avgDailyChange;
     

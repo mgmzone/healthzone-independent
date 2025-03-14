@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { 
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -19,6 +19,7 @@ interface WeightChartProps {
   maxWeight: number;
   isImperial: boolean;
   activeView: 'actual' | 'forecast';
+  targetLine: any[];
 }
 
 const WeightChart: React.FC<WeightChartProps> = ({
@@ -27,6 +28,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
   maxWeight,
   isImperial,
   activeView,
+  targetLine
 }) => {
   // Find out where actual data stops and forecast begins
   const today = new Date();
@@ -70,7 +72,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart
+      <LineChart
         data={displayData}
         margin={{
           top: 30,
@@ -104,14 +106,30 @@ const WeightChart: React.FC<WeightChartProps> = ({
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         
-        {/* Actual Weight Area (Blue) - Always visible */}
-        <Area 
-          type="monotone" 
+        {/* Target Weight Line (Dashed Orange) - Shows the ideal weight loss path */}
+        {activeView === 'forecast' && targetLine.length > 0 && (
+          <Line 
+            type="linear" 
+            dataKey="weight"
+            data={targetLine}
+            stroke="#FF9966"
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
+            dot={false}
+            activeDot={false}
+            name="Target Path"
+            connectNulls={true}
+            isAnimationActive={false}
+          />
+        )}
+        
+        {/* Actual Weight Line (Blue) - Always visible with dots */}
+        <Line 
+          type="linear" 
           dataKey="weight" 
           data={actualData}
           stroke="#0066CC" 
           strokeWidth={2}
-          fill="#0066CC20"
           activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
           dot={{ 
             r: 4, 
@@ -120,20 +138,21 @@ const WeightChart: React.FC<WeightChartProps> = ({
             strokeWidth: 1
           }}
           isAnimationActive={false}
+          name="Actual Weight"
         />
         
-        {/* Forecast Weight Area (Orange) - Only visible in forecast view */}
+        {/* Forecast Weight Line (Blue Dashed) - Only visible in forecast view */}
         {activeView === 'forecast' && forecastData.length > 0 && (
-          <Area
-            type="monotone"
+          <Line
+            type="linear"
             dataKey="weight"
             data={forecastData}
-            stroke="#FF9966"
+            stroke="#0066CC"
             strokeWidth={2}
-            fill="#FEC6A120"
             strokeDasharray="5 5"
             activeDot={false}
             dot={false}
+            name="Forecast"
             isAnimationActive={false}
             connectNulls={true}
           />
@@ -146,7 +165,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           targetDate={targetDate}
           periodEndDate={periodEndDate}
         />
-      </AreaChart>
+      </LineChart>
     </ResponsiveContainer>
   );
 };

@@ -70,14 +70,19 @@ export const isGoalDirectionCompatible = (
 
 /**
  * Gets weight trend data points for the chart (min and max)
+ * Ensures the y-axis starts at target weight and ends at starting weight
  */
 export const getWeightRangeFromData = (weights: number[]): { minWeight: number; maxWeight: number } => {
   if (weights.length === 0) {
     return { minWeight: 0, maxWeight: 0 };
   }
   
-  const minWeight = Math.floor(Math.min(...weights) - 1);
-  const maxWeight = Math.ceil(Math.max(...weights) + 1);
+  let minWeight = Math.min(...weights);
+  let maxWeight = Math.max(...weights);
+  
+  // Add some padding to min and max for better visualization
+  minWeight = Math.floor(minWeight - 1);
+  maxWeight = Math.ceil(maxWeight + 1);
   
   return { minWeight, maxWeight };
 };
