@@ -79,8 +79,8 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const minWeight = Math.floor(Math.min(...weights) - 1);
   const maxWeight = Math.ceil(Math.max(...weights) + 1);
   
-  // Calculate average weight for reference line
-  const averageWeight = weights.reduce((sum, weight) => sum + weight, 0) / weights.length;
+  // Calculate mean weight
+  const meanWeight = weights.reduce((sum, weight) => sum + weight, 0) / weights.length;
   
   return (
     <ResponsiveContainer width="100%" height={400}>
@@ -100,7 +100,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
-          // Removed the label property that was showing "Date"
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
@@ -119,14 +118,14 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         
-        {/* Average Weight Reference Line */}
+        {/* Mean Weight Reference Line */}
         <ReferenceLine 
-          y={averageWeight} 
+          y={meanWeight} 
           stroke="#FEC6A1" 
           strokeDasharray="3 3"
           strokeWidth={2}
           label={{ 
-            value: `Avg: ${averageWeight.toFixed(1)}`, 
+            value: `Mean: ${meanWeight.toFixed(1)}`, 
             fill: '#FEC6A1', 
             position: 'right',
             fontSize: 11
