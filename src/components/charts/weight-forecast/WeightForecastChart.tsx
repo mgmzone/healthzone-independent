@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   AreaChart,
   Area,
@@ -10,9 +10,10 @@ import {
   ResponsiveContainer,
   Line
 } from 'recharts';
-import { format } from 'date-fns';
+import { format, addDays, differenceInDays } from 'date-fns';
 import { Period, WeighIn } from '@/lib/types';
 import CustomTooltip from './CustomTooltip';
+import { Button } from '@/components/ui/button';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -20,11 +21,15 @@ interface WeightForecastChartProps {
   isImperial?: boolean;
 }
 
+type ChartView = 'actual' | 'forecast';
+
 const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   weighIns,
   currentPeriod,
   isImperial = false,
 }) => {
+  const [activeView, setActiveView] = useState<ChartView>('actual');
+
   if (!currentPeriod || weighIns.length === 0) {
     return (
       <div className="text-center text-gray-500 h-64 flex items-center justify-center">
@@ -60,6 +65,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     chartData.push({
       date: periodStartDate,
       weight: isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
+      isActual: false
     });
   }
   
@@ -68,6 +74,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     ...sortedWeighIns.map(weighIn => ({
       date: new Date(weighIn.date),
       weight: isImperial ? weighIn.weight * 2.20462 : weighIn.weight,
+      isActual: true
     }))
   );
   
@@ -78,104 +85,164 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const weights = chartData.map(item => item.weight);
   const minWeight = Math.floor(Math.min(...weights) - 1);
   const maxWeight = Math.ceil(Math.max(...weights) + 1);
-  
-  // Calculate trend line (linear regression)
-  const calculateTrendLine = () => {
-    if (chartData.length < 2) return chartData.map(d => ({ ...d, trend: d.weight }));
-    
-    // Convert dates to numerical x values (days since first date)
-    const firstDate = chartData[0].date.getTime();
-    const xValues = chartData.map(d => (d.date.getTime() - firstDate) / (1000 * 60 * 60 * 24));
-    const yValues = chartData.map(d => d.weight);
-    
-    // Calculate linear regression coefficients
-    // Formula: y = mx + b
-    const n = xValues.length;
-    const sumX = xValues.reduce((a, b) => a + b, 0);
-    const sumY = yValues.reduce((a, b) => a + b, 0);
-    const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
-    const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
-    
-    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    const intercept = (sumY - slope * sumX) / n;
-    
-    // Add trend line values to chart data
-    return chartData.map((d, i) => ({
-      ...d,
-      trend: slope * xValues[i] + intercept
-    }));
+
+  // Generate the forecast data
+  const generateForecastData = () => {
+    // If we have less than 2 points, we can't make a forecast
+    if (chartData.length < 2) return chartData;
+
+    // Calculate the average daily weight change based on the actual data
+    const firstPoint = chartData[0];
+    const lastActualPoint = chartData[chartData.length - 1];
+    const daysElapsed = differenceInDays(lastActualPoint.date, firstPoint.date) || 1;
+    const totalWeightChange = lastActualPoint.weight - firstPoint.weight;
+    const avgDailyChange = totalWeightChange / daysElapsed;
+
+    // Create a copy of the chart data for forecast
+    const forecastData = [...chartData];
+
+    // If we already reached the end date, no need to forecast
+    if (new Date() >= periodEndDate) return forecastData;
+
+    // Generate forecast points from last actual weigh-in to end date
+    const lastDate = lastActualPoint.date;
+    const daysToForecast = differenceInDays(periodEndDate, lastDate);
+
+    let previousWeight = lastActualPoint.weight;
+
+    for (let i = 1; i <= daysToForecast; i++) {
+      const forecastDate = addDays(lastDate, i);
+      const forecastWeight = previousWeight + avgDailyChange;
+      
+      forecastData.push({
+        date: forecastDate,
+        weight: forecastWeight,
+        isActual: false,
+        isForecast: true
+      });
+
+      previousWeight = forecastWeight;
+    }
+
+    return forecastData;
   };
-  
-  const dataWithTrend = calculateTrendLine();
-  
-  // Check if trend values are properly calculated
-  console.log("Chart data with trend:", dataWithTrend);
+
+  // Get the appropriate data based on the active view
+  const displayData = activeView === 'actual' ? chartData : generateForecastData();
   
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <AreaChart
-        data={dataWithTrend}
-        margin={{
-          top: 20,
-          right: 30,
-          left: 20,
-          bottom: 30,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-        <XAxis 
-          dataKey="date"
-          tickFormatter={(date) => format(new Date(date), 'MMM d')}
-          tick={{ fill: '#666', fontSize: 12 }}
-          axisLine={{ stroke: '#E0E0E0' }}
-          tickLine={{ stroke: '#E0E0E0' }}
-        />
-        <YAxis 
-          domain={[minWeight, maxWeight]}
-          tickFormatter={(value) => value.toFixed(0)}
-          tick={{ fill: '#666', fontSize: 12 }}
-          axisLine={{ stroke: '#E0E0E0' }}
-          tickLine={{ stroke: '#E0E0E0' }}
-          label={{ 
-            value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
-            angle: -90, 
-            position: 'insideLeft', 
-            offset: 0,
-            style: { textAnchor: 'middle' },
-            fill: '#666' 
+    <div className="h-[400px] w-full relative">
+      <div className="absolute top-0 right-0 z-10 space-x-2">
+        <Button 
+          variant={activeView === 'actual' ? 'default' : 'outline'} 
+          size="sm" 
+          onClick={() => setActiveView('actual')}
+        >
+          Actual
+        </Button>
+        <Button 
+          variant={activeView === 'forecast' ? 'default' : 'outline'} 
+          size="sm" 
+          onClick={() => setActiveView('forecast')}
+        >
+          Forecast
+        </Button>
+      </div>
+      
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={displayData}
+          margin={{
+            top: 30, // Increased top margin to make space for the buttons
+            right: 30,
+            left: 20,
+            bottom: 30,
           }}
-        />
-        <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
-        
-        <Area 
-          type="monotone" 
-          dataKey="weight" 
-          stroke="#0066CC" 
-          strokeWidth={2}
-          fill="#0066CC20"
-          activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
-          dot={{ 
-            r: 4, 
-            fill: '#0066CC',
-            stroke: '#fff',
-            strokeWidth: 1
-          }}
-        />
-        
-        {/* Trend Line */}
-        <Line
-          type="linear"
-          dataKey="trend"
-          stroke="#FFA07A"
-          strokeWidth={2}
-          strokeDasharray="5 5"
-          dot={false}
-          activeDot={false}
-          connectNulls={true}
-          isAnimationActive={false}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+        >
+          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          <XAxis 
+            dataKey="date"
+            tickFormatter={(date) => format(new Date(date), 'MMM d')}
+            tick={{ fill: '#666', fontSize: 12 }}
+            axisLine={{ stroke: '#E0E0E0' }}
+            tickLine={{ stroke: '#E0E0E0' }}
+          />
+          <YAxis 
+            domain={[minWeight, maxWeight]}
+            tickFormatter={(value) => value.toFixed(0)}
+            tick={{ fill: '#666', fontSize: 12 }}
+            axisLine={{ stroke: '#E0E0E0' }}
+            tickLine={{ stroke: '#E0E0E0' }}
+            label={{ 
+              value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
+              angle: -90, 
+              position: 'insideLeft', 
+              offset: 0,
+              style: { textAnchor: 'middle' },
+              fill: '#666' 
+            }}
+          />
+          <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
+          
+          {/* Actual Weight Area */}
+          <Area 
+            type="monotone" 
+            dataKey="weight" 
+            stroke="#0066CC" 
+            strokeWidth={2}
+            fill="#0066CC20"
+            activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
+            dot={{ 
+              r: 4, 
+              fill: '#0066CC',
+              stroke: '#fff',
+              strokeWidth: 1
+            }}
+          />
+          
+          {/* Forecast Line - Only visible in forecast view */}
+          {activeView === 'forecast' && (
+            <Line
+              type="monotone"
+              dataKey="weight"
+              stroke="#FFA07A"
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              dot={(props) => {
+                // Only show dots for actual data points
+                const { cx, cy, payload } = props;
+                if (!payload.isForecast) return null;
+                return (
+                  <circle 
+                    cx={cx} 
+                    cy={cy} 
+                    r={3} 
+                    fill="#FFA07A" 
+                    stroke="#fff"
+                    strokeWidth={1}
+                  />
+                );
+              }}
+              activeDot={(props) => {
+                // Only show active dots for forecast points
+                const { cx, cy, payload } = props;
+                if (!payload.isForecast) return null;
+                return (
+                  <circle 
+                    cx={cx} 
+                    cy={cy} 
+                    r={5} 
+                    fill="#FFA07A" 
+                    stroke="#fff"
+                    strokeWidth={2}
+                  />
+                );
+              }}
+            />
+          )}
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
