@@ -1,13 +1,10 @@
-
 import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { WeighIn, Period } from '@/lib/types';
 import { format } from 'date-fns';
-import { 
-  calculateChartData, 
-  calculateWeightRange,
-  formatDateForDisplay,
-} from './utils/weightForecastCalculator';
+import { calculateChartData } from './utils/weightForecastCalculator';
+import { calculateWeightRange } from './utils/chartRangeCalculator';
+import { formatDateForDisplay } from './utils/dateFormatters';
 import { convertWeight } from '@/lib/weight/convertWeight';
 import CustomTooltip from './CustomTooltip';
 
