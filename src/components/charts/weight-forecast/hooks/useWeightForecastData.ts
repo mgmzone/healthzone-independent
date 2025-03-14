@@ -103,18 +103,23 @@ export const useWeightForecastData = (
         avgDailyChange = Math.min(avgDailyChange, maxDailyGain);
       }
 
-      // Create forecast data array, starting with the last actual point exactly
-      const forecastData = [{
+      // Start with a copy of all chart data - this preserves all actual weigh-ins
+      // but marks them as NOT forecast points
+      const forecastData = [...chartData];
+      
+      // Add a duplicate of the last actual point as the first forecast point
+      // This ensures a perfect connection between actual and forecast lines
+      forecastData.push({
         date: lastActualPoint.date,
         weight: lastActualPoint.weight,
-        isActual: false, // Mark as forecast for charting purposes
-        isForecast: true  // Special flag to identify forecast points
-      }];
+        isActual: false, 
+        isForecast: true
+      });
 
-      // If we already reached the end date, no need to forecast
+      // If we already reached the end date, no need to forecast further
       if (new Date() >= periodEndDate) return forecastData;
 
-      // Generate forecast points from last actual weigh-in to end date
+      // Generate forecast points from the day after last actual weigh-in to end date
       const lastDate = lastActualPoint.date;
       const daysToForecast = differenceInDays(periodEndDate, lastDate);
 
@@ -176,8 +181,10 @@ export const useWeightForecastData = (
       return forecastData;
     };
 
-    // Get the max weight considering both actual data and possibly the target weight
+    // Get all forecast data including original chart data
     const forecastData = generateForecastData();
+    
+    // Get the max weight considering both actual data and forecast data
     const allWeights = [...forecastData.map(item => item.weight)];
     const maxWeight = Math.ceil(Math.max(...allWeights) + 1);
 

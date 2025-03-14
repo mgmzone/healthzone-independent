@@ -32,20 +32,20 @@ const WeightChart: React.FC<WeightChartProps> = ({
   const today = new Date();
   
   // Separate actual and forecast data
-  const actualData = displayData.filter(d => d.isActual || new Date(d.date) <= today);
+  const actualData = displayData.filter(d => d.isActual);
   
   // Get the last actual data point
   const lastActualPoint = actualData.length > 0 ? actualData[actualData.length - 1] : null;
   const lastActualDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
   
   // Filter forecast data to only include points after the last actual data point
-  // Ensure we're not duplicating the lastActualPoint in both datasets when we render
+  // This ensures no overlap between actual and forecast points except at the connection point
   const forecastData = displayData.filter(d => 
-    (d.isForecast === true || new Date(d.date) > lastActualDate) && !d.isActual
+    (!d.isActual && (d.isForecast || new Date(d.date) >= lastActualDate))
   );
   
-  // If we have a last actual point, make sure it's included as the first point in forecast data
-  // This ensures the forecast line starts exactly at the last actual weigh-in
+  // If we have a last actual point and we're in forecast view, ensure it's in the forecast data
+  // This creates a perfect connection between actual and forecast lines
   if (lastActualPoint && forecastData.length > 0 && activeView === 'forecast') {
     // Find if the last actual point date is already in the forecast data
     const hasLastActualPointDate = forecastData.some(
@@ -54,6 +54,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
     
     // If not, add a forecast point that matches the last actual data point exactly
     if (!hasLastActualPointDate) {
+      // Insert at beginning of forecast data
       forecastData.unshift({
         date: lastActualPoint.date,
         weight: lastActualPoint.weight,
@@ -62,6 +63,9 @@ const WeightChart: React.FC<WeightChartProps> = ({
       });
     }
   }
+  
+  // Sort the forecast data by date to ensure proper rendering
+  forecastData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Find target date (the last date in the forecast)
   const targetDate = forecastData.length > 0 ? new Date(forecastData[forecastData.length - 1].date) : null;
@@ -106,7 +110,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         
-        {/* Actual Weight Area (Blue) */}
+        {/* Actual Weight Area (Blue) - Always visible */}
         <Area 
           type="monotone" 
           dataKey="weight" 
@@ -130,7 +134,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
             type="monotone"
             dataKey="weight"
             data={forecastData}
-            stroke="#FEC6A1"
+            stroke="#FF9966"
             strokeWidth={2}
             fill="#FEC6A120"
             strokeDasharray="5 5"
