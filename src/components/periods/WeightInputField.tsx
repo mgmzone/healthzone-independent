@@ -62,8 +62,6 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
               <Input
                 id={id}
                 type="number"
-                value={value}
-                onChange={handleChange}
                 placeholder={placeholder || `Enter ${label.toLowerCase()} in ${weightUnit}`}
                 className={className}
                 inputMode="decimal"
@@ -71,7 +69,7 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
                 min={min}
                 max={max}
                 {...field}
-                // Override field.value and onChange to maintain existing behavior
+                // Override these specific field properties to maintain existing behavior
                 value={value}
                 onChange={handleChange}
               />
