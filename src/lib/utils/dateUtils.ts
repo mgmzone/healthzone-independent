@@ -5,21 +5,25 @@ export const formatDate = (date: Date, formatStr: string): string => {
   return format(date, formatStr);
 };
 
-export const getWeeksInPeriod = (startDate: Date, endDate: Date | undefined): number => {
-  if (!endDate) return 0;
-  return Math.ceil(differenceInWeeks(endDate, startDate));
+export const getWeeksInPeriod = (startDate: Date | string, endDate: Date | string | undefined): number => {
+  const start = ensureDate(startDate);
+  const end = ensureDate(endDate);
+  if (!end || !start) return 0;
+  return Math.ceil(differenceInWeeks(end, start));
 };
 
-export const getMonthsInPeriod = (startDate: Date, endDate: Date | undefined): number => {
-  if (!endDate) return 0;
-  return Math.ceil(differenceInMonths(endDate, startDate));
+export const getMonthsInPeriod = (startDate: Date | string, endDate: Date | string | undefined): number => {
+  const start = ensureDate(startDate);
+  const end = ensureDate(endDate);
+  if (!end || !start) return 0;
+  return Math.ceil(differenceInMonths(end, start));
 };
 
 export const getTimeProgressPercentage = (startDate: Date | string, endDate: Date | string | undefined): number => {
-  const start = startDate instanceof Date ? startDate : new Date(startDate);
-  const end = endDate ? (endDate instanceof Date ? endDate : new Date(endDate)) : undefined;
+  const start = ensureDate(startDate);
+  const end = ensureDate(endDate);
   
-  if (!end) return 0;
+  if (!start || !end) return 0;
   
   const today = new Date();
   if (today < start) return 0;
@@ -40,9 +44,9 @@ export const getRemainingTimePercentage = (startDate: Date | string, endDate: Da
 };
 
 export const getDaysRemaining = (endDate: Date | string | undefined): number => {
-  if (!endDate) return 0;
+  const end = ensureDate(endDate);
+  if (!end) return 0;
   
-  const end = endDate instanceof Date ? endDate : new Date(endDate);
   const today = new Date();
   if (today > end) return 0;
   

@@ -14,7 +14,8 @@ import {
   getRemainingTimePercentage,
   getDaysRemaining,
   getWeeksInPeriod,
-  getMonthsInPeriod
+  getMonthsInPeriod,
+  ensureDate
 } from '@/lib/utils/dateUtils';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';

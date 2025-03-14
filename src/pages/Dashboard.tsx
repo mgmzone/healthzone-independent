@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
@@ -15,7 +16,8 @@ import {
   getRemainingTimePercentage,
   getDaysRemaining,
   getWeeksInPeriod,
-  getMonthsInPeriod
+  getMonthsInPeriod,
+  ensureDate
 } from '@/lib/utils/dateUtils';
 import { getProgressPercentage } from '@/lib/types';
 

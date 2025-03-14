@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Period } from '@/lib/types';
-import { getWeeksInPeriod, getMonthsInPeriod } from '@/lib/utils/dateUtils';
+import { getWeeksInPeriod, getMonthsInPeriod, ensureDate } from '@/lib/utils/dateUtils';
 import { Pencil, Trash2 } from "lucide-react";
 
 interface PeriodTableRowProps {
@@ -28,17 +27,21 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
     return weight.toFixed(1);
   };
 
-  const formattedStartDate = format(new Date(period.startDate), "MMM d, yyyy");
-  const formattedEndDate = period.endDate 
-    ? format(new Date(period.endDate), "MMM d, yyyy")
+  const startDate = ensureDate(period.startDate);
+  const endDate = ensureDate(period.endDate);
+  const projectedEndDate = ensureDate(period.projectedEndDate);
+
+  const formattedStartDate = startDate ? format(startDate, "MMM d, yyyy") : "Unknown";
+  const formattedEndDate = endDate 
+    ? format(endDate, "MMM d, yyyy")
     : "Present";
   
-  const formattedProjectedEndDate = period.projectedEndDate 
-    ? format(new Date(period.projectedEndDate), "MMM d, yyyy")
+  const formattedProjectedEndDate = projectedEndDate 
+    ? format(projectedEndDate, "MMM d, yyyy")
     : "N/A";
   
-  const weeks = getWeeksInPeriod(new Date(period.startDate), period.endDate ? new Date(period.endDate) : undefined);
-  const months = getMonthsInPeriod(new Date(period.startDate), period.endDate ? new Date(period.endDate) : undefined);
+  const weeks = getWeeksInPeriod(period.startDate, period.endDate);
+  const months = getMonthsInPeriod(period.startDate, period.endDate);
   
   const isImperial = weightUnit === 'lbs';
   const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;

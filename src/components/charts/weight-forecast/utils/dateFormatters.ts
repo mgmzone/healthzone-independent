@@ -4,9 +4,10 @@ import { format } from 'date-fns';
 /**
  * Format date for display
  */
-export const formatDateForDisplay = (date: Date | null): string => {
+export const formatDateForDisplay = (date: Date | string | null): string => {
   if (!date) return 'Unknown';
-  return format(date, 'MMM d, yyyy');
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return format(dateObj, 'MMM d, yyyy');
 };
 
 /**
