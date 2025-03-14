@@ -59,6 +59,10 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 
   const periodEndDate = currentPeriod?.endDate ? new Date(currentPeriod.endDate) : null;
   
+  // Split data into actual and projected
+  const actualData = chartData.filter(item => !item.isProjected);
+  const projectedData = chartData.filter(item => item.isProjected);
+  
   // Make sure all dates are properly converted to Date objects
   const formattedChartData = chartData.map(item => ({
     ...item,
@@ -79,7 +83,8 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         <ChartAxes 
           formatDateForAxis={formatDateForAxis} 
           minWeight={minWeight} 
-          maxWeight={maxWeight} 
+          maxWeight={maxWeight}
+          isImperial={isImperial}
         />
         
         <Tooltip 
@@ -98,6 +103,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             dot={false}
             activeDot={false}
             isAnimationActive={false}
+            name="Target Weight"
           />
         )}
         
@@ -113,28 +119,58 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             dot={false}
             activeDot={false}
             isAnimationActive={false}
+            name="Average Trend"
           />
         )}
         
-        {/* Main weight line (solid blue) */}
-        <Line 
-          type="monotone" 
-          dataKey="weight" 
-          stroke="#0066CC" 
-          strokeWidth={2.5}
-          dot={{ 
-            r: 4, 
-            fill: '#0066CC',
-            stroke: '#fff',
-            strokeWidth: 2
-          }}
-          activeDot={{ 
-            r: 6, 
-            fill: '#0066CC',
-            stroke: '#fff',
-            strokeWidth: 2
-          }}
-        />
+        {/* Projected weight line (dotted, same color as actual) */}
+        {projectedData.length > 0 && (
+          <Line 
+            type="monotone" 
+            data={projectedData}
+            dataKey="weight" 
+            stroke="#0066CC" 
+            strokeWidth={2}
+            strokeDasharray="4 4"
+            dot={{ 
+              r: 3, 
+              fill: '#0066CC',
+              stroke: '#fff',
+              strokeWidth: 1
+            }}
+            activeDot={{ 
+              r: 5, 
+              fill: '#0066CC',
+              stroke: '#fff',
+              strokeWidth: 2
+            }}
+            name="Projected Weight"
+          />
+        )}
+        
+        {/* Main weight line (solid blue) - actual data */}
+        {actualData.length > 0 && (
+          <Line 
+            type="monotone" 
+            data={actualData}
+            dataKey="weight" 
+            stroke="#0066CC" 
+            strokeWidth={2.5}
+            dot={{ 
+              r: 4, 
+              fill: '#0066CC',
+              stroke: '#fff',
+              strokeWidth: 2
+            }}
+            activeDot={{ 
+              r: 6, 
+              fill: '#0066CC',
+              stroke: '#fff',
+              strokeWidth: 2
+            }}
+            name="Actual Weight"
+          />
+        )}
         
         <WeightLabels 
           data={formattedChartData} 

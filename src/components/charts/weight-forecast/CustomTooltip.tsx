@@ -22,13 +22,15 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isImperi
   const unit = isImperial ? 'lbs' : 'kg';
   const weightValue = data.weight.toFixed(1);
   const dateText = format(new Date(data.date), 'MMM dd, yyyy');
-  const isPrediction = data.isProjected;
-
+  
+  // Find the data series name to display the right label
+  const seriesName = payload[0].name;
+  
   return (
     <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md text-sm">
       <p className="font-semibold mb-1">{dateText}</p>
       <p className="text-gray-700">
-        {isPrediction ? 'Projected: ' : 'Actual: '}
+        {seriesName || (data.isProjected ? 'Projected: ' : 'Actual: ')}
         <span className="font-medium text-slate-900">{weightValue} {unit}</span>
       </p>
     </div>

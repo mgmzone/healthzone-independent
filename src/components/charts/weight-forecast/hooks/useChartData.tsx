@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { WeighIn, Period } from '@/lib/types';
 import { 
@@ -28,11 +29,6 @@ export function useChartData(
       }
 
       try {
-        // Calculate total weeks for the period
-        const startDate = new Date(currentPeriod.startDate);
-        const endDate = new Date(currentPeriod.endDate);
-        const totalWeeks = Math.ceil((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 8; // Add buffer weeks
-
         // Sort weighIns by date (most recent first)
         const sortedWeighIns = [...weighIns].sort((a, b) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -43,13 +39,7 @@ export function useChartData(
           return;
         }
 
-        // Get the most recent weight
-        const latestWeighIn = sortedWeighIns[0];
-        const startWeight = currentPeriod.startWeight || sortedWeighIns[sortedWeighIns.length - 1].weight;
-        const targetWeight = currentPeriod.targetWeight || startWeight;
-
         // Calculate chart data with projection
-        // Passing currentPeriod as a single argument to match the function signature
         const projectionResult: ProjectionResult = await calculateChartData(
           sortedWeighIns,
           currentPeriod,
@@ -58,22 +48,27 @@ export function useChartData(
 
         // Generate trend line data - a simple line from start to goal
         const createTrendLine = () => {
-          const firstPoint = projectionResult.chartData[0];
-          const lastPoint = projectionResult.chartData[projectionResult.chartData.length - 1];
+          const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
+          const startWeight = isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
           
-          if (!firstPoint || !lastPoint) return [];
+          // Get first and last points for the trend line
+          const actualData = projectionResult.chartData.filter(d => !d.isProjected);
+          const firstPoint = actualData.length > 0 ? actualData[0] : projectionResult.chartData[0];
+          const lastProjectedPoint = projectionResult.chartData[projectionResult.chartData.length - 1];
+          
+          if (!firstPoint || !lastProjectedPoint) return [];
           
           // Generate a linear trend line connecting start to target
           const startPoint = {
-            week: firstPoint.week,
-            date: firstPoint.date,
+            week: 0,
+            date: new Date(currentPeriod.startDate),
             weight: startWeight,
             isProjected: false
           };
           
           const endPoint = {
-            week: lastPoint.week,
-            date: lastPoint.date,
+            week: lastProjectedPoint.week,
+            date: lastProjectedPoint.date,
             weight: targetWeight,
             isProjected: true
           };
@@ -106,6 +101,7 @@ export function useChartData(
         
         // Generate goal line data - a horizontal line at target weight
         const createGoalLine = () => {
+          const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
           const allDates = projectionResult.chartData.map(point => point.date);
           
           return allDates.map((date, index) => ({
@@ -117,6 +113,7 @@ export function useChartData(
         };
 
         // Calculate appropriate min/max for the chart
+        const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
         const { minWeight: calculatedMin, maxWeight: calculatedMax } = calculateWeightRange(
           projectionResult.chartData,
           targetWeight

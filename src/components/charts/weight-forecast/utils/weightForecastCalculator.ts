@@ -29,11 +29,11 @@ export const calculateChartData = async (
   const maxInitialProjectionDate = addWeeks(endDate, 4); // Extend past period end date by 4 weeks to ensure target date is visible
   const totalWeeks = differenceInWeeks(maxInitialProjectionDate, startDate) + 1;
   
-  // Convert target weight to display units (kg to lbs if imperial)
-  const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
+  // Convert starting and target weights to the appropriate display units
   const startWeight = isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
+  const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
   
-  // Process the daily weight data instead of weekly to get all recent weigh-ins
+  // Process the daily weight data to get all recent weigh-ins
   const actualData = processDailyData(
     weighIns,
     currentPeriod,
