@@ -94,11 +94,29 @@ const Periods = () => {
           isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight
         )
       : 0,
-    timeProgress: getTimeProgressPercentage(currentPeriod.startDate, currentPeriod.endDate),
-    timeRemaining: getRemainingTimePercentage(currentPeriod.startDate, currentPeriod.endDate),
-    daysRemaining: getDaysRemaining(currentPeriod.endDate),
-    totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
-    totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
+    // Use projected end date for time calculations if available
+    timeProgress: getTimeProgressPercentage(
+      currentPeriod.startDate, 
+      currentPeriod.endDate, 
+      currentPeriod.projectedEndDate
+    ),
+    timeRemaining: getRemainingTimePercentage(
+      currentPeriod.startDate, 
+      currentPeriod.endDate, 
+      currentPeriod.projectedEndDate
+    ),
+    daysRemaining: getDaysRemaining(
+      currentPeriod.endDate, 
+      currentPeriod.projectedEndDate
+    ),
+    totalWeeks: getWeeksInPeriod(
+      currentPeriod.startDate, 
+      currentPeriod.projectedEndDate || currentPeriod.endDate
+    ),
+    totalMonths: getMonthsInPeriod(
+      currentPeriod.startDate, 
+      currentPeriod.projectedEndDate || currentPeriod.endDate
+    ),
     // Calculate weight change correctly
     weightChange: latestWeight 
       ? Math.abs((isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight) - latestWeight)

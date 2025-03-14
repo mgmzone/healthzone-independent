@@ -33,13 +33,13 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
   const projectedEndDate = ensureDate(period.projectedEndDate);
 
   const formattedStartDate = startDate ? format(startDate, "MMM d, yyyy") : "Unknown";
-  const formattedEndDate = endDate 
-    ? format(endDate, "MMM d, yyyy")
-    : "Present";
   
-  const formattedProjectedEndDate = projectedEndDate 
+  // If projected end date exists, use it as the primary display date
+  const formattedEndDate = projectedEndDate
     ? format(projectedEndDate, "MMM d, yyyy")
-    : "N/A";
+    : endDate 
+      ? format(endDate, "MMM d, yyyy")
+      : "Present";
   
   // Calculate durations correctly using the projected end date when available
   const endDateForDuration = projectedEndDate || endDate;
@@ -71,14 +71,11 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
             Active
           </span>
         )}
-        {period.projectedEndDate && (
+        
+        {/* Show original goal end date if it's different from the projected end date */}
+        {endDate && projectedEndDate && endDate.getTime() !== projectedEndDate.getTime() && (
           <div className="text-xs text-muted-foreground mt-1">
-            Projected completion: {formattedProjectedEndDate}
-          </div>
-        )}
-        {endDate && endDate !== projectedEndDate && (
-          <div className="text-xs text-muted-foreground">
-            Original goal: {formattedEndDate}
+            Original goal: {format(endDate, "MMM d, yyyy")}
           </div>
         )}
       </td>
