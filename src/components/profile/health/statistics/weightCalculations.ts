@@ -12,16 +12,11 @@ export const calculateProgressPercentage = (
     return null;
   }
   
-  // Convert weights to the same unit system if needed
-  const convertedStartingWeight = isImperial ? startingWeight : startingWeight;
-  const convertedCurrentWeight = isImperial ? currentWeight : currentWeight;
-  const convertedTargetWeight = isImperial ? (targetWeight * 2.20462) : targetWeight;
-  
   // Calculate total weight to lose
-  const totalToLose = convertedStartingWeight - convertedTargetWeight;
+  const totalToLose = startingWeight - targetWeight;
   
   // Calculate weight lost so far
-  const lostSoFar = convertedStartingWeight - convertedCurrentWeight;
+  const lostSoFar = startingWeight - currentWeight;
   
   // Calculate percentage of progress
   if (totalToLose <= 0) return 0; // Prevent division by zero or negative values
@@ -51,6 +46,5 @@ export const calculateTargetLoss = (
 ): number | null => {
   if (!startingWeight || !targetWeight) return null;
   
-  const convertedTargetWeight = isImperial ? targetWeight * 2.20462 : targetWeight;
-  return Math.abs(startingWeight - convertedTargetWeight);
+  return Math.abs(startingWeight - targetWeight);
 };
