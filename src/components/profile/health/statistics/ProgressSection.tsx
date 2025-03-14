@@ -1,6 +1,7 @@
 
 import React from 'react';
 import StatisticInput from './StatisticInput';
+import { formatWeightWithUnit } from '@/lib/weight/formatWeight';
 
 interface ProgressSectionProps {
   weightLossPerWeek?: number;
@@ -17,19 +18,37 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
   currentWeight,
   isImperial
 }) => {
+  // Log the raw values
+  console.log('Progress Section raw values:', {
+    weightLossPerWeek,
+    currentAvgWeightLoss,
+    isImperial
+  });
+  
+  // Format the target loss per week without converting twice
+  // weightLossPerWeek is already in kg, just format it directly with the unit conversion
+  const formattedTargetLoss = weightLossPerWeek 
+    ? formatWeightWithUnit(weightLossPerWeek, isImperial)
+    : '';
+    
+  // Similarly for actual loss, apply the same logic
+  const formattedActualLoss = currentAvgWeightLoss !== undefined
+    ? formatWeightWithUnit(Math.abs(currentAvgWeightLoss), isImperial)
+    : 'Not enough data';
+    
   return (
     <>
       <StatisticInput
         id="targetLossPerWeek"
         label="Target Loss/Week"
         value={weightLossPerWeek ? 
-          `${isImperial ? (weightLossPerWeek * 2.20462).toFixed(2) : weightLossPerWeek.toFixed(2)} ${isImperial ? 'lbs' : 'kg'}/week` : ''}
+          `${formattedTargetLoss}/week` : ''}
       />
       <StatisticInput
         id="actualLossPerWeek"
         label="Actual Loss/Week"
         value={currentAvgWeightLoss !== undefined ? 
-          `${isImperial ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(2) : Math.abs(currentAvgWeightLoss).toFixed(2)} ${isImperial ? 'lbs' : 'kg'}/week` : 'Not enough data'}
+          `${formattedActualLoss}/week` : 'Not enough data'}
         badge={currentAvgWeightLoss !== undefined ? {
           text: currentAvgWeightLoss < 0 ? 'Loss' : 'Gain',
           variant: currentAvgWeightLoss < 0 ? "secondary" : "destructive"
@@ -43,7 +62,7 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
       <StatisticInput
         id="currentWeight"
         label="Current Weight"
-        value={currentWeight ? `${currentWeight.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={currentWeight ? formatWeightWithUnit(currentWeight, isImperial) : ''}
       />
     </>
   );
