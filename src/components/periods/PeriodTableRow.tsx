@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,10 +32,13 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
     ? format(new Date(period.endDate), "MMM d, yyyy")
     : "Present";
   
+  const formattedProjectedEndDate = period.projectedEndDate 
+    ? format(new Date(period.projectedEndDate), "MMM d, yyyy")
+    : "N/A";
+  
   const weeks = getWeeksInPeriod(period.startDate, period.endDate);
   const months = getMonthsInPeriod(period.startDate, period.endDate);
   
-  // Convert weights to display units (kg to lbs if imperial)
   const isImperial = weightUnit === 'lbs';
   const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
   const displayTargetWeight = isImperial ? period.targetWeight * 2.20462 : period.targetWeight;
@@ -44,7 +46,6 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
     ? period.weightLossPerWeek * 2.20462 
     : period.weightLossPerWeek;
   
-  // For weight change calculation, ensure latestWeight is in the same unit as displayStartWeight
   const weightChange = latestWeight 
     ? Math.abs(displayStartWeight - latestWeight)
     : 0;
@@ -60,6 +61,11 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
           <span className="inline-block px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full mt-1">
             Active
           </span>
+        )}
+        {period.projectedEndDate && (
+          <div className="text-xs text-muted-foreground mt-1">
+            Projected completion: {formattedProjectedEndDate}
+          </div>
         )}
       </td>
       <td className="px-4 py-4">

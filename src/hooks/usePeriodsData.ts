@@ -35,7 +35,8 @@ export function usePeriodsData() {
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
         fastingSchedule: item.fasting_schedule || '16:8',
-        weightLossPerWeek: item.weight_loss_per_week || 0.5
+        weightLossPerWeek: item.weight_loss_per_week || 0.5,
+        projectedEndDate: item.projected_end_date ? new Date(item.projected_end_date) : undefined
       })) as Period[];
     }
   });

@@ -156,6 +156,7 @@ export type Database = {
           end_date: string | null
           fasting_schedule: string | null
           id: string
+          projected_end_date: string | null
           start_date: string
           start_weight: number
           target_weight: number
@@ -168,6 +169,7 @@ export type Database = {
           end_date?: string | null
           fasting_schedule?: string | null
           id?: string
+          projected_end_date?: string | null
           start_date?: string
           start_weight: number
           target_weight: number
@@ -180,6 +182,7 @@ export type Database = {
           end_date?: string | null
           fasting_schedule?: string | null
           id?: string
+          projected_end_date?: string | null
           start_date?: string
           start_weight?: number
           target_weight?: number
@@ -306,6 +309,13 @@ export type Database = {
           p_user_id: string
         }
         Returns: number
+      }
+      calculate_projected_end_date: {
+        Args: {
+          p_user_id: string
+          p_period_id: string
+        }
+        Returns: string
       }
       get_current_active_period: {
         Args: {

@@ -56,6 +56,8 @@ export function useAddWeighIn() {
       queryClient.invalidateQueries({ queryKey: ['weighIns'] });
       // Also invalidate the profile data to ensure it gets refreshed
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Also invalidate the periods data to get the updated projected end date
+      queryClient.invalidateQueries({ queryKey: ['periods'] });
       toast({
         title: 'Weight added',
         description: 'Your weight has been recorded successfully.',
