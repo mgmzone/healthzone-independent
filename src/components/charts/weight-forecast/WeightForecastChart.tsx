@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { WeighIn, Period } from '@/lib/types';
@@ -65,6 +66,17 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     return value.toFixed(1);
   };
 
+  // Check if target date and period end date are close to each other
+  const hasOverlappingDates = () => {
+    if (!targetDate || !currentPeriod.endDate) return false;
+    
+    const endDate = new Date(currentPeriod.endDate);
+    const diffInDays = Math.abs((endDate.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // If less than 10 days apart, consider them overlapping
+    return diffInDays < 10;
+  };
+
   return (
     <>
       <div className="w-full h-[220px]">
@@ -120,7 +132,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                 strokeDasharray="3 3" 
                 label={{ 
                   value: 'Target date', 
-                  position: 'insideTopRight', 
+                  position: hasOverlappingDates() ? 'insideBottomRight' : 'insideTopRight', 
                   fill: '#F59E0B',
                   fontSize: 10
                 }} 
@@ -136,7 +148,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                 strokeDasharray="3 3" 
                 label={{ 
                   value: 'Period end', 
-                  position: 'insideTopLeft', 
+                  position: hasOverlappingDates() ? 'insideTopLeft' : 'insideTopRight', 
                   fill: '#64748B',
                   fontSize: 10
                 }} 

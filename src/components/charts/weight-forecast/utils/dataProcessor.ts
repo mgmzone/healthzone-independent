@@ -1,4 +1,3 @@
-
 import { WeighIn, Period } from '@/lib/types';
 import { addWeeks, differenceInWeeks } from 'date-fns';
 import { WeeklyWeightData } from './types';
@@ -20,8 +19,24 @@ export const processWeeklyData = (
   const startWeight = isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
   weeklyWeights.set(0, [startWeight]);
   
-  // Fill in actual weights from weigh-ins
-  weighIns.forEach(entry => {
+  // Sort the weigh-ins by date (newest first) to ensure we get all recent entries
+  const sortedWeighIns = [...weighIns].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  // Create a map to track the latest entry for each unique date (to avoid duplication)
+  const uniqueEntries = new Map<string, WeighIn>();
+  
+  // Add unique entries to the map, keeping only the most recent for each date
+  sortedWeighIns.forEach(entry => {
+    const dateKey = new Date(entry.date).toISOString().split('T')[0];
+    if (!uniqueEntries.has(dateKey)) {
+      uniqueEntries.set(dateKey, entry);
+    }
+  });
+  
+  // Process all unique weigh-in entries
+  Array.from(uniqueEntries.values()).forEach(entry => {
     const entryDate = new Date(entry.date);
     const weekNum = differenceInWeeks(entryDate, startDate);
     
@@ -57,4 +72,55 @@ export const processWeeklyData = (
   weeklyData.sort((a, b) => a.week - b.week);
   
   return weeklyData;
+};
+
+// For daily chart data (to show all recent weigh-ins)
+export const processDailyData = (
+  weighIns: WeighIn[],
+  currentPeriod: Period,
+  isImperial: boolean
+): WeeklyWeightData[] => {
+  // Initialize with starting weight
+  const startDate = new Date(currentPeriod.startDate);
+  const startWeight = isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
+  
+  // Create a map to track the latest entry for each unique date
+  const uniqueEntries = new Map<string, WeighIn>();
+  
+  // Add the starting point
+  const startEntry: WeeklyWeightData = {
+    week: 0,
+    date: startDate,
+    weight: startWeight,
+    isProjected: false
+  };
+  
+  // Sort weigh-ins by date (oldest to newest)
+  const sortedWeighIns = [...weighIns].sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  
+  // Add each unique weigh-in
+  sortedWeighIns.forEach(entry => {
+    const dateKey = new Date(entry.date).toISOString().split('T')[0];
+    uniqueEntries.set(dateKey, entry);
+  });
+  
+  // Convert to our data format
+  const dailyData: WeeklyWeightData[] = [startEntry];
+  
+  Array.from(uniqueEntries.values())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .forEach(entry => {
+      if (new Date(entry.date) > startDate) {
+        dailyData.push({
+          week: differenceInWeeks(new Date(entry.date), startDate),
+          date: new Date(entry.date),
+          weight: isImperial ? entry.weight * 2.20462 : entry.weight,
+          isProjected: false
+        });
+      }
+    });
+  
+  return dailyData;
 };

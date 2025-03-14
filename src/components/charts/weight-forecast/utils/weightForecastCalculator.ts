@@ -2,7 +2,7 @@
 import { WeighIn, Period } from '@/lib/types';
 import { addWeeks, differenceInWeeks } from 'date-fns';
 import { ProjectionResult } from './types';
-import { processWeeklyData } from './dataProcessor';
+import { processWeeklyData, processDailyData } from './dataProcessor';
 import { calculateWeightProjection } from './weightLossCalculator';
 
 /**
@@ -22,24 +22,22 @@ export const calculateChartData = (
   
   // Initially, we'll set up for a projection that could go as far as the period end date
   // plus some additional weeks for reasonable extrapolation
-  const maxInitialProjectionDate = addWeeks(endDate, 12); // Extend past period end date initially
+  const maxInitialProjectionDate = addWeeks(endDate, 2); // Extend past period end date by 2 weeks
   const totalWeeks = differenceInWeeks(maxInitialProjectionDate, startDate) + 1;
   
   // Convert target weight to display units (kg to lbs if imperial)
   const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
   
-  // Process the weekly weight data
-  const weeklyData = processWeeklyData(
+  // Process the daily weight data instead of weekly to get all recent weigh-ins
+  const actualData = processDailyData(
     weighIns,
     currentPeriod,
-    startDate,
-    totalWeeks,
     isImperial
   );
   
   // Calculate projections using the processed data
   return calculateWeightProjection(
-    weeklyData,
+    actualData,
     isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
     targetWeight,
     startDate,
