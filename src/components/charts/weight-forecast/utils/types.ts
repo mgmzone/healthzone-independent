@@ -1,14 +1,7 @@
 
-import { WeighIn, Period } from '@/lib/types';
+// Simplified types for our new chart approach
 
-export interface WeeklyWeightData {
-  week: number;
+export interface SimpleWeightData {
   date: Date;
   weight: number;
-  isProjected: boolean;
-}
-
-export interface ProjectionResult {
-  chartData: WeeklyWeightData[];
-  targetDate: Date | null;
 }
