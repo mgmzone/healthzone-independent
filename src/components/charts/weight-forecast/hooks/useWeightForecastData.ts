@@ -103,10 +103,16 @@ export const useWeightForecastData = (
         avgDailyChange = Math.min(avgDailyChange, maxDailyGain);
       }
 
-      // Create a copy of the chart data for forecast (excluding future points)
+      // Create a copy of the chart data up to the last actual point
+      // This ensures the forecast data starts exactly at the last actual weigh-in
       const forecastData = chartData.filter(point => 
         new Date(point.date) <= lastActualPoint.date
       );
+      
+      // Make sure the last actual point is included
+      if (!forecastData.includes(lastActualPoint)) {
+        forecastData.push(lastActualPoint);
+      }
 
       // If we already reached the end date, no need to forecast
       if (new Date() >= periodEndDate) return forecastData;
@@ -129,6 +135,7 @@ export const useWeightForecastData = (
         return forecastData;
       }
 
+      // Start forecast FROM the day after the last actual weigh-in
       for (let i = 1; i <= daysToForecast; i++) {
         const forecastDate = addDays(lastDate, i);
         const forecastWeight = previousWeight + avgDailyChange;
