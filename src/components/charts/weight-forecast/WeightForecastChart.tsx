@@ -80,9 +80,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const minWeight = Math.floor(Math.min(...weights) - 1);
   const maxWeight = Math.ceil(Math.max(...weights) + 1);
   
-  // Calculate mean weight
-  const meanWeight = weights.reduce((sum, weight) => sum + weight, 0) / weights.length;
-  
   // Calculate trend line (linear regression)
   const calculateTrendLine = () => {
     if (chartData.length < 2) return chartData.map(d => ({ ...d, trend: d.weight }));
@@ -147,20 +144,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           }}
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
-        
-        {/* Mean Weight Reference Line */}
-        <ReferenceLine 
-          y={meanWeight} 
-          stroke="#FEC6A1" 
-          strokeDasharray="3 3"
-          strokeWidth={2}
-          label={{ 
-            value: `Mean: ${meanWeight.toFixed(1)}`, 
-            fill: '#FEC6A1', 
-            position: 'right',
-            fontSize: 11
-          }}
-        />
         
         <Area 
           type="monotone" 
