@@ -2,6 +2,31 @@
 import { SimpleWeightData } from './types';
 
 /**
+ * Helper function to ensure date is a timestamp
+ */
+const ensureTimestamp = (dateValue: any): number => {
+  if (typeof dateValue === 'number') {
+    return dateValue;
+  }
+  
+  if (dateValue instanceof Date) {
+    return dateValue.getTime();
+  }
+  
+  // Handle serialized Date objects from console logs
+  if (typeof dateValue === 'object' && dateValue?._type === 'Date') {
+    return dateValue.value.value;
+  }
+  
+  try {
+    return new Date(dateValue).getTime();
+  } catch (e) {
+    console.error('Failed to convert date to timestamp:', dateValue, e);
+    return Date.now();
+  }
+};
+
+/**
  * Calculates the domain start and end timestamps for the chart x-axis
  */
 export const calculateChartDomain = (
@@ -25,7 +50,8 @@ export const calculateChartDomain = (
   // Check displayData for earliest date
   displayData.forEach(d => {
     if (d && d.date) {
-      const date = new Date(d.date);
+      const dateTimestamp = ensureTimestamp(d.date);
+      const date = new Date(dateTimestamp);
       if (!foundEarlier || date < earliestDate) {
         earliestDate = date;
         foundEarlier = true;
@@ -37,7 +63,8 @@ export const calculateChartDomain = (
   if (targetLine && targetLine.length > 0) {
     targetLine.forEach(point => {
       if (point && point.date) {
-        const date = new Date(point.date);
+        const dateTimestamp = ensureTimestamp(point.date);
+        const date = new Date(dateTimestamp);
         if (!foundEarlier || date < earliestDate) {
           earliestDate = date;
           foundEarlier = true;
@@ -55,7 +82,8 @@ export const calculateChartDomain = (
     if (actualData.length > 0) {
       actualData.forEach(point => {
         if (point && point.date) {
-          const date = new Date(point.date);
+          const dateTimestamp = ensureTimestamp(point.date);
+          const date = new Date(dateTimestamp);
           if (date > latestDate) {
             latestDate = date;
           }
@@ -71,7 +99,8 @@ export const calculateChartDomain = (
     
     allPoints.forEach(point => {
       if (point && point.date) {
-        const date = new Date(point.date);
+        const dateTimestamp = ensureTimestamp(point.date);
+        const date = new Date(dateTimestamp);
         if (date > latestDate) {
           latestDate = date;
         }
@@ -116,10 +145,6 @@ export const separateChartData = (
     actualSample: actualData.length > 0 ? actualData[0] : null,
     forecastSample: forecastData.length > 0 ? forecastData[0] : null
   });
-  
-  // Sort both arrays by date to ensure they're in chronological order
-  actualData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  forecastData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   return { actualData, forecastData };
 };

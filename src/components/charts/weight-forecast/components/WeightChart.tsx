@@ -24,6 +24,13 @@ const WeightChart: React.FC<WeightChartProps> = ({
 }) => {
   const today = new Date();
   
+  console.log('WeightChart input data:', {
+    displayDataCount: displayData.length,
+    targetLineCount: targetLine.length,
+    displayDataSample: displayData.slice(0, 3),
+    targetLineSample: targetLine.slice(0, 3)
+  });
+  
   // Separate actual and forecast data
   const { actualData, forecastData } = separateChartData(displayData);
   
@@ -32,6 +39,18 @@ const WeightChart: React.FC<WeightChartProps> = ({
   
   // Find target date (the last date in the forecast)
   const lastForecastPoint = forecastData.length > 0 ? forecastData[forecastData.length - 1] : null;
+  
+  // Get the target date
+  let targetDate = null;
+  if (lastForecastPoint) {
+    if (lastForecastPoint.date instanceof Date) {
+      targetDate = lastForecastPoint.date;
+    } else if (typeof lastForecastPoint.date === 'object' && lastForecastPoint.date?._type === 'Date') {
+      targetDate = new Date(lastForecastPoint.date.value.value);
+    } else {
+      targetDate = new Date(lastForecastPoint.date);
+    }
+  }
   
   console.log('WeightChart calculated dates:', {
     domainStart,
@@ -42,7 +61,8 @@ const WeightChart: React.FC<WeightChartProps> = ({
     forecastDataLength: forecastData.length,
     displayDataLength: displayData.length,
     actualFirstPoint: actualData.length > 0 ? actualData[0] : null,
-    forecastFirstPoint: forecastData.length > 0 ? forecastData[0] : null
+    forecastFirstPoint: forecastData.length > 0 ? forecastData[0] : null,
+    targetDate
   });
 
   return (
@@ -65,7 +85,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
       <ReferenceLines 
         chartData={displayData}
         today={today}
-        targetDate={lastForecastPoint ? new Date(lastForecastPoint.date) : null}
+        targetDate={targetDate}
         periodEndDate={new Date(domainEnd)}
       />
     </ChartContainer>

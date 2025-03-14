@@ -44,7 +44,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     maxWeight,
     chartDataCount: chartData.length,
     targetLineCount: targetLine.length,
-    isImperial
+    isImperial,
+    chartDataSample: chartData.slice(0, 3),
+    targetLineSample: targetLine.slice(0, 3)
   });
 
   return (

@@ -15,24 +15,44 @@ const ChartLines: React.FC<ChartLinesProps> = ({
   targetLine,
   activeView
 }) => {
+  // Process data to ensure dates are in timestamp format
+  const processData = (data: any[]) => {
+    return data.map(point => {
+      const date = point.date instanceof Date 
+        ? point.date.getTime() 
+        : (typeof point.date === 'object' && point.date?._type === 'Date') 
+          ? point.date.value.value 
+          : new Date(point.date).getTime();
+          
+      return {
+        ...point,
+        date
+      };
+    });
+  };
+
+  const processedActualData = processData(actualData);
+  const processedForecastData = processData(forecastData);
+  const processedTargetLine = processData(targetLine);
+
   console.log('ChartLines rendering with:', {
-    actualDataCount: actualData.length,
-    forecastDataCount: forecastData.length,
-    targetLineCount: targetLine.length,
+    actualDataCount: processedActualData.length,
+    forecastDataCount: processedForecastData.length,
+    targetLineCount: processedTargetLine.length,
     activeView,
-    actualFirstPoint: actualData.length > 0 ? actualData[0] : null,
-    forecastFirstPoint: forecastData.length > 0 ? forecastData[0] : null,
-    targetFirstPoint: targetLine.length > 0 ? targetLine[0] : null
+    actualFirstPoint: processedActualData.length > 0 ? processedActualData[0] : null,
+    forecastFirstPoint: processedForecastData.length > 0 ? processedForecastData[0] : null,
+    targetFirstPoint: processedTargetLine.length > 0 ? processedTargetLine[0] : null
   });
 
   return (
     <>
       {/* Target Weight Line (Dashed Orange) - Shows the ideal weight loss path */}
-      {activeView === 'forecast' && targetLine.length > 0 && (
+      {activeView === 'forecast' && processedTargetLine.length > 0 && (
         <Line 
           type="linear" 
           dataKey="weight"
-          data={targetLine}
+          data={processedTargetLine}
           stroke="#FF9966"
           strokeWidth={1.5}
           strokeDasharray="4 4"
@@ -48,7 +68,7 @@ const ChartLines: React.FC<ChartLinesProps> = ({
       <Line 
         type="linear" 
         dataKey="weight" 
-        data={actualData}
+        data={processedActualData}
         stroke="#0066CC" 
         strokeWidth={2}
         activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
@@ -64,11 +84,11 @@ const ChartLines: React.FC<ChartLinesProps> = ({
       />
       
       {/* Forecast Weight Line (Blue Dashed) - Only visible in forecast view */}
-      {activeView === 'forecast' && forecastData.length > 0 && (
+      {activeView === 'forecast' && processedForecastData.length > 0 && (
         <Line
           type="linear"
           dataKey="weight"
-          data={forecastData}
+          data={processedForecastData}
           stroke="#0066CC"
           strokeWidth={2}
           strokeDasharray="5 5"

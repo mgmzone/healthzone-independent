@@ -38,13 +38,29 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
     minWeight,
     maxWeight,
     dataLength: data.length,
-    dataFirstPoint: data.length > 0 ? data[0] : null
+    dataFirstPoint: data.length > 0 ? data[0] : null,
+    dataSample: data.slice(0, 5)
+  });
+
+  // Ensure we have processed data with proper timestamp values
+  const processedData = data.map(point => {
+    // Convert Date objects to timestamps for Recharts
+    const date = point.date instanceof Date 
+      ? point.date.getTime() 
+      : (typeof point.date === 'object' && point.date?._type === 'Date') 
+        ? point.date.value.value 
+        : new Date(point.date).getTime();
+        
+    return {
+      ...point,
+      date
+    };
   });
 
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
-        data={data}
+        data={processedData}
         margin={{
           top: 30,
           right: 30,
@@ -55,11 +71,11 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
           dataKey="date"
-          tickFormatter={(dateValue) => {
+          tickFormatter={(timestamp) => {
             try {
-              return format(new Date(dateValue), 'MMM d');
+              return format(new Date(timestamp), 'MMM d');
             } catch (err) {
-              console.error('Error formatting date:', dateValue, err);
+              console.error('Error formatting date:', timestamp, err);
               return '';
             }
           }}
