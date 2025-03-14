@@ -1,8 +1,7 @@
 
 import React from 'react';
 import StatisticInput from './StatisticInput';
-import { convertWeight } from '@/lib/weight/convertWeight';
-import { formatWeightValue, formatWeightWithUnit } from '@/lib/weight/formatWeight';
+import { formatWeightWithUnit } from '@/lib/weight/formatWeight';
 
 interface WeightSectionProps {
   startingWeight?: number;
@@ -21,6 +20,15 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   targetLoss,
   isImperial
 }) => {
+  // For debugging
+  console.log('Weight Stats:', { 
+    startingWeight, 
+    currentWeight, 
+    targetWeight, 
+    totalWeightLoss, 
+    targetLoss 
+  });
+
   return (
     <>
       <StatisticInput
@@ -41,7 +49,7 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       <StatisticInput
         id="lostThusFar"
         label="Lost Thus Far"
-        value={totalWeightLoss ? formatWeightWithUnit(totalWeightLoss, isImperial) : ''}
+        value={totalWeightLoss !== null ? formatWeightWithUnit(totalWeightLoss, isImperial) : ''}
       />
     </>
   );

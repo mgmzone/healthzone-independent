@@ -34,9 +34,13 @@ export const calculateTotalWeightLoss = (
 ): number | null => {
   if (!startingWeight || !currentWeight) return null;
   
-  // Calculate positive weight loss (if starting > current it's a loss)
-  // This should return a positive number for a weight loss
-  return Math.max(0, startingWeight - currentWeight);
+  // If starting weight is greater than current weight, there's a loss
+  if (startingWeight > currentWeight) {
+    return startingWeight - currentWeight;
+  }
+  
+  // No weight loss (or weight gain)
+  return 0;
 };
 
 /**
