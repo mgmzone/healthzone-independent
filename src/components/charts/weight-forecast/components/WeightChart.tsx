@@ -64,36 +64,65 @@ const WeightChart: React.FC<WeightChartProps> = ({
     forecastData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
   
+  // Find the earliest and latest dates for domain
+  let earliestDate = displayData.length > 0 ? new Date(displayData[0].date) : today;
+  
   // Find target date (the last date in the forecast)
-  const targetDate = forecastData.length > 0 ? new Date(forecastData[forecastData.length - 1].date) : null;
+  const lastForecastPoint = forecastData.length > 0 ? forecastData[forecastData.length - 1] : null;
+  const lastTargetPoint = targetLine.length > 0 ? targetLine[targetLine.length - 1] : null;
   
-  // Find the last meaningful date in both datasets for x-axis range
-  let lastTargetLineDate = targetLine.length > 0 ? 
-    new Date(targetLine[targetLine.length - 1].date) : null;
+  // For x-axis domain, use the latest end date between forecast and target line
+  let latestDate;
   
-  let lastForecastDate = forecastData.length > 0 ? 
-    new Date(forecastData[forecastData.length - 1].date) : null;
-  
-  // Determine the latest date between the two trend lines for x-axis domain
-  let latestEndDate = null;
-  if (lastTargetLineDate && lastForecastDate) {
-    latestEndDate = lastTargetLineDate > lastForecastDate ? lastTargetLineDate : lastForecastDate;
-  } else if (lastTargetLineDate) {
-    latestEndDate = lastTargetLineDate;
-  } else if (lastForecastDate) {
-    latestEndDate = lastForecastDate;
+  if (activeView === 'actual') {
+    // In actual view, just use the latest actual data point
+    latestDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
+  } else {
+    // In forecast view, use the latest end date between forecast and target line
+    const forecastEndDate = lastForecastPoint ? new Date(lastForecastPoint.date) : null;
+    const targetEndDate = lastTargetPoint ? new Date(lastTargetPoint.date) : null;
+    
+    if (forecastEndDate && targetEndDate) {
+      latestDate = forecastEndDate > targetEndDate ? forecastEndDate : targetEndDate;
+    } else if (forecastEndDate) {
+      latestDate = forecastEndDate;
+    } else if (targetEndDate) {
+      latestDate = targetEndDate;
+    } else {
+      latestDate = today;
+    }
   }
   
-  console.log('WeightChart render:', {
+  // Ensure we have the earliest date from all data
+  if (displayData.length > 0) {
+    displayData.forEach(d => {
+      const date = new Date(d.date);
+      if (date < earliestDate) {
+        earliestDate = date;
+      }
+    });
+  }
+  
+  // If there's target line data, check its dates too
+  if (targetLine.length > 0) {
+    // Get the earliest date
+    const targetEarliestDate = new Date(targetLine[0].date);
+    if (targetEarliestDate < earliestDate) {
+      earliestDate = targetEarliestDate;
+    }
+  }
+  
+  // For domain, use timestamps
+  const domainStart = earliestDate.getTime();
+  const domainEnd = latestDate.getTime();
+  
+  console.log('WeightChart calculated dates:', {
+    earliestDate,
+    latestDate,
+    domainStart,
+    domainEnd,
     minWeight,
-    maxWeight,
-    actualDataCount: actualData.length,
-    forecastDataCount: forecastData.length,
-    targetLineCount: targetLine.length,
-    lastTargetLineDate,
-    lastForecastDate,
-    latestEndDate,
-    isImperial
+    maxWeight
   });
 
   return (
@@ -114,7 +143,8 @@ const WeightChart: React.FC<WeightChartProps> = ({
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
-          domain={['dataMin', latestEndDate ? new Date(latestEndDate).getTime() : 'dataMax']}
+          domain={[domainStart, domainEnd]}
+          type="number"
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
@@ -189,8 +219,8 @@ const WeightChart: React.FC<WeightChartProps> = ({
         <ReferenceLines 
           chartData={displayData}
           today={today}
-          targetDate={targetDate}
-          periodEndDate={latestEndDate || null}
+          targetDate={lastForecastPoint ? new Date(lastForecastPoint.date) : null}
+          periodEndDate={latestDate}
         />
       </LineChart>
     </ResponsiveContainer>

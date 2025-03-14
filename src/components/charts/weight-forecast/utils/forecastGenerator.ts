@@ -29,7 +29,7 @@ export const generateForecastData = (
   // Calculate the average daily weight change based on actual data
   // This will give us the real trend based on user's actual progress
   const firstPoint = chartData[0];
-  const daysElapsed = differenceInDays(lastActualPoint.date, firstPoint.date) || 1;
+  const daysElapsed = differenceInDays(new Date(lastActualPoint.date), new Date(firstPoint.date)) || 1;
   let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
   let avgDailyChange = totalWeightChange / daysElapsed;
   
@@ -72,29 +72,42 @@ export const generateForecastData = (
 
   // Calculate how many days it should take to reach target weight based on current progress
   let daysToTarget = null;
-  if (convertedTargetWeight !== null) {
+  if (convertedTargetWeight !== null && Math.abs(avgDailyChange) > 0.001) {
     const weightToLose = Math.abs(lastActualPoint.weight - convertedTargetWeight);
     daysToTarget = Math.abs(Math.ceil(weightToLose / Math.abs(avgDailyChange)));
     console.log(`Estimated days to target: ${daysToTarget} with daily change of ${avgDailyChange}`);
+    
+    // If daysToTarget is too large (over 2 years), cap it
+    if (daysToTarget > 730) {
+      daysToTarget = 730;
+    }
   }
 
-  // Limit the forecast to a reasonable timeframe
-  // Either until target weight is reached or up to 365 days, whichever comes first
-  const maxDaysToForecast = daysToTarget !== null ? 
-    Math.min(daysToTarget, 365) : 
-    365;
+  // Limit the forecast to either the period end date, or until target is reached, whichever comes first
+  let endDate = new Date(periodEndDate);
+  if (daysToTarget !== null) {
+    const targetDate = addDays(new Date(lastActualPoint.date), daysToTarget);
+    // Use whichever date comes first
+    if (targetDate < endDate) {
+      endDate = targetDate;
+    }
+  }
+  
+  // Calculate days between last actual point and end date
+  const daysToForecast = differenceInDays(endDate, new Date(lastActualPoint.date));
   
   console.log('Forecast range:', { 
     lastActualDate: lastActualPoint.date, 
-    maxDaysToForecast, 
-    daysToTarget 
+    daysToForecast,
+    daysToTarget,
+    endDate
   });
   
   let previousWeight = lastActualPoint.weight;
 
   // Start forecast FROM the day after the last actual weigh-in
-  for (let i = 1; i <= maxDaysToForecast; i++) {
-    const forecastDate = addDays(lastActualPoint.date, i);
+  for (let i = 1; i <= daysToForecast; i++) {
+    const forecastDate = addDays(new Date(lastActualPoint.date), i);
     const forecastWeight = previousWeight + avgDailyChange;
     
     // If target weight is provided, check if we've reached it

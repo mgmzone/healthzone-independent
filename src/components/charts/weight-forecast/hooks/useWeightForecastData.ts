@@ -47,7 +47,8 @@ export const useWeightForecastData = (
     
     if (targetWeight !== undefined) {
       // Use provided target weight that should already be in the right units
-      displayTargetWeight = targetWeight;
+      displayTargetWeight = isImperial ? 
+        targetWeight * 2.20462 : targetWeight;
     } else if (currentPeriod.targetWeight) {
       // If imperial, convert from kg to lbs, otherwise use as is
       displayTargetWeight = isImperial ? 

@@ -93,11 +93,11 @@ export const getWeightRangeFromData = (weights: number[], targetWeight?: number)
   const range = maxWeight - minWeight;
   const padding = Math.max(range * 0.05, 1);
   
-  // Round to ensure clean values
-  minWeight = Math.floor(minWeight - padding);
-  maxWeight = Math.ceil(maxWeight + padding);
+  // Ensure we get clean, rounded values for the axis
+  const minRounded = Math.floor(minWeight - padding);
+  const maxRounded = Math.ceil(maxWeight + padding);
   
-  console.log('Adjusted chart weight range:', { minWeight, maxWeight });
+  console.log('Adjusted chart weight range:', { minWeight: minRounded, maxWeight: maxRounded });
   
-  return { minWeight, maxWeight };
+  return { minWeight: minRounded, maxWeight: maxRounded };
 };

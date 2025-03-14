@@ -22,6 +22,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 }) => {
   const [activeView, setActiveView] = useState<ChartView>('forecast'); // Default to forecast view
   
+  // Use the hook to get formatted chart data
   const { chartData, targetLine, minWeight, maxWeight, hasValidData } = useWeightForecastData(
     weighIns,
     currentPeriod,
@@ -37,8 +38,15 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     );
   }
 
-  // For the actual view, we show only actual data points
-  // For the forecast view, we show all data points (the chart component will handle the styling)
+  console.log('WeightForecastChart rendering with:', {
+    targetWeight,
+    minWeight,
+    maxWeight,
+    chartDataCount: chartData.length,
+    targetLineCount: targetLine.length,
+    isImperial
+  });
+
   return (
     <div className="h-[400px] w-full relative">
       <ViewToggleButtons activeView={activeView} setActiveView={setActiveView} />
