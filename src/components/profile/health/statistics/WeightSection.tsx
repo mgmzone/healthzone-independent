@@ -21,20 +21,38 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   isImperial
 }) => {
   // For debugging
-  console.log('Weight Stats:', { 
+  console.log('Weight Stats (Before Calculation):', { 
     startingWeight, 
     currentWeight, 
     targetWeight, 
     totalWeightLoss, 
-    targetLoss,
-    calculatedLoss: startingWeight && currentWeight ? startingWeight - currentWeight : 0
+    targetLoss
   });
 
-  // Calculate weight loss directly - exactly matching the Weight page logic
-  // Only show positive value when there's actual weight loss
-  const weightLoss = startingWeight && currentWeight && startingWeight > currentWeight 
+  // IMPORTANT: Calculate the actual weight loss
+  // This matches the same calculation used on the Weight page
+  // We need to show the actual loss value regardless of whether it's negative or positive
+  const actualWeightLoss = startingWeight && currentWeight 
     ? startingWeight - currentWeight 
     : 0;
+  
+  console.log('Actual weight loss calculation:', {
+    startingWeight,
+    currentWeight,
+    calculation: `${startingWeight} - ${currentWeight} = ${actualWeightLoss}`
+  });
+  
+  // Format the weight loss for display
+  const formattedWeightLoss = actualWeightLoss 
+    ? formatWeightWithUnit(Math.abs(actualWeightLoss), isImperial) 
+    : '0.0 ' + (isImperial ? 'lbs' : 'kg');
+  
+  // Add a "+" prefix for weight gain, "-" for weight loss
+  const weightLossDisplay = actualWeightLoss !== 0 
+    ? (actualWeightLoss < 0 ? '+' : '-') + formattedWeightLoss.trim()
+    : formattedWeightLoss;
+  
+  console.log('Final displayed weight loss:', weightLossDisplay);
 
   return (
     <>
@@ -56,7 +74,7 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       <StatisticInput
         id="lostThusFar"
         label="Lost This Period"
-        value={weightLoss > 0 ? formatWeightWithUnit(weightLoss, isImperial) : '0.0 ' + (isImperial ? 'lbs' : 'kg')}
+        value={weightLossDisplay}
       />
     </>
   );
