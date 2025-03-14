@@ -45,11 +45,9 @@ export const useProfileFormState = () => {
         birthDate: profile.birthDate instanceof Date ? new Date(profile.birthDate) : new Date(),
         gender: profile.gender || 'other',
         height: profile.height || 0,
-        // Convert weights from metric (stored in DB) to display units (imperial/metric)
-        currentWeight: profile.currentWeight ? 
-          (isImperial ? convertWeight(profile.currentWeight, true) : profile.currentWeight) : 0,
-        startingWeight: profile.startingWeight ? 
-          (isImperial ? convertWeight(profile.startingWeight, true) : profile.startingWeight) : 0,
+        // Current weight comes in KG and needs to be displayed in the user's unit
+        currentWeight: profile.currentWeight || 0,
+        startingWeight: profile.startingWeight || 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         healthGoals: profile.healthGoals || '',

@@ -30,11 +30,11 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
-  // All weights in database are stored in kg
-  // For display we convert them to the user's preferred unit
-  
   // Use currentPeriod's startWeight as the starting weight (stored in metric/kg)
   const startingWeightKg = currentPeriod?.startWeight;
+  
+  // Current weight from formData is already in the correct display unit (from profileFormState)
+  // For imperial users, this is already in lbs
   const currentWeightKg = formData.currentWeight;
   const targetWeightKg = currentPeriod?.targetWeight;
   
