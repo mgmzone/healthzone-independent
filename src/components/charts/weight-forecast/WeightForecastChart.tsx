@@ -96,12 +96,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
-          label={{ 
-            value: 'Date', 
-            position: 'insideBottom', 
-            offset: -10,
-            fill: '#666' 
-          }}
+          // Removed the label property that was showing "Date"
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
