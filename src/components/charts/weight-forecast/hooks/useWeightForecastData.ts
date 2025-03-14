@@ -6,12 +6,14 @@ import { addDays, differenceInDays } from 'date-fns';
 export const useWeightForecastData = (
   weighIns: WeighIn[],
   currentPeriod: Period | undefined,
-  isImperial: boolean
+  isImperial: boolean,
+  targetWeight?: number
 ) => {
   return useMemo(() => {
     if (!currentPeriod || weighIns.length === 0) {
       return {
         chartData: [],
+        forecastData: [],
         minWeight: 0,
         maxWeight: 0,
         hasValidData: false
@@ -64,12 +66,15 @@ export const useWeightForecastData = (
     // Find min and max weight to set y-axis domain with some padding
     const weights = chartData.map(item => item.weight);
     const minWeight = Math.floor(Math.min(...weights) - 1);
-    const maxWeight = Math.ceil(Math.max(...weights) + 1);
-
+    
     // Generate the forecast data
     const generateForecastData = () => {
       // If we have less than 2 points, we can't make a forecast
       if (chartData.length < 2) return chartData;
+
+      // Get the converted target weight if provided
+      const convertedTargetWeight = targetWeight !== undefined ? 
+        (isImperial ? targetWeight * 2.20462 : targetWeight) : null;
 
       // Calculate the average daily weight change based on the actual data
       const firstPoint = chartData[0];
@@ -89,10 +94,48 @@ export const useWeightForecastData = (
       const daysToForecast = differenceInDays(periodEndDate, lastDate);
 
       let previousWeight = lastActualPoint.weight;
+      
+      // If weight is increasing (gaining) but we want to lose weight, or
+      // if weight is decreasing (losing) but we want to gain weight,
+      // don't continue the forecast in the wrong direction
+      const isWeightLoss = avgDailyChange < 0;
+      const isTargetLower = convertedTargetWeight !== null && 
+                           convertedTargetWeight < lastActualPoint.weight;
+      
+      // If the trend is opposite from the target goal, don't forecast
+      if ((isWeightLoss && !isTargetLower) || (!isWeightLoss && isTargetLower)) {
+        return forecastData;
+      }
 
       for (let i = 1; i <= daysToForecast; i++) {
         const forecastDate = addDays(lastDate, i);
         const forecastWeight = previousWeight + avgDailyChange;
+        
+        // If target weight is provided, check if we've reached it
+        if (convertedTargetWeight !== null) {
+          // For weight loss: stop if forecast goes below target
+          if (isWeightLoss && forecastWeight <= convertedTargetWeight) {
+            forecastData.push({
+              date: forecastDate,
+              weight: convertedTargetWeight,
+              isActual: false,
+              isForecast: true
+            });
+            // We've reached target, stop forecasting
+            break;
+          }
+          // For weight gain: stop if forecast goes above target
+          else if (!isWeightLoss && forecastWeight >= convertedTargetWeight) {
+            forecastData.push({
+              date: forecastDate,
+              weight: convertedTargetWeight,
+              isActual: false,
+              isForecast: true
+            });
+            // We've reached target, stop forecasting
+            break;
+          }
+        }
         
         forecastData.push({
           date: forecastDate,
@@ -107,12 +150,17 @@ export const useWeightForecastData = (
       return forecastData;
     };
 
+    // Get the max weight considering both actual data and possibly the target weight
+    const forecastData = generateForecastData();
+    const allWeights = [...forecastData.map(item => item.weight)];
+    const maxWeight = Math.ceil(Math.max(...allWeights) + 1);
+
     return {
       chartData,
-      forecastData: generateForecastData(),
+      forecastData,
       minWeight,
       maxWeight,
       hasValidData: true
     };
-  }, [weighIns, currentPeriod, isImperial]);
+  }, [weighIns, currentPeriod, isImperial, targetWeight]);
 };
