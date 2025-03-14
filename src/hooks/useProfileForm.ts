@@ -105,7 +105,8 @@ export const useProfileForm = () => {
           if (avgLossError) {
             console.error('Error calculating average weight loss:', avgLossError);
           } else {
-            setCurrentAvgWeightLoss(avgLossData);
+            // Make sure negative value represents weight loss
+            setCurrentAvgWeightLoss(avgLossData ? -Math.abs(avgLossData) : undefined);
           }
         }
       } catch (error) {

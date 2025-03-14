@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { User } from "@/lib/types";
 import { getProfilePhotoUrl } from "./storageService";
@@ -22,6 +23,19 @@ export async function getProfile() {
   // Get profile photo URL
   const avatarUrl = await getProfilePhotoUrl(session.user.id);
 
+  // Fetch the latest weight from weigh_ins table instead of using profile.current_weight
+  const { data: latestWeighIn, error: weighInError } = await supabase
+    .from('weigh_ins')
+    .select('weight, date')
+    .eq('user_id', session.user.id)
+    .order('date', { ascending: false })
+    .limit(1);
+
+  // If there's a latest weigh-in, use it; otherwise fall back to profile's current_weight
+  const currentWeight = latestWeighIn && latestWeighIn.length > 0 
+    ? latestWeighIn[0].weight 
+    : data.current_weight || 0;
+
   // Transform snake_case DB fields to camelCase for our frontend types
   if (data) {
     // Create Date object in a timezone-safe way by using UTC
@@ -41,7 +55,7 @@ export async function getProfile() {
       birthDate: birthDate,
       gender: data.gender as 'male' | 'female' | 'other' || 'other',
       height: data.height || 0,
-      currentWeight: data.current_weight || 0,
+      currentWeight: currentWeight, // Use the fetched latest weight
       targetWeight: data.target_weight || 0,
       fitnessLevel: data.fitness_level as 'sedentary' | 'light' | 'moderate' | 'active' || 'moderate',
       exerciseMinutesPerDay: data.exercise_minutes_per_day || 0,
