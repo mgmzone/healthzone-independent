@@ -11,17 +11,10 @@ export const calculateChartDomain = (
 ): { domainStart: number; domainEnd: number } => {
   const today = new Date();
   
-  // Separate actual data
-  const actualData = displayData.filter(d => d.isActual);
-  const lastActualPoint = actualData.length > 0 ? actualData[actualData.length - 1] : null;
-  
-  // Process forecast data
-  const forecastData = activeView === 'forecast' 
-    ? displayData.filter(d => d.isForecast)
-    : [];
-  
   // Get domain start date (earliest date in the dataset)
-  let earliestDate = displayData.length > 0 ? new Date(displayData[0].date) : today;
+  let earliestDate = displayData.length > 0 
+    ? new Date(displayData[0].date) 
+    : today;
   
   // Ensure we have the earliest date from all data sources
   displayData.forEach(d => {
@@ -39,29 +32,27 @@ export const calculateChartDomain = (
     }
   }
   
-  // Get domain end date
+  // Get domain end date based on active view
   let latestDate;
   
   if (activeView === 'actual') {
-    // In actual view, just use the latest actual data point
-    latestDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
+    // In actual view, just use actual data for domain
+    const actualData = displayData.filter(d => d.isActual);
+    latestDate = actualData.length > 0 
+      ? new Date(actualData[actualData.length - 1].date) 
+      : today;
   } else {
-    // In forecast view, use the latest end date between forecast and target line
-    const lastForecastPoint = forecastData.length > 0 ? forecastData[forecastData.length - 1] : null;
-    const lastTargetPoint = targetLine.length > 0 ? targetLine[targetLine.length - 1] : null;
-    
-    const forecastEndDate = lastForecastPoint ? new Date(lastForecastPoint.date) : null;
-    const targetEndDate = lastTargetPoint ? new Date(lastTargetPoint.date) : null;
-    
-    if (forecastEndDate && targetEndDate) {
-      latestDate = forecastEndDate > targetEndDate ? forecastEndDate : targetEndDate;
-    } else if (forecastEndDate) {
-      latestDate = forecastEndDate;
-    } else if (targetEndDate) {
-      latestDate = targetEndDate;
-    } else {
-      latestDate = today;
+    // In forecast view, use the latest end date between all data
+    const allDates = [...displayData];
+    if (targetLine && targetLine.length > 0) {
+      allDates.push(...targetLine);
     }
+    
+    // Find latest date
+    latestDate = allDates.reduce((latest, point) => {
+      const date = new Date(point.date);
+      return date > latest ? date : latest;
+    }, today);
   }
   
   return {
@@ -77,21 +68,29 @@ export const separateChartData = (
   displayData: any[],
   lastActualPoint: any | null
 ): { actualData: any[]; forecastData: any[] } => {
+  if (!displayData || displayData.length === 0) {
+    return { actualData: [], forecastData: [] };
+  }
+  
   // Get actual data
   const actualData = displayData.filter(d => d.isActual);
   
+  // Get last actual point if not provided
+  const lastActual = lastActualPoint || 
+    (actualData.length > 0 ? actualData[actualData.length - 1] : null);
+  
   // Extract forecast data
-  let forecastData = displayData.filter(d => d.isForecast);
+  const forecastData = displayData.filter(d => d.isForecast);
   
   // Ensure forecastData starts with the last actual point
-  if (lastActualPoint && forecastData.length > 0) {
+  if (lastActual && forecastData.length > 0) {
     const lastActualExists = forecastData.some(
-      d => new Date(d.date).getTime() === new Date(lastActualPoint.date).getTime()
+      d => new Date(d.date).getTime() === new Date(lastActual.date).getTime()
     );
     
     if (!lastActualExists) {
       forecastData.unshift({
-        ...lastActualPoint,
+        ...lastActual,
         isActual: false,
         isForecast: true
       });

@@ -30,6 +30,15 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
   domainEnd,
   children
 }) => {
+  console.log('ChartContainer rendering with domain:', { 
+    domainStart, 
+    domainEnd,
+    dateStart: new Date(domainStart),
+    dateEnd: new Date(domainEnd),
+    minWeight,
+    maxWeight
+  });
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
@@ -50,6 +59,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
           tickLine={{ stroke: '#E0E0E0' }}
           domain={[domainStart, domainEnd]}
           type="number"
+          scale="time"
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
