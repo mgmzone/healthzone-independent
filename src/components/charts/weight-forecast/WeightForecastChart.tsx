@@ -55,11 +55,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const actualData = formattedData.filter(d => !d.isProjected);
   const projectedData = formattedData.filter(d => d.isProjected);
 
-  // Only display the target date if it's within the period end date
-  const displayTargetDate = targetDate && currentPeriod.endDate ? 
-    (targetDate <= new Date(currentPeriod.endDate) ? targetDate : null) : 
-    targetDate;
-
   // Format function for YAxis to remove the large numbers
   const formatYAxis = (value: number) => {
     return value.toFixed(1);
@@ -112,9 +107,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             )}
             
             {/* Target date vertical reference line (if projection reaches target) */}
-            {displayTargetDate && (
+            {targetDate && (
               <ReferenceLine 
-                x={displayTargetDate.getTime()} 
+                x={targetDate.getTime()} 
                 stroke="#F59E0B" 
                 strokeWidth={1} 
                 strokeDasharray="3 3" 
@@ -179,9 +174,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         </ResponsiveContainer>
       </div>
       
-      {displayTargetDate && (
+      {targetDate && (
         <div className="text-xs text-muted-foreground mt-2 text-center">
-          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateForDisplay(displayTargetDate)}</span>
+          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateForDisplay(targetDate)}</span>
         </div>
       )}
     </>

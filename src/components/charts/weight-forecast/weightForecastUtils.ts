@@ -29,7 +29,11 @@ export const calculateChartData = (
   
   const startDate = new Date(currentPeriod.startDate);
   const endDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : addWeeks(new Date(), 12); // Default 12 weeks if no end date
-  const totalWeeks = differenceInWeeks(endDate, startDate) + 1;
+  
+  // For projection purposes, we may need to extend beyond the period end date
+  // to show when the target will be reached, giving 52 weeks (1 year) maximum projection
+  const maxProjectionDate = addWeeks(startDate, 52);
+  const totalWeeks = differenceInWeeks(maxProjectionDate, startDate) + 1;
   
   // Convert target weight to display units (kg to lbs if imperial)
   const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
@@ -189,24 +193,22 @@ export const calculateChartData = (
       
       const projectionDate = addWeeks(startDate, week);
       
-      // Only add projection points up to the end date of the period
-      if (projectionDate <= endDate) {
-        weeklyData.push({
-          week,
-          date: projectionDate,
-          weight: projectedWeight,
-          isProjected: true
-        });
+      // Add projection points up to one year from start date
+      weeklyData.push({
+        week,
+        date: projectionDate,
+        weight: projectedWeight,
+        isProjected: true
+      });
 
-        // Check if we've reached or passed the target weight
-        // Only consider future dates for target date estimation
-        if (!targetWeightFound && 
-            ((isWeightLoss && projectedWeight <= targetWeight) || 
-             (!isWeightLoss && projectedWeight >= targetWeight)) &&
-            projectionDate > now) {
-          targetDate = projectionDate;
-          targetWeightFound = true;
-        }
+      // Check if we've reached or passed the target weight
+      // Only consider future dates for target date estimation
+      if (!targetWeightFound && 
+          ((isWeightLoss && projectedWeight <= targetWeight) || 
+           (!isWeightLoss && projectedWeight >= targetWeight)) &&
+          projectionDate > now) {
+        targetDate = projectionDate;
+        targetWeightFound = true;
       }
     }
   }
