@@ -23,7 +23,9 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   console.log('Reference lines rendering with:', {
     todayTime,
     targetTime,
-    chartDataLength: chartData.length
+    chartDataLength: chartData.length,
+    today: format(today, 'yyyy-MM-dd'),
+    targetDate: targetDate ? format(targetDate, 'yyyy-MM-dd') : 'none'
   });
 
   return (

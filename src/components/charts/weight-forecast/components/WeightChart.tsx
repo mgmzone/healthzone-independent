@@ -25,7 +25,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
   const today = new Date();
   
   // Separate actual and forecast data
-  const { actualData, forecastData } = separateChartData(displayData, null);
+  const { actualData, forecastData } = separateChartData(displayData);
   
   // Calculate domain for chart using utility function
   const { domainStart, domainEnd } = calculateChartDomain(displayData, targetLine, activeView);
@@ -39,7 +39,10 @@ const WeightChart: React.FC<WeightChartProps> = ({
     minWeight,
     maxWeight,
     actualDataLength: actualData.length,
-    forecastDataLength: forecastData.length
+    forecastDataLength: forecastData.length,
+    displayDataLength: displayData.length,
+    actualFirstPoint: actualData.length > 0 ? actualData[0] : null,
+    forecastFirstPoint: forecastData.length > 0 ? forecastData[0] : null
   });
 
   return (

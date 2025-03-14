@@ -36,7 +36,9 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
     dateStart: new Date(domainStart),
     dateEnd: new Date(domainEnd),
     minWeight,
-    maxWeight
+    maxWeight,
+    dataLength: data.length,
+    dataFirstPoint: data.length > 0 ? data[0] : null
   });
 
   return (
@@ -53,13 +55,21 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
           dataKey="date"
-          tickFormatter={(date) => format(new Date(date), 'MMM d')}
+          tickFormatter={(dateValue) => {
+            try {
+              return format(new Date(dateValue), 'MMM d');
+            } catch (err) {
+              console.error('Error formatting date:', dateValue, err);
+              return '';
+            }
+          }}
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
           domain={[domainStart, domainEnd]}
           type="number"
           scale="time"
+          allowDataOverflow={true}
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
@@ -75,6 +85,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
             style: { textAnchor: 'middle' },
             fill: '#666' 
           }}
+          allowDataOverflow={true}
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         {children}

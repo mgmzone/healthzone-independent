@@ -19,7 +19,10 @@ const ChartLines: React.FC<ChartLinesProps> = ({
     actualDataCount: actualData.length,
     forecastDataCount: forecastData.length,
     targetLineCount: targetLine.length,
-    activeView
+    activeView,
+    actualFirstPoint: actualData.length > 0 ? actualData[0] : null,
+    forecastFirstPoint: forecastData.length > 0 ? forecastData[0] : null,
+    targetFirstPoint: targetLine.length > 0 ? targetLine[0] : null
   });
 
   return (
@@ -57,6 +60,7 @@ const ChartLines: React.FC<ChartLinesProps> = ({
         }}
         isAnimationActive={false}
         name="Actual Weight"
+        connectNulls={true}
       />
       
       {/* Forecast Weight Line (Blue Dashed) - Only visible in forecast view */}
