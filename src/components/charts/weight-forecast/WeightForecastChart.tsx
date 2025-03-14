@@ -81,7 +81,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 
   const today = new Date();
   const formatDateForAxis = (date: Date): string => {
-    return format(date, 'MM/dd/yyyy');
+    return format(date, 'MM/dd/yy');
   };
   
   const renderDot = (props: any) => {
@@ -140,7 +140,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         />
         
         <ReferenceLine
-          x={formatDateForAxis(today)}
+          x={today}
           stroke="#2563eb"
           strokeWidth={2}
           label={{ 
@@ -153,7 +153,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         
         {targetDate && (
           <ReferenceLine
-            x={formatDateForAxis(targetDate)}
+            x={targetDate}
             stroke="#16a34a"
             strokeWidth={2}
             strokeDasharray="3 3"
@@ -168,7 +168,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         
         {currentPeriod.endDate && (
           <ReferenceLine
-            x={formatDateForAxis(new Date(currentPeriod.endDate))}
+            x={new Date(currentPeriod.endDate)}
             stroke="#dc2626"
             strokeWidth={2}
             label={{ 

@@ -4,7 +4,7 @@ import { TooltipProps } from 'recharts';
 import { format } from 'date-fns';
 
 interface ChartData {
-  formattedDate: string;
+  date: Date;
   weight: number;
   isProjected: boolean;
 }
@@ -21,7 +21,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isImperi
   const data = payload[0].payload as ChartData;
   const unit = isImperial ? 'lbs' : 'kg';
   const weightValue = data.weight.toFixed(1);
-  const dateText = data.formattedDate;
+  const dateText = format(data.date, 'MM/dd/yy');
   const isPrediction = data.isProjected;
 
   return (
