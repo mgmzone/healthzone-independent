@@ -34,7 +34,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   // For display we convert them to the user's preferred unit
   
   // Use currentPeriod's startWeight as the starting weight (stored in metric/kg)
-  const startingWeightKg = currentPeriod?.startWeight || formData.startingWeight;
+  const startingWeightKg = currentPeriod?.startWeight;
   const currentWeightKg = formData.currentWeight;
   const targetWeightKg = currentPeriod?.targetWeight;
   
@@ -54,9 +54,6 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
     startingWeightKg,
     targetWeightKg
   );
-  
-  // Note: We're passing the raw kg values to the components
-  // and letting them handle the display conversion
   
   return (
     <div className="mb-6 bg-muted/30 rounded-lg p-4 border">

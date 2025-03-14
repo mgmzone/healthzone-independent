@@ -21,15 +21,12 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   targetLoss,
   isImperial
 }) => {
-  // Format weight display - all inputs are in kg, convert for display
+  // Format weight display - all inputs are in kg, convert for display if needed
   let weightLossDisplay;
   
   if (totalWeightLoss === null || !startingWeight || !currentWeight) {
     weightLossDisplay = '0.0 ' + (isImperial ? 'lbs' : 'kg');
-  } else {
-    // Convert the totalWeightLoss to display units
-    const displayLoss = convertWeight(totalWeightLoss, isImperial);
-    
+  } else {    
     if (totalWeightLoss === 0) {
       weightLossDisplay = '0.0 ' + (isImperial ? 'lbs' : 'kg');
     } else if (totalWeightLoss > 0) {
