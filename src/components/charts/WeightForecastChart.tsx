@@ -14,8 +14,15 @@ interface WeightForecastChartProps {
 export default function WeightForecastChartWrapper(props: WeightForecastChartProps) {
   const { profile } = useAuth();
   
-  // Get the target weight from the user profile
-  const targetWeight = profile?.targetWeight || undefined;
+  // Get the target weight from the period (more accurate than profile target weight)
+  const targetWeight = props.currentPeriod?.targetWeight || profile?.targetWeight || undefined;
+  
+  console.log('WeightForecastChartWrapper:', {
+    periodTargetWeight: props.currentPeriod?.targetWeight,
+    profileTargetWeight: profile?.targetWeight,
+    selectedTargetWeight: targetWeight,
+    isImperial: props.isImperial
+  });
   
   return <WeightForecastChart {...props} targetWeight={targetWeight} />;
 }

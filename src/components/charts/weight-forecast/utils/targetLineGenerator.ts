@@ -21,7 +21,7 @@ export const generateTargetLine = (
   // Use the provided targetWeight if available, otherwise use the one from the period
   // Both need to be converted to display units (kg or lbs)
   const finalTargetWeight = targetWeight !== undefined ? 
-    (isImperial ? targetWeight : targetWeight / 2.20462) : 
+    targetWeight : 
     (isImperial ? period.targetWeight * 2.20462 : period.targetWeight);
   
   console.log('Target line generation:', {

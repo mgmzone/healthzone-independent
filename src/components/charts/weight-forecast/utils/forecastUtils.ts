@@ -70,24 +70,33 @@ export const isGoalDirectionCompatible = (
 
 /**
  * Gets weight range from data points for the chart (min and max)
- * Ensures the y-axis includes both target weight and starting weight
+ * Ensures the y-axis includes both target weight and starting weight with proper padding
  */
-export const getWeightRangeFromData = (weights: number[]): { minWeight: number; maxWeight: number } => {
+export const getWeightRangeFromData = (weights: number[], targetWeight?: number): { minWeight: number; maxWeight: number } => {
   if (weights.length === 0) {
     return { minWeight: 0, maxWeight: 0 };
   }
   
+  // Find min and max from data
   let minWeight = Math.min(...weights);
   let maxWeight = Math.max(...weights);
+  
+  // If target weight is provided, ensure it's included in the range
+  if (targetWeight !== undefined) {
+    minWeight = Math.min(minWeight, targetWeight);
+  }
+  
+  console.log('Raw weight range:', { minWeight, maxWeight, targetWeight });
   
   // Add some padding to min and max for better visualization (5%)
   const range = maxWeight - minWeight;
   const padding = Math.max(range * 0.05, 1);
   
+  // Round to ensure clean values
   minWeight = Math.floor(minWeight - padding);
   maxWeight = Math.ceil(maxWeight + padding);
   
-  console.log('Chart weight range:', { minWeight, maxWeight, weights });
+  console.log('Adjusted chart weight range:', { minWeight, maxWeight });
   
   return { minWeight, maxWeight };
 };

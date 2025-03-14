@@ -41,11 +41,28 @@ export const useWeightForecastData = (
       };
     }
     
+    // Convert target weight to proper display units if needed
+    // Make sure we're using the target weight in the right units (lbs or kg)
+    let displayTargetWeight = undefined;
+    
+    if (currentPeriod.targetWeight) {
+      // If imperial, convert from kg to lbs, otherwise use as is
+      displayTargetWeight = isImperial ? 
+        currentPeriod.targetWeight * 2.20462 : 
+        currentPeriod.targetWeight;
+        
+      console.log('Target weight conversion:', {
+        originalTarget: currentPeriod.targetWeight,
+        displayTargetWeight,
+        isImperial
+      });
+    }
+    
     // Generate the target line based on the period's settings
     const targetLine = generateTargetLine(
       currentPeriod,
       isImperial,
-      targetWeight
+      displayTargetWeight
     );
     
     // Generate forecast data based on actual data
@@ -53,7 +70,7 @@ export const useWeightForecastData = (
     const forecastData = generateForecastData(
       actualData,
       periodEndDate,
-      targetWeight,
+      displayTargetWeight,
       isImperial,
       currentPeriod.weightLossPerWeek
     );
@@ -67,13 +84,14 @@ export const useWeightForecastData = (
       ...targetLine.map(item => item.weight)
     ];
     
-    const { minWeight, maxWeight } = getWeightRangeFromData(allWeights);
+    const { minWeight, maxWeight } = getWeightRangeFromData(allWeights, displayTargetWeight);
     
     console.log('useWeightForecastData output:', {
       actualDataCount: actualData.length,
       forecastDataCount: forecastData.length,
       combinedDataCount: combinedData.length,
       targetLineCount: targetLine.length,
+      displayTargetWeight,
       minWeight,
       maxWeight
     });

@@ -61,9 +61,14 @@ export const generateForecastData = (
   if (new Date() >= periodEndDate) return forecastData;
 
   // Generate forecast points from the day after last actual weigh-in
-  // We'll forecast either until we reach the target weight or a maximum of 365 days
+  // We'll forecast either until we reach the target weight or until the end of the period
   const lastDate = lastActualPoint.date;
-  const maxDaysToForecast = 365; // Cap at a year of forecasting
+  
+  // Calculate maximum days to forecast - either 1 year or until period end, whichever is sooner
+  const daysToPeriodEnd = differenceInDays(periodEndDate, lastDate);
+  const maxDaysToForecast = Math.min(daysToPeriodEnd, 365); 
+  
+  console.log('Forecast range:', { lastDate, periodEndDate, daysToPeriodEnd, maxDaysToForecast });
   
   let previousWeight = lastActualPoint.weight;
   
@@ -96,6 +101,7 @@ export const generateForecastData = (
           false, 
           true
         ));
+        console.log(`Forecast reached target weight ${convertedTargetWeight} on day ${i}`);
         // We've reached target, stop forecasting
         break;
       }
@@ -107,6 +113,7 @@ export const generateForecastData = (
           false, 
           true
         ));
+        console.log(`Forecast reached target weight ${convertedTargetWeight} on day ${i}`);
         // We've reached target, stop forecasting
         break;
       }
