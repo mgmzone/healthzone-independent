@@ -1,5 +1,8 @@
+import { differenceInDays, differenceInWeeks, differenceInMonths, format } from "date-fns";
 
-import { differenceInDays, differenceInWeeks, differenceInMonths } from "date-fns";
+export const formatDate = (date: Date, formatStr: string): string => {
+  return format(date, formatStr);
+};
 
 export const getWeeksInPeriod = (startDate: Date, endDate: Date | undefined): number => {
   if (!endDate) return 0;
