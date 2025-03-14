@@ -26,10 +26,12 @@ const WeightSection: React.FC<WeightSectionProps> = ({
     currentWeight, 
     targetWeight, 
     totalWeightLoss, 
-    targetLoss 
+    targetLoss,
+    calculatedLoss: startingWeight && currentWeight ? startingWeight - currentWeight : 0
   });
 
-  // Calculate the weight loss directly to ensure it matches the Weight page
+  // Calculate weight loss directly - exactly matching the Weight page logic
+  // Only show positive value when there's actual weight loss
   const weightLoss = startingWeight && currentWeight && startingWeight > currentWeight 
     ? startingWeight - currentWeight 
     : 0;
