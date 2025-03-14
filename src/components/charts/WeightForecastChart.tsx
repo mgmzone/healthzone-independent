@@ -21,15 +21,8 @@ export default function WeightForecastChartWrapper(props: WeightForecastChartPro
     periodTargetWeight: props.currentPeriod?.targetWeight,
     profileTargetWeight: profile?.targetWeight,
     selectedTargetWeight: targetWeight,
-    isImperial: props.isImperial,
-    weighInsCount: props.weighIns.length,
-    firstWeighIn: props.weighIns.length > 0 ? props.weighIns[0] : null
+    isImperial: props.isImperial
   });
   
-  return (
-    <WeightForecastChart 
-      {...props} 
-      targetWeight={targetWeight} 
-    />
-  );
+  return <WeightForecastChart {...props} targetWeight={targetWeight} />;
 }

@@ -83,41 +83,31 @@ export const useWeightForecastData = (
     // Combine actual and forecast data
     const combinedData = combineChartData(actualData, forecastData);
     
-    // Make sure each data point has explicit isActual and isForecast flags
-    const enrichedData = combinedData.map(item => ({
-      ...item,
-      isActual: item.isActual !== undefined ? item.isActual : false,
-      isForecast: item.isForecast !== undefined ? item.isForecast : false,
-    }));
-    
     // Calculate min and max weights for y-axis based on target, actual, and forecast data
     const allWeights = [
-      ...enrichedData.map(item => item.weight),
+      ...combinedData.map(item => item.weight),
       ...targetLine.map(item => item.weight)
-    ].filter(weight => weight !== undefined && weight !== null);
+    ];
     
     const { minWeight, maxWeight } = getWeightRangeFromData(allWeights, displayTargetWeight);
     
     console.log('useWeightForecastData output:', {
       actualDataCount: actualData.length,
       forecastDataCount: forecastData.length,
-      combinedDataCount: enrichedData.length,
+      combinedDataCount: combinedData.length,
       targetLineCount: targetLine.length,
       displayTargetWeight,
       minWeight,
-      maxWeight,
-      sampleActualPoint: actualData.length > 0 ? actualData[0] : null,
-      sampleForecastPoint: forecastData.length > 0 ? forecastData[0] : null,
-      sampleCombinedPoint: enrichedData.length > 0 ? enrichedData[0] : null
+      maxWeight
     });
 
     return {
-      chartData: enrichedData,
+      chartData: combinedData,
       targetLine,
       forecastData,
       minWeight,
       maxWeight,
-      hasValidData: enrichedData.length > 0
+      hasValidData: true
     };
   }, [weighIns, currentPeriod, isImperial, targetWeight]);
 };
