@@ -8,6 +8,7 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
+  ReferenceLine,
 } from 'recharts';
 import { format } from 'date-fns';
 import { Period, WeighIn } from '@/lib/types';
@@ -78,6 +79,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const minWeight = Math.floor(Math.min(...weights) - 1);
   const maxWeight = Math.ceil(Math.max(...weights) + 1);
   
+  // Calculate average weight for reference line
+  const averageWeight = weights.reduce((sum, weight) => sum + weight, 0) / weights.length;
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
@@ -114,6 +118,21 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           }}
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
+        
+        {/* Average Weight Reference Line */}
+        <ReferenceLine 
+          y={averageWeight} 
+          stroke="#FEC6A1" 
+          strokeDasharray="3 3"
+          strokeWidth={2}
+          label={{ 
+            value: `Avg: ${averageWeight.toFixed(1)}`, 
+            fill: '#FEC6A1', 
+            position: 'right',
+            fontSize: 11
+          }}
+        />
+        
         <Area 
           type="monotone" 
           dataKey="weight" 
