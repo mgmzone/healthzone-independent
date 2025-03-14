@@ -9,6 +9,7 @@ import {
   Tooltip, 
   ResponsiveContainer,
   ReferenceLine,
+  Line
 } from 'recharts';
 import { format } from 'date-fns';
 import { Period, WeighIn } from '@/lib/types';
@@ -82,10 +83,39 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   // Calculate mean weight
   const meanWeight = weights.reduce((sum, weight) => sum + weight, 0) / weights.length;
   
+  // Calculate trend line (linear regression)
+  const calculateTrendLine = () => {
+    if (chartData.length < 2) return chartData.map(d => ({ ...d, trend: d.weight }));
+    
+    // Convert dates to numerical x values (days since first date)
+    const firstDate = chartData[0].date.getTime();
+    const xValues = chartData.map(d => (d.date.getTime() - firstDate) / (1000 * 60 * 60 * 24));
+    const yValues = chartData.map(d => d.weight);
+    
+    // Calculate linear regression coefficients
+    // Formula: y = mx + b
+    const n = xValues.length;
+    const sumX = xValues.reduce((a, b) => a + b, 0);
+    const sumY = yValues.reduce((a, b) => a + b, 0);
+    const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
+    const sumXX = xValues.reduce((sum, x) => sum + x * x, 0);
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    // Add trend line values to chart data
+    return chartData.map((d, i) => ({
+      ...d,
+      trend: slope * xValues[i] + intercept
+    }));
+  };
+  
+  const dataWithTrend = calculateTrendLine();
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
-        data={chartData}
+        data={dataWithTrend}
         margin={{
           top: 20,
           right: 30,
@@ -145,6 +175,18 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             stroke: '#fff',
             strokeWidth: 1
           }}
+        />
+        
+        {/* Trend Line */}
+        <Line
+          type="monotone"
+          dataKey="trend"
+          stroke="#FFA07A"
+          strokeDasharray="3 3"
+          strokeWidth={2}
+          dot={false}
+          activeDot={false}
+          isAnimationActive={false}
         />
       </AreaChart>
     </ResponsiveContainer>
