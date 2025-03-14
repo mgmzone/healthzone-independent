@@ -161,6 +161,7 @@ export type Database = {
           target_weight: number
           type: string
           user_id: string
+          weight_loss_per_week: number | null
         }
         Insert: {
           created_at?: string
@@ -172,6 +173,7 @@ export type Database = {
           target_weight: number
           type: string
           user_id: string
+          weight_loss_per_week?: number | null
         }
         Update: {
           created_at?: string
@@ -183,6 +185,7 @@ export type Database = {
           target_weight?: number
           type?: string
           user_id?: string
+          weight_loss_per_week?: number | null
         }
         Relationships: []
       }
@@ -204,7 +207,6 @@ export type Database = {
           starting_weight: number | null
           target_weight: number | null
           updated_at: string
-          weight_loss_per_week: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -223,7 +225,6 @@ export type Database = {
           starting_weight?: number | null
           target_weight?: number | null
           updated_at?: string
-          weight_loss_per_week?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -242,7 +243,6 @@ export type Database = {
           starting_weight?: number | null
           target_weight?: number | null
           updated_at?: string
-          weight_loss_per_week?: number | null
         }
         Relationships: []
       }
@@ -301,7 +301,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_current_avg_weight_loss: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: number
+      }
+      get_current_active_period: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          id: string
+          start_date: string
+          end_date: string
+          target_weight: number
+          weight_loss_per_week: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

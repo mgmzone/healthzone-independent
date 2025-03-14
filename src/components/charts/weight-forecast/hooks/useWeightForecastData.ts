@@ -39,7 +39,8 @@ export const useWeightForecastData = (
       actualData,
       periodEndDate,
       targetWeight,
-      isImperial
+      isImperial,
+      currentPeriod.weightLossPerWeek // Pass the period's weight loss per week
     );
     
     // Combine actual and forecast data

@@ -13,7 +13,8 @@ export const generateForecastData = (
   chartData: any[],
   periodEndDate: Date,
   targetWeight: number | undefined,
-  isImperial: boolean
+  isImperial: boolean,
+  weightLossPerWeek?: number
 ) => {
   // If we have less than 2 points, we can't make a forecast
   if (chartData.length < 2) return [];
@@ -31,8 +32,16 @@ export const generateForecastData = (
   let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
   let avgDailyChange = totalWeightChange / daysElapsed;
   
-  // Apply realistic limits to the weight change rate
-  avgDailyChange = calculateRealisticWeightChangeRate(avgDailyChange, isImperial);
+  // If we have a target weight loss per week, override the calculated average
+  if (weightLossPerWeek !== undefined) {
+    // Convert to daily change
+    const targetDailyChange = -(weightLossPerWeek / 7);
+    // Apply realistic limits to the weight change rate
+    avgDailyChange = calculateRealisticWeightChangeRate(targetDailyChange, isImperial);
+  } else {
+    // Apply realistic limits to the weight change rate
+    avgDailyChange = calculateRealisticWeightChangeRate(avgDailyChange, isImperial);
+  }
 
   // Start with the last actual point as the beginning of forecast
   const forecastData = [{

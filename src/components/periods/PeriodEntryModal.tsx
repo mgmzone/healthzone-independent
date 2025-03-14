@@ -18,11 +18,13 @@ interface PeriodEntryModalProps {
     type: 'weightLoss' | 'maintenance',
     startDate: Date,
     endDate?: Date,
-    fastingSchedule: string
+    fastingSchedule: string,
+    weightLossPerWeek: number
   }) => void;
   defaultValues?: {
     startWeight?: number;
     targetWeight?: number;
+    weightLossPerWeek?: number;
   };
   weightUnit: string;
   initialPeriod?: Period;
@@ -38,6 +40,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
 }) => {
   const [startWeight, setStartWeight] = useState<string>(defaultValues?.startWeight?.toString() || '');
   const [targetWeight, setTargetWeight] = useState<string>(defaultValues?.targetWeight?.toString() || '');
+  const [weightLossPerWeek, setWeightLossPerWeek] = useState<string>(defaultValues?.weightLossPerWeek?.toString() || '0.5');
   const [type, setType] = useState<'weightLoss' | 'maintenance'>('weightLoss');
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -52,6 +55,14 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       setStartDate(new Date(initialPeriod.startDate));
       setEndDate(initialPeriod.endDate ? new Date(initialPeriod.endDate) : undefined);
       setFastingSchedule(initialPeriod.fastingSchedule);
+      
+      if (initialPeriod.weightLossPerWeek !== undefined) {
+        const isImperial = weightUnit === 'lbs';
+        const displayValue = isImperial 
+          ? (initialPeriod.weightLossPerWeek * 2.20462) 
+          : initialPeriod.weightLossPerWeek;
+        setWeightLossPerWeek(displayValue.toString());
+      }
     }
   }, [initialPeriod, defaultValues]);
   
@@ -60,6 +71,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
     
     const startWeightValue = parseFloat(startWeight);
     const targetWeightValue = parseFloat(targetWeight);
+    const weightLossPerWeekValue = parseFloat(weightLossPerWeek || '0.5');
     
     if (isNaN(startWeightValue) || startWeightValue <= 0) {
       toast({
@@ -79,6 +91,15 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       return;
     }
     
+    if (isNaN(weightLossPerWeekValue) || weightLossPerWeekValue < 0) {
+      toast({
+        title: "Invalid weight loss per week",
+        description: "Please enter a valid value",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (endDate && startDate > endDate) {
       toast({
         title: "Invalid date range",
@@ -91,6 +112,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
     onSave({
       startWeight: startWeightValue,
       targetWeight: targetWeightValue,
+      weightLossPerWeek: weightLossPerWeekValue,
       type,
       startDate,
       endDate,
@@ -99,6 +121,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
     
     setStartWeight('');
     setTargetWeight('');
+    setWeightLossPerWeek('0.5');
     setType('weightLoss');
     setStartDate(new Date());
     setEndDate(undefined);
@@ -131,6 +154,14 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
               label="Target Weight"
               value={targetWeight}
               onChange={setTargetWeight}
+              weightUnit={weightUnit}
+            />
+            
+            <WeightInputField
+              id="weightLossPerWeek"
+              label="Target Weight Loss Per Week"
+              value={weightLossPerWeek}
+              onChange={setWeightLossPerWeek}
               weightUnit={weightUnit}
             />
             

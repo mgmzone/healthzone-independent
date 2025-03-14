@@ -6,10 +6,21 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { formatWeightValue } from '@/lib/weight/formatWeight';
 import { convertWeight, convertToMetric } from '@/lib/weight/convertWeight';
+import { supabase } from '@/lib/supabase';
+
+interface CurrentPeriod {
+  id: string;
+  startDate: string;
+  endDate?: string;
+  targetWeight: number;
+  weightLossPerWeek: number;
+}
 
 export const useProfileForm = () => {
   const { profile, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPeriod, setCurrentPeriod] = useState<CurrentPeriod | null>(null);
+  const [currentAvgWeightLoss, setCurrentAvgWeightLoss] = useState<number | undefined>(undefined);
   const { toast } = useToast();
   const profileLoadedRef = useRef(false);
   
@@ -24,7 +35,6 @@ export const useProfileForm = () => {
     currentWeight: 0,
     targetWeight: 0,
     fitnessLevel: 'moderate',
-    weightLossPerWeek: 0.5,
     exerciseMinutesPerDay: 30,
     healthGoals: '',
     measurementUnit: 'imperial',
@@ -50,13 +60,9 @@ export const useProfileForm = () => {
         // Convert weights from metric (stored in DB) to display units (imperial/metric)
         currentWeight: profile.currentWeight ? 
           (isImperial ? convertWeight(profile.currentWeight, true) : profile.currentWeight) : 0,
-        targetWeight: profile.targetWeight ? 
-          (isImperial ? convertWeight(profile.targetWeight, true) : profile.targetWeight) : 0,
         startingWeight: profile.startingWeight ? 
           (isImperial ? convertWeight(profile.startingWeight, true) : profile.startingWeight) : 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',
-        weightLossPerWeek: profile.weightLossPerWeek ? 
-          (isImperial ? convertWeight(profile.weightLossPerWeek, true) : profile.weightLossPerWeek) : 0.5,
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
@@ -66,6 +72,48 @@ export const useProfileForm = () => {
       profileLoadedRef.current = true;
       console.log('Form data set to:', newFormData);
     }
+  }, [profile]);
+
+  // Fetch current period data
+  useEffect(() => {
+    const fetchCurrentPeriodData = async () => {
+      if (!profile?.id) return;
+
+      try {
+        // Get current active period
+        const { data: periodData, error: periodError } = await supabase
+          .rpc('get_current_active_period', { p_user_id: profile.id });
+
+        if (periodError) {
+          console.error('Error fetching current period:', periodError);
+          return;
+        }
+
+        if (periodData && periodData.length > 0) {
+          setCurrentPeriod({
+            id: periodData[0].id,
+            startDate: periodData[0].start_date,
+            endDate: periodData[0].end_date,
+            targetWeight: periodData[0].target_weight,
+            weightLossPerWeek: periodData[0].weight_loss_per_week
+          });
+
+          // Get average weight loss
+          const { data: avgLossData, error: avgLossError } = await supabase
+            .rpc('calculate_current_avg_weight_loss', { p_user_id: profile.id });
+
+          if (avgLossError) {
+            console.error('Error calculating average weight loss:', avgLossError);
+          } else {
+            setCurrentAvgWeightLoss(avgLossData);
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchCurrentPeriodData:', error);
+      }
+    };
+
+    fetchCurrentPeriodData();
   }, [profile]);
 
   // Handle text input changes
@@ -120,13 +168,6 @@ export const useProfileForm = () => {
         if (formData.currentWeight) {
           dataToSubmit.currentWeight = convertToMetric(formData.currentWeight, true);
         }
-        if (formData.targetWeight) {
-          dataToSubmit.targetWeight = convertToMetric(formData.targetWeight, true);
-        }
-        if (formData.weightLossPerWeek) {
-          dataToSubmit.weightLossPerWeek = convertToMetric(formData.weightLossPerWeek, true);
-        }
-        // Don't convert startingWeight as it's read-only in the form
       }
       
       await updateProfile(dataToSubmit);
@@ -152,6 +193,8 @@ export const useProfileForm = () => {
   return {
     formData,
     isLoading,
+    currentPeriod,
+    currentAvgWeightLoss,
     handleInputChange,
     handleSelectChange,
     handleDateChange,

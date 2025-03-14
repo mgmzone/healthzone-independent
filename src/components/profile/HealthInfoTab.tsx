@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import WeightInputField from '@/components/periods/WeightInputField';
+import { Badge } from '@/components/ui/badge';
+import { CalendarDays } from 'lucide-react';
 
 interface HealthInfoTabProps {
   formData: {
@@ -18,6 +20,14 @@ interface HealthInfoTabProps {
     measurementUnit?: string;
     startingWeight?: number;
   };
+  currentPeriod?: {
+    id: string;
+    startDate: string;
+    endDate?: string;
+    targetWeight: number;
+    weightLossPerWeek: number;
+  };
+  currentAvgWeightLoss?: number;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
   handleNumberChange: (name: string, value: string) => void;
@@ -25,6 +35,8 @@ interface HealthInfoTabProps {
 
 const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   formData,
+  currentPeriod,
+  currentAvgWeightLoss,
   handleInputChange,
   handleSelectChange,
   handleNumberChange
@@ -38,6 +50,13 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
     return weight.toString();
   };
   
+  // Format date for display
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return 'Present';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+  
   // Handle fitness level changes
   const onFitnessLevelChange = (value: string) => {
     console.log("Fitness level changed to:", value);
@@ -46,6 +65,47 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   
   return (
     <div className="space-y-4">
+      {currentPeriod && (
+        <div className="mb-6 bg-muted/50 rounded-lg p-4 border">
+          <h3 className="font-medium flex items-center gap-2 mb-2">
+            <CalendarDays className="h-4 w-4" />
+            Current Active Period
+          </h3>
+          <div className="text-sm text-muted-foreground mb-2">
+            {formatDate(currentPeriod.startDate)} - {formatDate(currentPeriod.endDate)}
+          </div>
+          <div className="grid grid-cols-2 gap-4 mt-3">
+            <div>
+              <Label className="text-xs text-muted-foreground">Current Target Weight</Label>
+              <div className="font-medium">
+                {isImperial 
+                  ? (currentPeriod.targetWeight * 2.20462).toFixed(1) 
+                  : currentPeriod.targetWeight.toFixed(1)
+                } {isImperial ? 'lbs' : 'kg'}
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Average Weight Loss Per Week</Label>
+              <div className="font-medium">
+                {currentAvgWeightLoss !== undefined ? (
+                  <span>
+                    {isImperial 
+                      ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(1) 
+                      : Math.abs(currentAvgWeightLoss).toFixed(1)
+                    } {isImperial ? 'lbs' : 'kg'}/week
+                    <Badge variant={currentAvgWeightLoss < 0 ? "success" : "destructive"} className="ml-2 text-xs">
+                      {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
+                    </Badge>
+                  </span>
+                ) : (
+                  'Not enough data'
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <WeightInputField
           id="height"
@@ -81,25 +141,6 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           />
         </div>
       ) : null}
-      
-      {/* Target Weight and Target Weight Loss Per Week on the same line */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <WeightInputField
-          id="targetWeight"
-          label="Target Weight"
-          value={formatWeight(formData.targetWeight)}
-          onChange={(value) => handleNumberChange('targetWeight', value)}
-          weightUnit={isImperial ? 'lbs' : 'kg'}
-        />
-        
-        <WeightInputField
-          id="weightLossPerWeek"
-          label="Weight Loss Per Week"
-          value={formatWeight(formData.weightLossPerWeek)}
-          onChange={(value) => handleNumberChange('weightLossPerWeek', value)}
-          weightUnit={isImperial ? 'lbs' : 'kg'}
-        />
-      </div>
       
       {/* Fitness Level and Exercise Minutes on the same line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

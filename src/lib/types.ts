@@ -6,9 +6,8 @@ export interface User {
   gender: 'male' | 'female' | 'other';
   height: number;
   currentWeight: number;
-  targetWeight: number;
+  targetWeight?: number;
   fitnessLevel: 'sedentary' | 'light' | 'moderate' | 'active';
-  weightLossPerWeek: number;
   exerciseMinutesPerDay: number;
   healthGoals: string;
   measurementUnit: 'imperial' | 'metric';
@@ -27,6 +26,7 @@ export interface Period {
   startWeight: number;
   targetWeight: number;
   fastingSchedule: string;
+  weightLossPerWeek: number;
 }
 
 export interface WeighIn {
@@ -85,9 +85,7 @@ export const mockUser: User = {
   gender: 'male',
   height: 180,
   currentWeight: 90,
-  targetWeight: 80,
   fitnessLevel: 'moderate',
-  weightLossPerWeek: 0.5,
   exerciseMinutesPerDay: 30,
   healthGoals: 'Lose weight and improve overall fitness',
   measurementUnit: 'metric',

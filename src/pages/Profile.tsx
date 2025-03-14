@@ -28,6 +28,8 @@ const Profile = () => {
   const {
     formData,
     isLoading,
+    currentPeriod,
+    currentAvgWeightLoss,
     handleInputChange,
     handleSelectChange,
     handleDateChange,
@@ -169,6 +171,8 @@ const Profile = () => {
                 <TabsContent value="health" className="mt-4">
                   <HealthInfoTab 
                     formData={formData}
+                    currentPeriod={currentPeriod}
+                    currentAvgWeightLoss={currentAvgWeightLoss}
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleNumberChange={handleNumberChange}

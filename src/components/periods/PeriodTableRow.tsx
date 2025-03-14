@@ -40,6 +40,9 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
   const isImperial = weightUnit === 'lbs';
   const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
   const displayTargetWeight = isImperial ? period.targetWeight * 2.20462 : period.targetWeight;
+  const displayWeightLossPerWeek = isImperial 
+    ? period.weightLossPerWeek * 2.20462 
+    : period.weightLossPerWeek;
   
   // For weight change calculation, ensure latestWeight is in the same unit as displayStartWeight
   const weightChange = latestWeight 
@@ -66,6 +69,7 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
       </td>
       <td className="px-4 py-4 text-center">{formatWeight(displayStartWeight)} {weightUnit}</td>
       <td className="px-4 py-4 text-center">{formatWeight(displayTargetWeight)} {weightUnit}</td>
+      <td className="px-4 py-4 text-center">{formatWeight(displayWeightLossPerWeek)} {weightUnit}/week</td>
       <td className="px-4 py-4">
         {latestWeight ? (
           <div className="flex flex-col items-center">

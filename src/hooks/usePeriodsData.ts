@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Period } from '@/lib/types';
@@ -33,7 +34,8 @@ export function usePeriodsData() {
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
-        fastingSchedule: item.fasting_schedule || '16:8'
+        fastingSchedule: item.fasting_schedule || '16:8',
+        weightLossPerWeek: item.weight_loss_per_week || 0.5
       })) as Period[];
     }
   });
@@ -45,13 +47,15 @@ export function usePeriodsData() {
       type: 'weightLoss' | 'maintenance',
       startDate: Date,
       endDate?: Date,
-      fastingSchedule: string
+      fastingSchedule: string,
+      weightLossPerWeek: number
     }) => {
       const { data, error } = await supabase
         .from('periods')
         .insert([{
           start_weight: period.startWeight,
           target_weight: period.targetWeight,
+          weight_loss_per_week: period.weightLossPerWeek,
           type: period.type,
           start_date: period.startDate.toISOString(),
           end_date: period.endDate ? period.endDate.toISOString() : null,
@@ -86,6 +90,7 @@ export function usePeriodsData() {
         .update({
           start_weight: period.startWeight,
           target_weight: period.targetWeight,
+          weight_loss_per_week: period.weightLossPerWeek,
           type: period.type,
           start_date: period.startDate.toISOString(),
           end_date: period.endDate ? period.endDate.toISOString() : null,
