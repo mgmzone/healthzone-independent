@@ -8,7 +8,6 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  ReferenceLine,
   Line
 } from 'recharts';
 import { format } from 'date-fns';
@@ -109,6 +108,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   
   const dataWithTrend = calculateTrendLine();
   
+  // Check if trend values are properly calculated
+  console.log("Chart data with trend:", dataWithTrend);
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
@@ -162,13 +164,15 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         
         {/* Trend Line */}
         <Line
-          type="monotone"
+          type="linear"
           dataKey="trend"
           stroke="#FFA07A"
-          strokeDasharray="3 3"
           strokeWidth={2}
+          strokeDasharray="5 5"
           dot={false}
           activeDot={false}
+          connectNulls={true}
+          isAnimationActive={false}
         />
       </AreaChart>
     </ResponsiveContainer>
