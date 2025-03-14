@@ -8,6 +8,7 @@ import WeightInputField from './WeightInputField';
 import PeriodTypeSelector from './PeriodTypeSelector';
 import DateRangePickerField from './DateRangePickerField';
 import FastingScheduleSelector from './FastingScheduleSelector';
+import { convertToMetric } from '@/lib/weight/convertWeight';
 
 interface PeriodEntryModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [fastingSchedule, setFastingSchedule] = useState<string>('16:8');
   const { toast } = useToast();
+  const isImperial = weightUnit === 'lbs';
   
   useEffect(() => {
     if (initialPeriod) {
@@ -57,14 +59,14 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       setFastingSchedule(initialPeriod.fastingSchedule);
       
       if (initialPeriod.weightLossPerWeek !== undefined) {
-        const isImperial = weightUnit === 'lbs';
+        // Format to one decimal place when displaying
         const displayValue = isImperial 
-          ? (initialPeriod.weightLossPerWeek * 2.20462) 
-          : initialPeriod.weightLossPerWeek;
-        setWeightLossPerWeek(displayValue.toString());
+          ? (initialPeriod.weightLossPerWeek * 2.20462).toFixed(1)
+          : initialPeriod.weightLossPerWeek.toFixed(1);
+        setWeightLossPerWeek(displayValue);
       }
     }
-  }, [initialPeriod, defaultValues]);
+  }, [initialPeriod, defaultValues, isImperial]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,10 +111,15 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
       return;
     }
     
+    // Convert the weightLossPerWeek to metric (kg) before saving if in imperial mode
+    const weightLossPerWeekInKg = isImperial 
+      ? convertToMetric(weightLossPerWeekValue, true)
+      : weightLossPerWeekValue;
+    
     onSave({
       startWeight: startWeightValue,
       targetWeight: targetWeightValue,
-      weightLossPerWeek: weightLossPerWeekValue,
+      weightLossPerWeek: weightLossPerWeekInKg,
       type,
       startDate,
       endDate,
@@ -163,6 +170,9 @@ const PeriodEntryModal: React.FC<PeriodEntryModalProps> = ({
               value={weightLossPerWeek}
               onChange={setWeightLossPerWeek}
               weightUnit={weightUnit}
+              step="0.1"
+              min="0"
+              max={isImperial ? "10" : "4.5"}
             />
             
             <DateRangePickerField

@@ -5,7 +5,7 @@ import PeriodEntryModal from './PeriodEntryModal';
 import PeriodTableHeader from './PeriodTableHeader';
 import PeriodTableRow from './PeriodTableRow';
 import DeletePeriodDialog from './DeletePeriodDialog';
-import { convertToMetric } from '@/lib/weight/convertWeight';
+import { convertToMetric, convertWeight } from '@/lib/weight/convertWeight';
 
 interface PeriodsTableProps {
   periods: Period[];
@@ -94,7 +94,10 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
           defaultValues={{
             // Display in the correct unit (lbs for imperial, kg for metric)
             startWeight: isImperial ? editingPeriod.startWeight * 2.20462 : editingPeriod.startWeight,
-            targetWeight: isImperial ? editingPeriod.targetWeight * 2.20462 : editingPeriod.targetWeight
+            targetWeight: isImperial ? editingPeriod.targetWeight * 2.20462 : editingPeriod.targetWeight,
+            weightLossPerWeek: isImperial ? 
+              convertWeight(editingPeriod.weightLossPerWeek, true) : 
+              editingPeriod.weightLossPerWeek
           }}
           weightUnit={weightUnit}
           initialPeriod={editingPeriod}

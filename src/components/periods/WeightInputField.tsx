@@ -25,7 +25,7 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   weightUnit,
   placeholder,
   type = "text",
-  step = "0.01",
+  step = "0.1",
   min,
   max,
   className
@@ -33,9 +33,6 @@ const WeightInputField: React.FC<WeightInputFieldProps> = ({
   // Handle input changes with support for decimal values
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    
-    // Using the same approach as BaseWeightForm - just directly update
-    // This allows proper decimal input without regex restrictions
     onChange(newValue);
   };
   
