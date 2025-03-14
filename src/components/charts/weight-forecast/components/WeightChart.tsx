@@ -69,6 +69,15 @@ const WeightChart: React.FC<WeightChartProps> = ({
   // Find the end date of the period (if any)
   const periodEndDate = displayData.length > 0 ? 
     new Date(displayData[displayData.length - 1].date) : null;
+    
+  console.log('WeightChart render:', {
+    minWeight,
+    maxWeight,
+    actualDataCount: actualData.length,
+    forecastDataCount: forecastData.length,
+    targetLineCount: targetLine.length,
+    isImperial
+  });
 
   return (
     <ResponsiveContainer width="100%" height="100%">

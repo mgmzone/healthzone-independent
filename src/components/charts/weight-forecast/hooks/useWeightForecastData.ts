@@ -17,6 +17,13 @@ export const useWeightForecastData = (
   targetWeight?: number
 ) => {
   return useMemo(() => {
+    console.log('useWeightForecastData input:', {
+      weighInsCount: weighIns.length,
+      currentPeriod,
+      isImperial,
+      targetWeight
+    });
+    
     // Initial processing of weigh-in data
     const { chartData: actualData, hasValidData } = processWeighInData(
       weighIns, 
@@ -61,6 +68,15 @@ export const useWeightForecastData = (
     ];
     
     const { minWeight, maxWeight } = getWeightRangeFromData(allWeights);
+    
+    console.log('useWeightForecastData output:', {
+      actualDataCount: actualData.length,
+      forecastDataCount: forecastData.length,
+      combinedDataCount: combinedData.length,
+      targetLineCount: targetLine.length,
+      minWeight,
+      maxWeight
+    });
 
     return {
       chartData: combinedData,

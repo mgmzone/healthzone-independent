@@ -20,8 +20,8 @@ export const generateForecastData = (
   if (chartData.length < 2) return [];
 
   // Get the converted target weight if provided
-  const convertedTargetWeight = targetWeight !== undefined ? 
-    (isImperial ? targetWeight : targetWeight / 2.20462) : null;
+  // targetWeight is already in the display units (kg or lbs)
+  const convertedTargetWeight = targetWeight !== undefined ? targetWeight : null;
 
   // Get the last actual weigh-in (this is where the forecast should start)
   const lastActualPoint = chartData[chartData.length - 1];
@@ -44,7 +44,9 @@ export const generateForecastData = (
     daysElapsed,
     totalWeightChange,
     avgDailyChange,
-    weightLossPerWeek
+    weightLossPerWeek,
+    targetWeight: convertedTargetWeight,
+    isImperial
   });
   
   // Start with the last actual point as the beginning of forecast

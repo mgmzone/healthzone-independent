@@ -21,6 +21,14 @@ export const processWeighInData = (
   const periodStartDate = new Date(currentPeriod.startDate);
   const periodEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
   
+  console.log('Processing weight data:', {
+    periodStartDate,
+    periodEndDate,
+    weighInsCount: weighIns.length,
+    startWeight: currentPeriod.startWeight,
+    isImperial
+  });
+  
   // Filter weigh-ins to only include those within the period
   const filteredWeighIns = weighIns.filter(weighIn => {
     const weighInDate = new Date(weighIn.date);
@@ -41,20 +49,38 @@ export const processWeighInData = (
   
   // Add starting weight point if needed
   if (!hasStartingWeight) {
-    const startingWeightConverted = convertWeightUnits(currentPeriod.startWeight, isImperial);
+    // Convert starting weight to display units
+    const startingWeightConverted = isImperial ? 
+      currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight;
+    
     chartData.push(createChartDataPoint(periodStartDate, startingWeightConverted, true, false));
+    
+    console.log('Added starting weight point:', {
+      date: periodStartDate,
+      weight: startingWeightConverted,
+      isImperial
+    });
   }
   
   // Add all weigh-ins with converted weight units if needed
   chartData.push(
     ...sortedWeighIns.map(weighIn => {
-      const weightConverted = convertWeightUnits(weighIn.weight, isImperial);
+      // Weigh-ins are stored in kg, convert if needed
+      const weightConverted = isImperial ? 
+        weighIn.weight * 2.20462 : weighIn.weight;
+      
       return createChartDataPoint(new Date(weighIn.date), weightConverted, true, false);
     })
   );
   
   // Sort again to ensure chronological order
   chartData.sort((a, b) => a.date.getTime() - b.date.getTime());
+  
+  console.log('Processed chart data:', {
+    chartDataCount: chartData.length,
+    firstPoint: chartData.length > 0 ? chartData[0] : null,
+    lastPoint: chartData.length > 0 ? chartData[chartData.length - 1] : null
+  });
   
   return {
     chartData,
