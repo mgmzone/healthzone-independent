@@ -15,6 +15,7 @@ interface HealthInfoTabProps {
     endDate?: string;
     targetWeight: number;
     weightLossPerWeek: number;
+    startWeight: number;
   };
   currentAvgWeightLoss?: number;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
