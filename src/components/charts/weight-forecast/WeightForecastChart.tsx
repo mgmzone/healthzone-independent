@@ -200,43 +200,26 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             }}
           />
           
-          {/* Forecast Line - Only visible in forecast view */}
+          {/* Forecast Line - Only visible in forecast view with muted orange color */}
           {activeView === 'forecast' && (
             <Line
               type="monotone"
               dataKey="weight"
-              stroke="#FFA07A"
+              stroke="#FEC6A1"  // Muted orange color
               strokeWidth={2}
-              strokeDasharray="5 5"
+              strokeDasharray="5 5"  // Dotted line
+              connectNulls={true}
               dot={(props) => {
-                // Only show dots for actual data points
-                const { cx, cy, payload } = props;
-                if (!payload.isForecast) return null;
-                return (
-                  <circle 
-                    cx={cx} 
-                    cy={cy} 
-                    r={3} 
-                    fill="#FFA07A" 
-                    stroke="#fff"
-                    strokeWidth={1}
-                  />
-                );
+                // Only show dots for actual data points, not for forecast
+                const { payload } = props;
+                if (payload.isForecast) return null;
+                return null; // No dots on the forecast line
               }}
               activeDot={(props) => {
-                // Only show active dots for forecast points
-                const { cx, cy, payload } = props;
-                if (!payload.isForecast) return null;
-                return (
-                  <circle 
-                    cx={cx} 
-                    cy={cy} 
-                    r={5} 
-                    fill="#FFA07A" 
-                    stroke="#fff"
-                    strokeWidth={2}
-                  />
-                );
+                // Only show active dots for actual points
+                const { payload } = props;
+                if (payload.isForecast) return null;
+                return null; // No active dots on the forecast line
               }}
             />
           )}

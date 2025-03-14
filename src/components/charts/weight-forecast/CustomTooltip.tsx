@@ -21,9 +21,9 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, isImperi
   return (
     <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md text-sm">
       <p className="font-semibold mb-1">{dateText}</p>
-      <p className="text-gray-700">
+      <p className={`text-gray-700 ${isForecast ? 'text-orange-600' : 'text-blue-600'}`}>
         {isForecast ? 'Forecast: ' : 'Weight: '}
-        <span className="font-medium text-slate-900">{weightValue} {unit}</span>
+        <span className="font-medium">{weightValue} {unit}</span>
       </p>
       {isForecast && (
         <p className="text-xs text-gray-500 mt-1">Projected value</p>
