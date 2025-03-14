@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -22,6 +23,7 @@ export interface Period {
   userId: string;
   startDate: Date | string;
   endDate?: Date | string;
+  originalEndDate?: Date | string; // Added originalEndDate field
   type: 'weightLoss' | 'maintenance';
   startWeight: number;
   targetWeight: number;

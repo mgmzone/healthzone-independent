@@ -74,9 +74,9 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
             Projected completion: {formattedProjectedEndDate}
           </div>
         )}
-        {period.originalEndDate && period.projectedEndDate && (
+        {period.endDate && period.projectedEndDate && (
           <div className="text-xs text-muted-foreground">
-            Original goal: {format(ensureDate(period.originalEndDate), "MMM d, yyyy")}
+            Original goal: {format(ensureDate(period.endDate), "MMM d, yyyy")}
           </div>
         )}
       </td>

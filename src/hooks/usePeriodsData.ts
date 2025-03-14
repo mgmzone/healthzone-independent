@@ -32,7 +32,7 @@ export function usePeriodsData() {
         userId: item.user_id,
         startDate: new Date(item.start_date),
         endDate: item.end_date ? new Date(item.end_date) : undefined,
-        originalEndDate: item.original_end_date ? new Date(item.original_end_date) : undefined,
+        originalEndDate: item.end_date ? new Date(item.end_date) : undefined, // Use end_date as originalEndDate too
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
@@ -62,7 +62,7 @@ export function usePeriodsData() {
           type: period.type,
           start_date: period.startDate.toISOString(),
           end_date: period.endDate ? period.endDate.toISOString() : null,
-          original_end_date: period.endDate ? period.endDate.toISOString() : null,
+          original_end_date: period.endDate ? period.endDate.toISOString() : null, // This won't work yet, column doesn't exist
           fasting_schedule: period.fastingSchedule,
           user_id: (await supabase.auth.getUser()).data.user?.id
         }])
