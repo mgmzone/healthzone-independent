@@ -152,10 +152,10 @@ const Profile = () => {
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="grid grid-cols-2 w-full">
                   <TabsTrigger value="personal">
-                    Personal
+                    Settings
                   </TabsTrigger>
                   <TabsTrigger value="health">
-                    Health
+                    Statistics
                   </TabsTrigger>
                 </TabsList>
                 
@@ -165,6 +165,7 @@ const Profile = () => {
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleDateChange={handleDateChange}
+                    handleNumberChange={handleNumberChange}
                   />
                 </TabsContent>
                 

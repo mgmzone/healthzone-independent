@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { LineChart } from 'lucide-react';
 import DateSection from './statistics/DateSection';
 import WeightSection from './statistics/WeightSection';
 import ProgressSection from './statistics/ProgressSection';
@@ -51,11 +50,6 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   
   return (
     <div className="mb-6 bg-muted/30 rounded-lg p-4 border">
-      <h3 className="font-medium flex items-center gap-2 mb-4">
-        <LineChart className="h-4 w-4" />
-        Statistics
-      </h3>
-      
       <div className="grid grid-cols-2 gap-4">
         {/* Dates Section */}
         <DateSection currentPeriod={currentPeriod} />
