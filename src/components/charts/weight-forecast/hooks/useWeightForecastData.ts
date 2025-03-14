@@ -80,8 +80,23 @@ export const useWeightForecastData = (
       const firstPoint = chartData[0];
       const lastActualPoint = chartData[chartData.length - 1];
       const daysElapsed = differenceInDays(lastActualPoint.date, firstPoint.date) || 1;
-      const totalWeightChange = lastActualPoint.weight - firstPoint.weight;
-      const avgDailyChange = totalWeightChange / daysElapsed;
+      let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
+      let avgDailyChange = totalWeightChange / daysElapsed;
+      
+      // Set realistic limits for weight loss/gain (in pounds or kg per day)
+      // For weight loss: max 2 pounds per week = ~0.286 pounds per day
+      // For weight gain: max 1 pound per week = ~0.143 pounds per day
+      const maxDailyLoss = isImperial ? 0.286 : 0.13; // 0.13 kg is ~0.286 pounds
+      const maxDailyGain = isImperial ? 0.143 : 0.065; // 0.065 kg is ~0.143 pounds
+      
+      // Apply realistic limits
+      if (avgDailyChange < 0) {
+        // Weight loss case
+        avgDailyChange = Math.max(avgDailyChange, -maxDailyLoss);
+      } else {
+        // Weight gain case
+        avgDailyChange = Math.min(avgDailyChange, maxDailyGain);
+      }
 
       // Create a copy of the chart data for forecast
       const forecastData = [...chartData];
