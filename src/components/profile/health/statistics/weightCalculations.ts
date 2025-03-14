@@ -33,8 +33,10 @@ export const calculateTotalWeightLoss = (
   currentWeight: number | undefined
 ): number | null => {
   if (!startingWeight || !currentWeight) return null;
-  // For "Lost Thus Far", we want the actual difference (positive value)
-  return startingWeight - currentWeight;
+  
+  // Calculate positive weight loss (if starting > current it's a loss)
+  // This should return a positive number for a weight loss
+  return Math.max(0, startingWeight - currentWeight);
 };
 
 /**
