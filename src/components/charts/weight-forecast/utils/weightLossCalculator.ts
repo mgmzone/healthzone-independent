@@ -1,19 +1,21 @@
 
 import { WeighIn, Period } from '@/lib/types';
-import { addWeeks, differenceInWeeks } from 'date-fns';
+import { addWeeks, differenceInWeeks, differenceInDays, subDays } from 'date-fns';
 import { WeeklyWeightData, ProjectionResult } from './types';
+import { getFastingLogs } from '@/lib/services/fasting/getFastingLogs';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Projects future weight based on current trend and applies rules for healthy weight loss/gain
  */
-export const calculateWeightProjection = (
+export const calculateWeightProjection = async (
   weeklyData: WeeklyWeightData[],
   startWeight: number,
   targetWeight: number,
   startDate: Date,
   totalWeeks: number,
   isImperial: boolean
-): ProjectionResult => {
+): Promise<ProjectionResult> => {
   // Initialize target date as null
   let targetDate: Date | null = null;
   
@@ -67,6 +69,71 @@ export const calculateWeightProjection = (
     const MAX_WEEKLY_LOSS = isImperial ? MAX_WEEKLY_LOSS_IMPERIAL : MAX_WEEKLY_LOSS_IMPERIAL / 2.20462;
     const MAX_WEEKLY_LOSS_NEAR_GOAL = isImperial ? MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL : MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL / 2.20462;
     
+    // Check if user has aggressive fasting habits (18+ hours per day on average)
+    // and exercising > 30 minutes per day on average
+    let hasAggressiveHabits = false;
+    try {
+      // Get fasting logs for the past 14 days to check fasting habits
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // Get fasting logs
+        const fastingLogs = await getFastingLogs(30); // Get last 30 logs
+        
+        // Get exercise logs for the past 14 days to check exercise habits
+        const twoWeeksAgo = subDays(new Date(), 14).toISOString();
+        const { data: exerciseLogs } = await supabase
+          .from('exercise_logs')
+          .select('minutes')
+          .eq('user_id', session.user.id)
+          .gte('date', twoWeeksAgo);
+          
+        // Calculate average fasting hours per day
+        let totalFastingHours = 0;
+        let daysWithFasting = 0;
+        
+        // Calculate the last 14 days period
+        const fourteenDaysAgo = subDays(new Date(), 14);
+        
+        // Count completed fasts in the last 14 days
+        const recentFasts = fastingLogs.filter(log => {
+          const startDate = new Date(log.startTime);
+          return startDate >= fourteenDaysAgo && log.endTime;
+        });
+        
+        // Calculate total fasting hours
+        if (recentFasts.length > 0) {
+          totalFastingHours = recentFasts.reduce((total, log) => {
+            if (log.fastingHours) {
+              return total + log.fastingHours;
+            }
+            return total;
+          }, 0);
+          
+          daysWithFasting = Math.min(14, recentFasts.length);
+          
+          // Calculate average fasting hours per day
+          const avgFastingHours = daysWithFasting > 0 ? totalFastingHours / daysWithFasting : 0;
+          
+          // Calculate average exercise minutes per day
+          let totalExerciseMinutes = 0;
+          if (exerciseLogs && exerciseLogs.length > 0) {
+            totalExerciseMinutes = exerciseLogs.reduce((total, log) => total + (log.minutes || 0), 0);
+          }
+          const avgExerciseMinutes = exerciseLogs && exerciseLogs.length > 0 ? 
+            totalExerciseMinutes / Math.min(14, exerciseLogs.length) : 0;
+          
+          // Check if user has aggressive habits
+          hasAggressiveHabits = avgFastingHours >= 18 && avgExerciseMinutes > 30;
+        }
+      }
+    } catch (error) {
+      console.error("Error checking fasting and exercise habits:", error);
+    }
+    
+    // Enhanced max weight loss rate for users with aggressive habits
+    const ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL = hasAggressiveHabits ? 2.5 : MAX_WEEKLY_LOSS_IMPERIAL;
+    const ENHANCED_MAX_WEEKLY_LOSS = isImperial ? ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL : ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL / 2.20462;
+    
     for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
       // Calculate weeks from last real data point
       const weeksFromLastReal = week - lastRealDataPoint.week;
@@ -78,11 +145,29 @@ export const calculateWeightProjection = (
         // For weight loss goals
         if (initialWeeklyRate >= 0) {
           // If current trend shows weight gain or maintenance, assume reasonable loss
-          adjustedWeeklyRate = isImperial ? -MAX_WEEKLY_LOSS : -MAX_WEEKLY_LOSS / 2.20462;
+          adjustedWeeklyRate = isImperial ? -ENHANCED_MAX_WEEKLY_LOSS : -ENHANCED_MAX_WEEKLY_LOSS / 2.20462;
         } else {
-          // Cap the weekly loss rate to our max healthy values
-          const maxLoss = percentCompleted >= NEAR_GOAL_THRESHOLD ? 
-            -MAX_WEEKLY_LOSS_NEAR_GOAL : -MAX_WEEKLY_LOSS;
+          // Determine how close we are to target date (if found already)
+          let weeksToTarget = -1;
+          if (targetWeekNum > 0) {
+            weeksToTarget = targetWeekNum - week;
+          }
+          
+          // Apply more aggressive weight loss until we get close to target date
+          let maxLoss;
+          if (weeksToTarget > 0 && weeksToTarget <= 4) {
+            // Taper down weight loss in last 4 weeks
+            const taperFactor = weeksToTarget / 4; // 1.0 to 0.25
+            const minWeeklyLoss = isImperial ? 1.0 : 1.0 / 2.20462;
+            const maxWeeklyLoss = ENHANCED_MAX_WEEKLY_LOSS;
+            maxLoss = -(minWeeklyLoss + (maxWeeklyLoss - minWeeklyLoss) * taperFactor);
+          } else if (percentCompleted >= NEAR_GOAL_THRESHOLD) {
+            // Near goal threshold still applies
+            maxLoss = -MAX_WEEKLY_LOSS_NEAR_GOAL;
+          } else {
+            // Use enhanced max loss for users with aggressive habits
+            maxLoss = -ENHANCED_MAX_WEEKLY_LOSS;
+          }
           
           // Ensure weight loss is not faster than our healthy max
           // But don't change the rate if it's already less than our max
@@ -101,11 +186,11 @@ export const calculateWeightProjection = (
         // Similar logic for weight gain goals
         if (initialWeeklyRate <= 0) {
           // If current trend shows weight loss but goal is gain, assume reasonable gain
-          adjustedWeeklyRate = isImperial ? MAX_WEEKLY_LOSS / 2 : (MAX_WEEKLY_LOSS / 2) / 2.20462;
+          adjustedWeeklyRate = isImperial ? ENHANCED_MAX_WEEKLY_LOSS / 2 : (ENHANCED_MAX_WEEKLY_LOSS / 2) / 2.20462;
         } else {
           // Cap the weekly gain rate
           const maxGain = percentCompleted >= NEAR_GOAL_THRESHOLD ? 
-            MAX_WEEKLY_LOSS_NEAR_GOAL : MAX_WEEKLY_LOSS;
+            MAX_WEEKLY_LOSS_NEAR_GOAL : ENHANCED_MAX_WEEKLY_LOSS;
           
           // Ensure weight gain is not faster than our healthy max
           if (initialWeeklyRate > maxGain) {

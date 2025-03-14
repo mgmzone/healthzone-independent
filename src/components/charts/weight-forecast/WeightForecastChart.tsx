@@ -1,217 +1,162 @@
-
-import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { WeighIn, Period } from '@/lib/types';
-import { format } from 'date-fns';
-import { calculateChartData } from './utils/weightForecastCalculator';
-import { calculateWeightRange } from './utils/chartRangeCalculator';
-import { formatDateForDisplay } from './utils/dateFormatters';
-import { convertWeight } from '@/lib/weight/convertWeight';
-import CustomTooltip from './CustomTooltip';
-
-// Import everything from the calculator module
-import { 
-  calculateChartData as calculateChartDataFromCalc,
-  calculateWeightRange as calculateWeightRangeFromCalc,
-  formatDateForDisplay as formatDateFromCalc 
-} from './weightForecastUtils';
+import React, { useState, useEffect } from 'react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts';
+import { WeeklyWeightData, calculateChartData, calculateWeightRange, formatDateForDisplay } from './weightForecastUtils';
+import { Period, WeighIn } from '@/lib/types';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
   currentPeriod: Period | undefined;
-  isImperial: boolean;
+  isImperial?: boolean;
 }
 
-const WeightForecastChart: React.FC<WeightForecastChartProps> = ({ 
-  weighIns, 
+const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
+  weighIns,
   currentPeriod,
-  isImperial 
+  isImperial = false,
 }) => {
-  // Use the re-exported functions to maintain backward compatibility
-  const { chartData, targetDate } = useMemo(() => {
-    return calculateChartDataFromCalc(weighIns, currentPeriod, isImperial);
+  const [chartData, setChartData] = useState<WeeklyWeightData[]>([]);
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const { chartData: newChartData, targetDate: newTargetDate } = 
+          await calculateChartData(weighIns, currentPeriod, isImperial);
+        
+        setChartData(newChartData);
+        setTargetDate(newTargetDate);
+        setError(null);
+      } catch (err) {
+        console.error('Error calculating weight forecast:', err);
+        setError('Failed to calculate weight forecast');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
   }, [weighIns, currentPeriod, isImperial]);
   
-  const targetWeight = useMemo(() => {
-    return currentPeriod ? convertWeight(currentPeriod.targetWeight, isImperial) : undefined;
-  }, [currentPeriod, isImperial]);
+  const calculateChartRange = () => {
+    if (!currentPeriod) return { minWeight: 0, maxWeight: 100 };
+    
+    const allWeights = chartData.map(item => item.weight);
+    const { minWeight, maxWeight } = calculateWeightRange(
+      currentPeriod.targetWeight,
+      currentPeriod.startWeight,
+      allWeights
+    );
+    return { minWeight, maxWeight };
+  };
   
-  const { minWeight, maxWeight } = useMemo(() => {
-    return calculateWeightRangeFromCalc(chartData, targetWeight);
-  }, [chartData, targetWeight]);
-
-  const today = new Date();
+  const { minWeight, maxWeight } = calculateChartRange();
+  
+  if (loading) {
+    return <div className="flex justify-center items-center h-64">Loading forecast...</div>;
+  }
+  
+  if (error) {
+    return <div className="text-red-500 text-center h-64 flex items-center justify-center">{error}</div>;
+  }
   
   if (!currentPeriod || chartData.length === 0) {
     return (
-      <div className="w-full h-[200px] flex items-center justify-center">
-        <p className="text-gray-500">Not enough data for weight forecast</p>
+      <div className="text-center text-gray-500 h-64 flex items-center justify-center">
+        <p>Not enough data to create a weight forecast.</p>
       </div>
     );
   }
-
-  // Convert Date objects to timestamps for the chart
-  const formattedData = chartData.map(item => ({
-    ...item,
-    formattedDate: format(item.date, 'MMM d, yyyy'),
-    dateValue: item.date.getTime() // Convert Date to number timestamp for XAxis
-  }));
-
-  // Split data into actual and projected for different line styles
-  const actualData = formattedData.filter(d => !d.isProjected);
-  const projectedData = formattedData.filter(d => d.isProjected);
-
-  // Format function for YAxis to remove the large numbers
-  const formatYAxis = (value: number) => {
-    return value.toFixed(1);
+  
+  const hasOverlappingDates = (data: WeeklyWeightData[]): boolean => {
+    if (data.length < 2) return false;
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i].date.getTime() === data[i - 1].date.getTime()) {
+        return true;
+      }
+    }
+    
+    return false;
   };
-
-  // Check if target date and period end date are close to each other
-  const hasOverlappingDates = () => {
-    if (!targetDate || !currentPeriod.endDate) return false;
+  
+  const targetDatePosition = targetDate ? chartData.findIndex(item => item.date >= targetDate) : -1;
+  
+  const getTargetDatePosition = (): number | null => {
+    if (!targetDate) return null;
+    
+    const index = chartData.findIndex(item => item.date >= targetDate);
+    return index !== -1 ? index : null;
+  };
+  
+  const getPeriodEndPosition = (): number | null => {
+    if (!currentPeriod?.endDate) return null;
     
     const endDate = new Date(currentPeriod.endDate);
-    const diffInDays = Math.abs((endDate.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // If less than 10 days apart, consider them overlapping
-    return diffInDays < 10;
+    const index = chartData.findIndex(item => item.date >= endDate);
+    return index !== -1 ? index : null;
   };
-
-  // Place target date and period end labels in different positions based on which date comes first
-  const getTargetDatePosition = () => {
-    if (!targetDate || !currentPeriod.endDate) return 'insideTopRight';
-    
-    const endDate = new Date(currentPeriod.endDate);
-    return targetDate < endDate ? 'insideTopLeft' : 'insideTopRight';
-  };
-
-  const getPeriodEndPosition = () => {
-    if (!targetDate || !currentPeriod.endDate) return 'insideBottomRight';
-    
-    const endDate = new Date(currentPeriod.endDate);
-    return targetDate < endDate ? 'insideBottomRight' : 'insideBottomLeft';
-  };
-
+  
   return (
-    <>
-      <div className="w-full h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-            <XAxis 
-              dataKey="dateValue" 
-              tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 12 }}
-              minTickGap={30}
-              domain={['dataMin', 'dataMax']}
-              type="number"
-              allowDataOverflow={true}
-            />
-            <YAxis 
-              domain={[minWeight, maxWeight]} 
-              tickFormatter={formatYAxis}
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 12 }}
-              width={40}
-            />
-            <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
-            
-            {/* Reference line for today */}
-            <ReferenceLine x={today.getTime()} stroke="#10B981" strokeWidth={1} strokeDasharray="3 3" label={{ value: 'Today', position: 'insideBottomRight', fill: '#10B981', fontSize: 10 }} />
-            
-            {/* Target weight horizontal reference line */}
-            {targetWeight && (
-              <ReferenceLine 
-                y={targetWeight} 
-                stroke="#F59E0B" 
-                strokeWidth={1} 
-                strokeDasharray="3 3" 
-                label={{ 
-                  value: `Target: ${targetWeight.toFixed(1)}`, 
-                  position: 'right', 
-                  fill: '#F59E0B',
-                  fontSize: 10
-                }} 
-              />
-            )}
-            
-            {/* Target date vertical reference line (if projection reaches target) */}
-            {targetDate && (
-              <ReferenceLine 
-                x={targetDate.getTime()} 
-                stroke="#F59E0B" 
-                strokeWidth={1} 
-                strokeDasharray="3 3" 
-                label={{ 
-                  value: 'Target date', 
-                  position: getTargetDatePosition(),
-                  fill: '#F59E0B',
-                  fontSize: 10
-                }} 
-              />
-            )}
-            
-            {/* Period end date vertical reference line */}
-            {currentPeriod.endDate && (
-              <ReferenceLine 
-                x={new Date(currentPeriod.endDate).getTime()} 
-                stroke="#64748B" 
-                strokeWidth={1} 
-                strokeDasharray="3 3" 
-                label={{ 
-                  value: 'Period end', 
-                  position: getPeriodEndPosition(),
-                  fill: '#64748B',
-                  fontSize: 10
-                }} 
-              />
-            )}
-            
-            {/* Actual weight line */}
-            <Line
-              type="monotone"
-              dataKey="weight"
-              data={actualData}
-              stroke="#6366F1"
-              strokeWidth={2}
-              dot={{ stroke: '#6366F1', strokeWidth: 2, r: 4, fill: 'white' }}
-              activeDot={{ r: 6, fill: '#6366F1' }}
-              connectNulls={true}
-              isAnimationActive={true}
-              animationDuration={1000}
-              name="Actual"
-            />
-            
-            {/* Projected weight line (dashed) */}
-            {projectedData.length > 0 && (
-              <Line
-                type="monotone"
-                dataKey="weight"
-                data={projectedData}
-                stroke="#3B82F6"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 3, fill: 'white' }}
-                activeDot={{ r: 6, fill: '#3B82F6' }}
-                isAnimationActive={true}
-                animationDuration={1000}
-                name="Projected"
-                connectNulls={true}
-              />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      
-      {targetDate && (
-        <div className="text-xs text-muted-foreground mt-2 text-center">
-          Projected to reach target weight by <span className="font-semibold text-amber-500">{formatDateFromCalc(targetDate)}</span>
-        </div>
-      )}
-    </>
+    <ResponsiveContainer width="100%" height={400}>
+      <AreaChart
+        data={chartData}
+        margin={{
+          top: 10,
+          right: 30,
+          left: 0,
+          bottom: 0,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="date"
+          tickFormatter={(date) => formatDateForDisplay(date)}
+          angle={-45}
+          textAnchor="end"
+          height={80}
+          interval="preserveStartEnd"
+        />
+        <YAxis 
+          domain={[minWeight, maxWeight]}
+          tickFormatter={(weight) => weight.toFixed(1)}
+        />
+        <Tooltip 
+          labelFormatter={(date) => formatDateForDisplay(date as Date)}
+          formatter={(value) => (Array.isArray(value) ? value[0].toFixed(1) : value.toFixed(1))}
+        />
+        <Area
+          type="monotone"
+          dataKey="weight"
+          stroke="#8884d8"
+          fill="#8884d8"
+          name="Weight"
+        />
+        {targetDate && (
+          <ReferenceLine
+            x={formatDateForDisplay(targetDate)}
+            stroke="green"
+            strokeDasharray="3 3"
+            label={{ 
+              value: `Target Date: ${formatDateForDisplay(targetDate)}`, 
+              position: 'insideTopRight',
+              fill: 'green'
+            }}
+          />
+        )}
+      </AreaChart>
+    </ResponsiveContainer>
   );
 };
 

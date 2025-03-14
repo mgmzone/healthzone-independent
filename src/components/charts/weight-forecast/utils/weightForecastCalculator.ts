@@ -8,11 +8,11 @@ import { calculateWeightProjection } from './weightLossCalculator';
 /**
  * Calculate chart data including projections
  */
-export const calculateChartData = (
+export const calculateChartData = async (
   weighIns: WeighIn[], 
   currentPeriod: Period | undefined, 
   isImperial: boolean
-): ProjectionResult => {
+): Promise<ProjectionResult> => {
   if (!currentPeriod || weighIns.length === 0) {
     return { chartData: [], targetDate: null };
   }
@@ -36,7 +36,7 @@ export const calculateChartData = (
   );
   
   // Calculate projections using the processed data
-  return calculateWeightProjection(
+  return await calculateWeightProjection(
     actualData,
     isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
     targetWeight,
