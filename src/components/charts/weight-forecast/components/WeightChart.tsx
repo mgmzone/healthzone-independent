@@ -8,7 +8,6 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts';
 import { format } from 'date-fns';
 import CustomTooltip from '../CustomTooltip';
@@ -31,8 +30,18 @@ const WeightChart: React.FC<WeightChartProps> = ({
 }) => {
   // Find out where actual data stops and forecast begins
   const today = new Date();
+  
+  // Separate actual and forecast data
   const actualData = displayData.filter(d => d.isActual || new Date(d.date) <= today);
-  const forecastData = displayData.filter(d => (d.isForecast || new Date(d.date) > today) && !d.isActual);
+  
+  // Get the last actual data point
+  const lastActualPoint = actualData.length > 0 ? actualData[actualData.length - 1] : null;
+  const lastActualDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
+  
+  // Filter forecast data to only include points after the last actual data point
+  const forecastData = displayData.filter(d => 
+    (d.isForecast || new Date(d.date) > lastActualDate) && !d.isActual
+  );
   
   // Find target date (the last date in the forecast)
   const targetDate = forecastData.length > 0 ? new Date(forecastData[forecastData.length - 1].date) : null;

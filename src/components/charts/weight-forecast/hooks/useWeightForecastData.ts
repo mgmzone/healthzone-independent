@@ -76,9 +76,14 @@ export const useWeightForecastData = (
       const convertedTargetWeight = targetWeight !== undefined ? 
         (isImperial ? targetWeight * 2.20462 : targetWeight) : null;
 
+      // Get the last actual weigh-in (this is where the forecast should start)
+      const actualPoints = chartData.filter(point => point.isActual);
+      if (actualPoints.length === 0) return chartData;
+      
+      const lastActualPoint = actualPoints[actualPoints.length - 1];
+      
       // Calculate the average daily weight change based on the actual data
       const firstPoint = chartData[0];
-      const lastActualPoint = chartData[chartData.length - 1];
       const daysElapsed = differenceInDays(lastActualPoint.date, firstPoint.date) || 1;
       let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
       let avgDailyChange = totalWeightChange / daysElapsed;
@@ -98,8 +103,10 @@ export const useWeightForecastData = (
         avgDailyChange = Math.min(avgDailyChange, maxDailyGain);
       }
 
-      // Create a copy of the chart data for forecast
-      const forecastData = [...chartData];
+      // Create a copy of the chart data for forecast (excluding future points)
+      const forecastData = chartData.filter(point => 
+        new Date(point.date) <= lastActualPoint.date
+      );
 
       // If we already reached the end date, no need to forecast
       if (new Date() >= periodEndDate) return forecastData;
