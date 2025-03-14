@@ -114,38 +114,74 @@ export const calculateChartData = (
     const totalWeightToLose = Math.abs(targetWeight - startWeight);
     const weightLostSoFar = Math.abs(lastRealDataPoint.weight - startWeight);
     const percentCompleted = totalWeightToLose > 0 ? weightLostSoFar / totalWeightToLose : 0;
+    const remainingWeight = Math.abs(targetWeight - lastRealDataPoint.weight);
     
     // Determine if this is a weight loss or gain goal
     const isWeightLoss = targetWeight < startWeight;
     
-    // More moderate decay approach - gentler tapering that prevents weight gain prediction
+    // Set maximum healthy weekly weight loss/gain rates (in lbs/kg)
+    // These are the maximum rates we'll allow in our projections
+    const MAX_WEEKLY_LOSS_IMPERIAL = 2.0;  // 2 lbs per week
+    const MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL = 1.5;  // 1.5 lbs per week when near goal
+    const NEAR_GOAL_THRESHOLD = 0.75;  // When 75% to goal, slow down more
+    
+    // Convert to kg if needed
+    const MAX_WEEKLY_LOSS = isImperial ? MAX_WEEKLY_LOSS_IMPERIAL : MAX_WEEKLY_LOSS_IMPERIAL / 2.20462;
+    const MAX_WEEKLY_LOSS_NEAR_GOAL = isImperial ? MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL : MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL / 2.20462;
+    
     for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
       // Calculate weeks from last real data point
       const weeksFromLastReal = week - lastRealDataPoint.week;
       
-      // More gradual diminishing factor for a realistic but still effective projection
-      // For weight loss plans, the factor should never cause weight gain in projections
-      let diminishingFactor;
+      // Generate a sensible projection even if current trend is contrary to goal
+      let adjustedWeeklyRate = initialWeeklyRate;
       
-      if (isWeightLoss && initialWeeklyRate < 0) {
-        // For weight loss plans (negative rate = losing weight)
-        // Use a gentler decay curve that approaches a minimum effectiveness (30%)
-        // This ensures progress continues but slows down gradually
-        const minEffectiveness = 0.3; // Minimum 30% of initial rate
-        diminishingFactor = minEffectiveness + (1 - minEffectiveness) * Math.exp(-0.03 * weeksFromLastReal);
-      } else if (!isWeightLoss && initialWeeklyRate > 0) {
-        // For weight gain plans (positive rate = gaining weight)
-        // Similar approach but for weight gain
-        const minEffectiveness = 0.3;
-        diminishingFactor = minEffectiveness + (1 - minEffectiveness) * Math.exp(-0.03 * weeksFromLastReal);
+      if (isWeightLoss) {
+        // For weight loss goals
+        if (initialWeeklyRate >= 0) {
+          // If current trend shows weight gain or maintenance, assume reasonable loss
+          adjustedWeeklyRate = isImperial ? -MAX_WEEKLY_LOSS : -MAX_WEEKLY_LOSS / 2.20462;
+        } else {
+          // Cap the weekly loss rate to our max healthy values
+          const maxLoss = percentCompleted >= NEAR_GOAL_THRESHOLD ? 
+            -MAX_WEEKLY_LOSS_NEAR_GOAL : -MAX_WEEKLY_LOSS;
+          
+          // Ensure weight loss is not faster than our healthy max
+          // But don't change the rate if it's already less than our max
+          if (initialWeeklyRate < maxLoss) {
+            adjustedWeeklyRate = maxLoss;
+          }
+          
+          // Apply a very gentle tapering effect that ensures continued progress
+          const minEffectiveness = 0.7; // Maintain at least 70% effectiveness over time
+          const taperingFactor = minEffectiveness + 
+            (1 - minEffectiveness) * Math.exp(-0.02 * weeksFromLastReal);
+          
+          adjustedWeeklyRate *= taperingFactor;
+        }
       } else {
-        // If current trend contradicts goal (e.g., losing weight when goal is to gain)
-        // Apply stronger correction to align with the goal direction
-        diminishingFactor = Math.exp(-0.05 * weeksFromLastReal);
+        // Similar logic for weight gain goals
+        if (initialWeeklyRate <= 0) {
+          // If current trend shows weight loss but goal is gain, assume reasonable gain
+          adjustedWeeklyRate = isImperial ? MAX_WEEKLY_LOSS / 2 : (MAX_WEEKLY_LOSS / 2) / 2.20462;
+        } else {
+          // Cap the weekly gain rate
+          const maxGain = percentCompleted >= NEAR_GOAL_THRESHOLD ? 
+            MAX_WEEKLY_LOSS_NEAR_GOAL : MAX_WEEKLY_LOSS;
+          
+          // Ensure weight gain is not faster than our healthy max
+          if (initialWeeklyRate > maxGain) {
+            adjustedWeeklyRate = maxGain;
+          }
+          
+          // Apply gentle tapering for weight gain too
+          const minEffectiveness = 0.7;
+          const taperingFactor = minEffectiveness + 
+            (1 - minEffectiveness) * Math.exp(-0.02 * weeksFromLastReal);
+          
+          adjustedWeeklyRate *= taperingFactor;
+        }
       }
-      
-      // Apply the diminishing factor to the weekly rate
-      const adjustedWeeklyRate = initialWeeklyRate * diminishingFactor;
       
       // Calculate the projected weight for this week
       const projectedWeight = lastRealDataPoint.weight + 
@@ -165,8 +201,8 @@ export const calculateChartData = (
         // Check if we've reached or passed the target weight
         // Only consider future dates for target date estimation
         if (!targetWeightFound && 
-            ((initialWeeklyRate < 0 && projectedWeight <= targetWeight) || 
-             (initialWeeklyRate > 0 && projectedWeight >= targetWeight)) &&
+            ((isWeightLoss && projectedWeight <= targetWeight) || 
+             (!isWeightLoss && projectedWeight >= targetWeight)) &&
             projectionDate > now) {
           targetDate = projectionDate;
           targetWeightFound = true;
