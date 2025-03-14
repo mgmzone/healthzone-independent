@@ -106,35 +106,43 @@ export const calculateChartData = (
       : (lastRealDataPoint.weight - firstDataPoint.weight) / 
         (lastRealDataPoint.week - firstDataPoint.week || 1);
     
-    // Project future weeks with enhanced adaptive rate of change
+    // Project future weeks
     const now = new Date();
     let targetWeightFound = false;
     
-    // Calculate total weight to lose
+    // Calculate total weight to lose and weight direction (loss or gain)
     const totalWeightToLose = Math.abs(targetWeight - startWeight);
     const weightLostSoFar = Math.abs(lastRealDataPoint.weight - startWeight);
     const percentCompleted = totalWeightToLose > 0 ? weightLostSoFar / totalWeightToLose : 0;
     
-    // Enhanced logarithmic decay factor - the closer to goal weight, the slower the progress
+    // Determine if this is a weight loss or gain goal
+    const isWeightLoss = targetWeight < startWeight;
+    
+    // More moderate decay approach - gentler tapering that prevents weight gain prediction
     for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
       // Calculate weeks from last real data point
       const weeksFromLastReal = week - lastRealDataPoint.week;
       
-      // Apply enhanced diminishing factors to account for:
-      // 1. Longer time periods (time-based decay)
-      // 2. Approaching target weight (progress-based decay)
+      // More gradual diminishing factor for a realistic but still effective projection
+      // For weight loss plans, the factor should never cause weight gain in projections
+      let diminishingFactor;
       
-      // Time-based decay: stronger initial reduction, starts at 0.85 and continues to decrease
-      const timeFactor = Math.pow(0.85, weeksFromLastReal / 2);
-      
-      // Progress-based decay: as you get closer to your goal, progress slows down
-      // This simulates the body's natural resistance to continued weight loss
-      const currentProgressEstimate = percentCompleted + 
-        (1 - percentCompleted) * (weeksFromLastReal / (totalWeeks - lastRealDataPoint.week));
-      const progressFactor = Math.pow(0.9, currentProgressEstimate * 10);
-      
-      // Combined diminishing factor
-      const diminishingFactor = timeFactor * progressFactor;
+      if (isWeightLoss && initialWeeklyRate < 0) {
+        // For weight loss plans (negative rate = losing weight)
+        // Use a gentler decay curve that approaches a minimum effectiveness (30%)
+        // This ensures progress continues but slows down gradually
+        const minEffectiveness = 0.3; // Minimum 30% of initial rate
+        diminishingFactor = minEffectiveness + (1 - minEffectiveness) * Math.exp(-0.03 * weeksFromLastReal);
+      } else if (!isWeightLoss && initialWeeklyRate > 0) {
+        // For weight gain plans (positive rate = gaining weight)
+        // Similar approach but for weight gain
+        const minEffectiveness = 0.3;
+        diminishingFactor = minEffectiveness + (1 - minEffectiveness) * Math.exp(-0.03 * weeksFromLastReal);
+      } else {
+        // If current trend contradicts goal (e.g., losing weight when goal is to gain)
+        // Apply stronger correction to align with the goal direction
+        diminishingFactor = Math.exp(-0.05 * weeksFromLastReal);
+      }
       
       // Apply the diminishing factor to the weekly rate
       const adjustedWeeklyRate = initialWeeklyRate * diminishingFactor;
