@@ -101,6 +101,40 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     return null;
   };
   
+  // Find the index of today in the chart data or the closest date after today
+  const findTodayIndex = () => {
+    const todayTime = today.getTime();
+    return chartData.findIndex(item => {
+      const itemDate = new Date(item.date);
+      return itemDate.getTime() >= todayTime;
+    });
+  };
+  
+  // Find the index of the target date in the chart data
+  const findTargetDateIndex = () => {
+    if (!targetDate) return -1;
+    const targetTime = targetDate.getTime();
+    return chartData.findIndex(item => {
+      const itemDate = new Date(item.date);
+      return itemDate.getTime() >= targetTime;
+    });
+  };
+  
+  // Find the index of the period end date in the chart data
+  const findPeriodEndIndex = () => {
+    if (!currentPeriod.endDate) return -1;
+    const endDate = new Date(currentPeriod.endDate);
+    const endTime = endDate.getTime();
+    return chartData.findIndex(item => {
+      const itemDate = new Date(item.date);
+      return itemDate.getTime() >= endTime;
+    });
+  };
+  
+  const todayIndex = findTodayIndex();
+  const targetDateIndex = findTargetDateIndex();
+  const periodEndIndex = findPeriodEndIndex();
+  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
@@ -139,21 +173,23 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           dot={renderDot}
         />
         
-        <ReferenceLine
-          x={today}
-          stroke="#2563eb"
-          strokeWidth={2}
-          label={{ 
-            value: 'Today', 
-            position: 'insideTopRight',
-            fill: '#2563eb',
-            fontSize: 10
-          }}
-        />
-        
-        {targetDate && (
+        {todayIndex >= 0 && (
           <ReferenceLine
-            x={targetDate}
+            x={todayIndex}
+            stroke="#2563eb"
+            strokeWidth={2}
+            label={{ 
+              value: 'Today', 
+              position: 'insideTopRight',
+              fill: '#2563eb',
+              fontSize: 10
+            }}
+          />
+        )}
+        
+        {targetDateIndex >= 0 && (
+          <ReferenceLine
+            x={targetDateIndex}
             stroke="#16a34a"
             strokeWidth={2}
             strokeDasharray="3 3"
@@ -166,9 +202,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           />
         )}
         
-        {currentPeriod.endDate && (
+        {periodEndIndex >= 0 && (
           <ReferenceLine
-            x={new Date(currentPeriod.endDate)}
+            x={periodEndIndex}
             stroke="#dc2626"
             strokeWidth={2}
             label={{ 
