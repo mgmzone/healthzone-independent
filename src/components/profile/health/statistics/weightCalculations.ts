@@ -33,7 +33,8 @@ export const calculateTotalWeightLoss = (
   currentWeight: number | undefined
 ): number | null => {
   if (!startingWeight || !currentWeight) return null;
-  return Math.abs(startingWeight - currentWeight);
+  // For "Lost Thus Far", we want the actual difference (positive value)
+  return startingWeight - currentWeight;
 };
 
 /**

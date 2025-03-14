@@ -21,10 +21,11 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   targetLoss,
   isImperial
 }) => {
-  // Format weight values for display
-  const formatWeight = (weight: number | undefined): string => {
-    if (weight === undefined || weight === 0) return '';
-    return weight.toString();
+  // Format weight values for display with unit
+  const formatWeightWithUnit = (weight: number | undefined): string => {
+    if (weight === undefined) return '';
+    const convertedWeight = isImperial ? convertWeight(weight, true) : weight;
+    return `${formatWeightValue(convertedWeight)} ${isImperial ? 'lbs' : 'kg'}`;
   };
 
   return (
@@ -32,26 +33,22 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       <StatisticInput
         id="startingWeight"
         label="Starting Weight"
-        value={startingWeight ? 
-          `${formatWeight(isImperial ? convertWeight(startingWeight, true) : startingWeight)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={startingWeight ? formatWeightWithUnit(startingWeight) : ''}
       />
       <StatisticInput
         id="targetWeight"
         label="Target Weight"
-        value={targetWeight ? 
-          `${formatWeight(isImperial ? convertWeight(targetWeight, true) : targetWeight)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={targetWeight ? formatWeightWithUnit(targetWeight) : ''}
       />
       <StatisticInput
         id="targetLoss"
         label="Target Loss"
-        value={targetLoss ? 
-          `${formatWeight(isImperial ? convertWeight(targetLoss, true) : targetLoss)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={targetLoss ? formatWeightWithUnit(targetLoss) : ''}
       />
       <StatisticInput
         id="lostThusFar"
         label="Lost Thus Far"
-        value={totalWeightLoss ? 
-          `${formatWeight(isImperial ? convertWeight(totalWeightLoss, true) : totalWeightLoss)} ${isImperial ? 'lbs' : 'kg'}` : ''}
+        value={totalWeightLoss ? formatWeightWithUnit(totalWeightLoss) : ''}
       />
     </>
   );

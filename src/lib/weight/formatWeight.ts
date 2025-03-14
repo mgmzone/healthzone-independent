@@ -9,7 +9,7 @@ import { convertWeight } from './convertWeight';
  */
 export const formatWeightValue = (value: number): string => {
   if (!value && value !== 0) return '0.0';
-  return parseFloat(value.toString()).toFixed(1);
+  return value.toFixed(1);
 };
 
 /**
