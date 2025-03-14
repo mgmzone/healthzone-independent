@@ -106,15 +106,35 @@ export const calculateChartData = (
       : (lastRealDataPoint.weight - firstDataPoint.weight) / 
         (lastRealDataPoint.week - firstDataPoint.week || 1);
     
-    // Project future weeks with adaptive rate of change - but limit to the period end date
+    // Project future weeks with enhanced adaptive rate of change
     const now = new Date();
     let targetWeightFound = false;
     
+    // Calculate total weight to lose
+    const totalWeightToLose = Math.abs(targetWeight - startWeight);
+    const weightLostSoFar = Math.abs(lastRealDataPoint.weight - startWeight);
+    const percentCompleted = totalWeightToLose > 0 ? weightLostSoFar / totalWeightToLose : 0;
+    
+    // Enhanced logarithmic decay factor - the closer to goal weight, the slower the progress
     for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
-      // Calculate a diminishing factor (starts at 1.0 and gradually decreases)
-      // The rate drops by 10% every 4 weeks, but at a decreasing rate over time
+      // Calculate weeks from last real data point
       const weeksFromLastReal = week - lastRealDataPoint.week;
-      const diminishingFactor = Math.pow(0.9, weeksFromLastReal / 4);
+      
+      // Apply enhanced diminishing factors to account for:
+      // 1. Longer time periods (time-based decay)
+      // 2. Approaching target weight (progress-based decay)
+      
+      // Time-based decay: stronger initial reduction, starts at 0.85 and continues to decrease
+      const timeFactor = Math.pow(0.85, weeksFromLastReal / 2);
+      
+      // Progress-based decay: as you get closer to your goal, progress slows down
+      // This simulates the body's natural resistance to continued weight loss
+      const currentProgressEstimate = percentCompleted + 
+        (1 - percentCompleted) * (weeksFromLastReal / (totalWeeks - lastRealDataPoint.week));
+      const progressFactor = Math.pow(0.9, currentProgressEstimate * 10);
+      
+      // Combined diminishing factor
+      const diminishingFactor = timeFactor * progressFactor;
       
       // Apply the diminishing factor to the weekly rate
       const adjustedWeeklyRate = initialWeeklyRate * diminishingFactor;
