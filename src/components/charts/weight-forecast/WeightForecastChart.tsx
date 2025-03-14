@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { Period, WeighIn } from '@/lib/types';
+import CustomTooltip from './CustomTooltip';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -77,22 +78,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const minWeight = Math.floor(Math.min(...weights) - 1);
   const maxWeight = Math.ceil(Math.max(...weights) + 1);
   
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded-md">
-          <p className="font-semibold">{format(data.date, 'MMM d, yyyy')}</p>
-          <p className="text-gray-700">
-            Weight: <span className="font-medium">{data.weight.toFixed(1)} {isImperial ? 'lbs' : 'kg'}</span>
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-  
   return (
     <ResponsiveContainer width="100%" height={400}>
       <AreaChart
@@ -107,7 +92,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
           dataKey="date"
-          tickFormatter={(date) => format(new Date(date), 'MMM yyyy')}
+          tickFormatter={(date) => format(new Date(date), 'MMM d')}
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
@@ -133,7 +118,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             fill: '#666' 
           }}
         />
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         <Area 
           type="monotone" 
           dataKey="weight" 

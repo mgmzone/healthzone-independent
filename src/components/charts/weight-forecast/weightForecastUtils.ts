@@ -1,6 +1,5 @@
 
-// This file re-exports utility functions for backward compatibility
-import { getWeighInsForPeriod } from './utils/dataProcessor';
+import { SimpleWeightData } from './utils/types';
 
 // Simple function to calculate weight range for y-axis
 export const calculateWeightRange = (
@@ -28,12 +27,5 @@ export const formatDateForDisplay = (date: Date | null): string => {
   }).format(date);
 };
 
-// Re-export the simplified functions
-export { getWeighInsForPeriod as calculateChartData };
-
-// Re-export types
-export type { SimpleWeightData } from './utils/types';
-export interface ProjectionResult {
-  chartData: any[];
-  targetDate: Date | null;
-}
+// Export types
+export type { SimpleWeightData };
