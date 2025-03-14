@@ -1,4 +1,6 @@
 
+import { convertWeight } from '@/lib/weight/convertWeight';
+
 /**
  * Calculate the percentage of progress towards weight loss goal
  */

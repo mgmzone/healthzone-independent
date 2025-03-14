@@ -18,20 +18,12 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
   currentWeight,
   isImperial
 }) => {
-  // Log the raw values
-  console.log('Progress Section raw values:', {
-    weightLossPerWeek,
-    currentAvgWeightLoss,
-    isImperial
-  });
-  
-  // Format the target loss per week without converting twice
-  // weightLossPerWeek is already in kg, just format it directly with the unit conversion
+  // No double conversion needed - these values are already in kg
+  // Just format them with the appropriate unit using formatWeightWithUnit
   const formattedTargetLoss = weightLossPerWeek 
     ? formatWeightWithUnit(weightLossPerWeek, isImperial)
     : '';
     
-  // Similarly for actual loss, apply the same logic
   const formattedActualLoss = currentAvgWeightLoss !== undefined
     ? formatWeightWithUnit(Math.abs(currentAvgWeightLoss), isImperial)
     : 'Not enough data';

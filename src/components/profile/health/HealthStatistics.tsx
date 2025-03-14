@@ -4,6 +4,7 @@ import DateSection from './statistics/DateSection';
 import WeightSection from './statistics/WeightSection';
 import ProgressSection from './statistics/ProgressSection';
 import { calculateProgressPercentage, calculateTotalWeightLoss, calculateTargetLoss } from './statistics/weightCalculations';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface HealthStatisticsProps {
   formData: {
@@ -30,7 +31,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
-  // Use currentPeriod's startWeight as the starting weight
+  // Use currentPeriod's startWeight as the starting weight (stored in metric/kg)
   const startingWeight = currentPeriod?.startWeight || formData.startingWeight;
   
   // Calculate derived values
@@ -52,17 +53,22 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
     isImperial
   );
   
+  // Convert all weights to display units (imperial or metric) for consistent display
+  const displayStartWeight = startingWeight ? convertWeight(startingWeight, isImperial) : undefined;
+  const displayCurrentWeight = formData.currentWeight ? convertWeight(formData.currentWeight, isImperial) : undefined;
+  const displayTargetWeight = currentPeriod?.targetWeight ? convertWeight(currentPeriod.targetWeight, isImperial) : undefined;
+  
   return (
     <div className="mb-6 bg-muted/30 rounded-lg p-4 border">
       <div className="grid grid-cols-2 gap-4">
         {/* Dates Section */}
         <DateSection currentPeriod={currentPeriod} />
         
-        {/* Weights Section */}
+        {/* Weights Section - pass display weights that are already converted */}
         <WeightSection
-          startingWeight={startingWeight}
-          currentWeight={formData.currentWeight}
-          targetWeight={currentPeriod?.targetWeight}
+          startingWeight={displayStartWeight}
+          currentWeight={displayCurrentWeight}
+          targetWeight={displayTargetWeight}
           totalWeightLoss={totalWeightLoss}
           targetLoss={targetLoss}
           isImperial={isImperial}
@@ -73,7 +79,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
           weightLossPerWeek={currentPeriod?.weightLossPerWeek}
           currentAvgWeightLoss={currentAvgWeightLoss}
           progressPercentage={progressPercentage}
-          currentWeight={formData.currentWeight}
+          currentWeight={displayCurrentWeight}
           isImperial={isImperial}
         />
       </div>
