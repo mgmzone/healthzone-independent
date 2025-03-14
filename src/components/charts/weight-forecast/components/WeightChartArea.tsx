@@ -4,7 +4,7 @@ import { Area, Dot } from 'recharts';
 import { WeeklyWeightData } from '../utils/types';
 
 interface WeightChartAreaProps {
-  renderDot: (props: any) => React.ReactNode | null;
+  renderDot: (props: any) => React.ReactElement | null;
 }
 
 export const WeightChartArea: React.FC<WeightChartAreaProps> = ({ renderDot }) => {
@@ -21,7 +21,7 @@ export const WeightChartArea: React.FC<WeightChartAreaProps> = ({ renderDot }) =
 };
 
 export const createDotRenderer = () => {
-  return (props: any) => {
+  return (props: any): React.ReactElement | null => {
     const { cx, cy, payload } = props;
     if (!payload.isProjected) {
       return (
