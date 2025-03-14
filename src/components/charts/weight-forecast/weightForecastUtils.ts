@@ -1,4 +1,3 @@
-
 import { WeighIn, Period } from '@/lib/types';
 import { addWeeks, differenceInWeeks, format } from 'date-fns';
 import { convertWeight as convertWeightUtil } from '@/lib/weight/convertWeight';
@@ -30,10 +29,10 @@ export const calculateChartData = (
   const startDate = new Date(currentPeriod.startDate);
   const endDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : addWeeks(new Date(), 12); // Default 12 weeks if no end date
   
-  // For projection purposes, we may need to extend beyond the period end date
-  // to show when the target will be reached, giving 52 weeks (1 year) maximum projection
-  const maxProjectionDate = addWeeks(startDate, 52);
-  const totalWeeks = differenceInWeeks(maxProjectionDate, startDate) + 1;
+  // Initially, we'll set up for a projection that could go as far as the period end date
+  // plus some additional weeks for reasonable extrapolation
+  const maxInitialProjectionDate = addWeeks(endDate, 12); // Extend past period end date initially
+  const totalWeeks = differenceInWeeks(maxInitialProjectionDate, startDate) + 1;
   
   // Convert target weight to display units (kg to lbs if imperial)
   const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
@@ -113,6 +112,7 @@ export const calculateChartData = (
     // Project future weeks
     const now = new Date();
     let targetWeightFound = false;
+    let targetWeekNum = -1;
     
     // Calculate total weight to lose and weight direction (loss or gain)
     const totalWeightToLose = Math.abs(targetWeight - startWeight);
@@ -193,7 +193,7 @@ export const calculateChartData = (
       
       const projectionDate = addWeeks(startDate, week);
       
-      // Add projection points up to one year from start date
+      // Store projection points
       weeklyData.push({
         week,
         date: projectionDate,
@@ -208,8 +208,21 @@ export const calculateChartData = (
            (!isWeightLoss && projectedWeight >= targetWeight)) &&
           projectionDate > now) {
         targetDate = projectionDate;
+        targetWeekNum = week;
         targetWeightFound = true;
       }
+    }
+    
+    // If we found the target date, keep only projections up to 2 weeks after target date
+    if (targetWeekNum > 0) {
+      const maxProjectionWeek = targetWeekNum + 2; // target week plus 2 additional weeks
+      
+      // Filter out projections beyond our cut-off
+      const filteredData = weeklyData.filter(data => 
+        !data.isProjected || data.week <= maxProjectionWeek
+      );
+      
+      return { chartData: filteredData, targetDate };
     }
   }
   
