@@ -77,6 +77,21 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     return diffInDays < 10;
   };
 
+  // Place target date and period end labels in different positions based on which date comes first
+  const getTargetDatePosition = () => {
+    if (!targetDate || !currentPeriod.endDate) return 'insideTopRight';
+    
+    const endDate = new Date(currentPeriod.endDate);
+    return targetDate < endDate ? 'insideTopLeft' : 'insideTopRight';
+  };
+
+  const getPeriodEndPosition = () => {
+    if (!targetDate || !currentPeriod.endDate) return 'insideBottomRight';
+    
+    const endDate = new Date(currentPeriod.endDate);
+    return targetDate < endDate ? 'insideBottomRight' : 'insideBottomLeft';
+  };
+
   return (
     <>
       <div className="w-full h-[220px]">
@@ -132,7 +147,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                 strokeDasharray="3 3" 
                 label={{ 
                   value: 'Target date', 
-                  position: hasOverlappingDates() ? 'insideTopLeft' : 'insideTopRight', 
+                  position: getTargetDatePosition(),
                   fill: '#F59E0B',
                   fontSize: 10
                 }} 
@@ -148,7 +163,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
                 strokeDasharray="3 3" 
                 label={{ 
                   value: 'Period end', 
-                  position: hasOverlappingDates() ? 'insideBottomLeft' : 'insideBottomRight', 
+                  position: getPeriodEndPosition(),
                   fill: '#64748B',
                   fontSize: 10
                 }} 

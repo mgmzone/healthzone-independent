@@ -1,3 +1,4 @@
+
 import { WeighIn, Period } from '@/lib/types';
 import { addWeeks, differenceInWeeks } from 'date-fns';
 import { WeeklyWeightData, ProjectionResult } from './types';
@@ -163,5 +164,6 @@ export const calculateWeightProjection = (
     }
   }
   
-  return { chartData: weeklyData, targetDate: null };
-};
+  // Return all data and target date (even if null)
+  return { chartData: weeklyData, targetDate };
+}
