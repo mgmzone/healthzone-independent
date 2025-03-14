@@ -6,7 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import WeightInputField from '@/components/periods/WeightInputField';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, LineChart } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { formatDate } from '@/lib/utils/dateUtils';
 
 interface HealthInfoTabProps {
   formData: {
@@ -50,11 +52,48 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
     return weight.toString();
   };
   
+  // Calculate weight loss progress percentage if we have all necessary data
+  const calculateProgressPercentage = () => {
+    if (!formData.startingWeight || !formData.currentWeight || !currentPeriod?.targetWeight) {
+      return null;
+    }
+    
+    // Convert weights to the same unit system if needed
+    const startWeight = formData.startingWeight;
+    const currentWeight = formData.currentWeight;
+    const targetWeight = isImperial 
+      ? (currentPeriod.targetWeight * 2.20462)
+      : currentPeriod.targetWeight;
+    
+    // Calculate total weight to lose
+    const totalToLose = startWeight - targetWeight;
+    
+    // Calculate weight lost so far
+    const lostSoFar = startWeight - currentWeight;
+    
+    // Calculate percentage of progress
+    if (totalToLose <= 0) return 0; // Prevent division by zero or negative values
+    
+    const percentage = (lostSoFar / totalToLose) * 100;
+    return Math.min(Math.max(percentage, 0), 100); // Clamp between 0-100%
+  };
+  
+  // Calculate total weight loss
+  const totalWeightLoss = formData.startingWeight && formData.currentWeight
+    ? Math.abs(formData.startingWeight - formData.currentWeight)
+    : null;
+  
+  // Calculate target loss (difference between starting weight and target weight)
+  const targetLoss = formData.startingWeight && currentPeriod?.targetWeight
+    ? Math.abs(formData.startingWeight - (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight))
+    : null;
+  
+  const progressPercentage = calculateProgressPercentage();
+  
   // Format date for display
-  const formatDate = (dateString?: string): string => {
+  const formatDisplayDate = (dateString?: string): string => {
     if (!dateString) return 'Present';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+    return formatDate(new Date(dateString), "MM/dd/yyyy");
   };
   
   // Handle fitness level changes
@@ -64,47 +103,134 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   };
   
   return (
-    <div className="space-y-4">
-      {currentPeriod && (
-        <div className="mb-6 bg-muted/50 rounded-lg p-4 border">
-          <h3 className="font-medium flex items-center gap-2 mb-2">
-            <CalendarDays className="h-4 w-4" />
-            Current Active Period
-          </h3>
-          <div className="text-sm text-muted-foreground mb-2">
-            {formatDate(currentPeriod.startDate)} - {formatDate(currentPeriod.endDate)}
+    <div className="space-y-6">
+      <div className="mb-6 bg-muted/30 rounded-lg p-4 border">
+        <h3 className="font-medium flex items-center gap-2 mb-4">
+          <LineChart className="h-4 w-4" />
+          Statistics
+        </h3>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {/* First row: Dates */}
+          {currentPeriod && (
+            <>
+              <div>
+                <div className="text-xl font-semibold">
+                  {formatDisplayDate(currentPeriod.startDate)}
+                </div>
+                <div className="text-xs text-muted-foreground">Session Start Date</div>
+              </div>
+              <div>
+                <div className="text-xl font-semibold">
+                  {formatDisplayDate(currentPeriod.endDate)}
+                </div>
+                <div className="text-xs text-muted-foreground">Session End Date</div>
+              </div>
+            </>
+          )}
+          
+          {/* Second row: Starting and Target Weight */}
+          <div>
+            <div className="text-xl font-semibold">
+              {formatWeight(formData.startingWeight)}
+              {formData.startingWeight ? <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span> : ''}
+            </div>
+            <div className="text-xs text-muted-foreground">Starting Weight</div>
           </div>
-          <div className="grid grid-cols-2 gap-4 mt-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Current Target Weight</Label>
-              <div className="font-medium">
-                {isImperial 
-                  ? (currentPeriod.targetWeight * 2.20462).toFixed(1) 
-                  : currentPeriod.targetWeight.toFixed(1)
-                } {isImperial ? 'lbs' : 'kg'}
-              </div>
+          <div>
+            <div className="text-xl font-semibold">
+              {currentPeriod?.targetWeight ? (
+                <>
+                  {isImperial 
+                    ? (currentPeriod.targetWeight * 2.20462).toFixed(1) 
+                    : currentPeriod.targetWeight.toFixed(1)}
+                  <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                </>
+              ) : ''}
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Average Weight Loss Per Week</Label>
-              <div className="font-medium">
-                {currentAvgWeightLoss !== undefined ? (
-                  <span>
-                    {isImperial 
-                      ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(1) 
-                      : Math.abs(currentAvgWeightLoss).toFixed(1)
-                    } {isImperial ? 'lbs' : 'kg'}/week
-                    <Badge variant={currentAvgWeightLoss < 0 ? "secondary" : "destructive"} className="ml-2 text-xs">
-                      {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
-                    </Badge>
-                  </span>
-                ) : (
-                  'Not enough data'
-                )}
-              </div>
+            <div className="text-xs text-muted-foreground">Target Weight</div>
+          </div>
+          
+          {/* Third row: Target Loss and Lost Thus Far */}
+          <div>
+            <div className="text-xl font-semibold">
+              {targetLoss ? (
+                <>
+                  {targetLoss.toFixed(1)}<span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                </>
+              ) : ''}
             </div>
+            <div className="text-xs text-muted-foreground">Target Loss</div>
+          </div>
+          <div>
+            <div className="text-xl font-semibold">
+              {totalWeightLoss ? (
+                <>
+                  {totalWeightLoss.toFixed(1)}<span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                </>
+              ) : ''}
+            </div>
+            <div className="text-xs text-muted-foreground">Lost Thus Far</div>
+          </div>
+          
+          {/* Fourth row: Target Loss/Week and Actual Loss/Week */}
+          <div>
+            <div className="text-xl font-semibold">
+              {currentPeriod?.weightLossPerWeek ? (
+                <>
+                  {isImperial 
+                    ? (currentPeriod.weightLossPerWeek * 2.20462).toFixed(2) 
+                    : currentPeriod.weightLossPerWeek.toFixed(2)}
+                  <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
+                </>
+              ) : ''}
+            </div>
+            <div className="text-xs text-muted-foreground">Target Loss/Week</div>
+          </div>
+          <div>
+            <div className="text-xl font-semibold">
+              {currentAvgWeightLoss !== undefined ? (
+                <>
+                  {isImperial 
+                    ? Math.abs(currentAvgWeightLoss * 2.20462).toFixed(2) 
+                    : Math.abs(currentAvgWeightLoss).toFixed(2)}
+                  <span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}/week</span>
+                  <Badge variant={currentAvgWeightLoss < 0 ? "secondary" : "destructive"} className="ml-2 text-xs">
+                    {currentAvgWeightLoss < 0 ? 'Loss' : 'Gain'}
+                  </Badge>
+                </>
+              ) : (
+                'Not enough data'
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">Actual Loss/Week</div>
+          </div>
+          
+          {/* Fifth row: Progress percentage */}
+          <div>
+            <div className="text-xl font-semibold">
+              {currentPeriod && progressPercentage !== null ? (
+                <>
+                  {progressPercentage.toFixed(2)}<span className="text-sm ml-1">%</span>
+                </>
+              ) : ''}
+            </div>
+            <div className="text-xs text-muted-foreground">Weight Loss Progress</div>
+          </div>
+          
+          {/* Current Weight (read-only) */}
+          <div>
+            <div className="text-xl font-semibold">
+              {formData.currentWeight ? (
+                <>
+                  {formData.currentWeight.toFixed(1)}<span className="text-sm ml-1">{isImperial ? 'lbs' : 'kg'}</span>
+                </>
+              ) : ''}
+            </div>
+            <div className="text-xs text-muted-foreground">Current Weight</div>
           </div>
         </div>
-      )}
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <WeightInputField
@@ -116,30 +242,7 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
           type="number"
           step="0.01"
         />
-        
-        <WeightInputField
-          id="currentWeight"
-          label="Current Weight"
-          value={formatWeight(formData.currentWeight)}
-          onChange={(value) => handleNumberChange('currentWeight', value)}
-          weightUnit={isImperial ? 'lbs' : 'kg'}
-        />
       </div>
-      
-      {formData.startingWeight ? (
-        <div className="space-y-2">
-          <Label htmlFor="startingWeight" className="text-left block">Starting Weight ({unit === 'metric' ? 'kg' : 'lbs'})</Label>
-          <Input
-            id="startingWeight"
-            name="startingWeight"
-            type="text"
-            value={formatWeight(formData.startingWeight)}
-            disabled
-            className="bg-gray-100"
-            placeholder="Starting Weight"
-          />
-        </div>
-      ) : null}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
