@@ -42,11 +42,15 @@ const WeightChart: React.FC<WeightChartProps> = ({
     periodEndDate
   } = useChartDomains(displayData, targetLine, activeView);
   
-  console.log('WeightChart calculated dates:', {
+  console.log('WeightChart rendering with:', {
+    displayDataCount: displayData.length,
+    minWeight,
+    maxWeight,
     domainStart,
     domainEnd,
-    minWeight,
-    maxWeight
+    actualDataCount: actualData.length,
+    forecastDataCount: forecastData.length,
+    targetLineCount: targetLine.length
   });
 
   return (

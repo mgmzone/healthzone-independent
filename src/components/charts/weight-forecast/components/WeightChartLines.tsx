@@ -15,6 +15,13 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
   targetLine,
   activeView
 }) => {
+  console.log('WeightChartLines rendering:', {
+    actualDataCount: actualData.length,
+    forecastDataCount: forecastData.length,
+    targetLineCount: targetLine.length,
+    activeView
+  });
+
   return (
     <>
       {/* Target Weight Line (Dashed Orange) - Shows the ideal weight loss path */}

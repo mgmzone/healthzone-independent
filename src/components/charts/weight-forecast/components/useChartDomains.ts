@@ -1,6 +1,5 @@
 
 import { useMemo } from 'react';
-import { format } from 'date-fns';
 
 export const useChartDomains = (
   displayData: any[],
@@ -8,6 +7,12 @@ export const useChartDomains = (
   activeView: 'actual' | 'forecast'
 ) => {
   return useMemo(() => {
+    console.log('useChartDomains input:', {
+      displayDataCount: displayData.length,
+      targetLineCount: targetLine.length,
+      activeView
+    });
+    
     // Find the earliest and latest dates for domain
     const today = new Date();
     
@@ -97,7 +102,9 @@ export const useChartDomains = (
       earliestDate,
       latestDate,
       domainStart,
-      domainEnd
+      domainEnd,
+      actualDataCount: actualData.length,
+      forecastDataCount: forecastData.length
     });
 
     return {
