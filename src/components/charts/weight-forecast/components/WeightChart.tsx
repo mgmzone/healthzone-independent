@@ -38,30 +38,23 @@ const WeightChart: React.FC<WeightChartProps> = ({
   const lastActualPoint = actualData.length > 0 ? actualData[actualData.length - 1] : null;
   const lastActualDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
   
-  // Filter forecast data to only include points after the last actual data point
-  // This ensures no overlap between actual and forecast points except at the connection point
-  const forecastData = displayData.filter(d => 
-    (!d.isActual && (d.isForecast || new Date(d.date) >= lastActualDate))
-  );
+  // Create forecast data - ensure it includes the last actual point as its first point
+  let forecastData = displayData.filter(d => !d.isActual && d.isForecast);
   
-  // If we have a last actual point and we're in forecast view, ensure it's in the forecast data
-  // This creates a perfect connection between actual and forecast lines
-  if (lastActualPoint && forecastData.length > 0 && activeView === 'forecast') {
-    // Find if the last actual point date is already in the forecast data
-    const hasLastActualPointDate = forecastData.some(
-      d => new Date(d.date).getTime() === lastActualDate.getTime()
+  // Ensure the forecast data starts with the last actual point
+  if (lastActualPoint && activeView === 'forecast') {
+    // Remove any existing duplicate of the last actual point in forecast data
+    forecastData = forecastData.filter(
+      d => new Date(d.date).getTime() !== lastActualDate.getTime()
     );
     
-    // If not, add a forecast point that matches the last actual data point exactly
-    if (!hasLastActualPointDate) {
-      // Insert at beginning of forecast data
-      forecastData.unshift({
-        date: lastActualPoint.date,
-        weight: lastActualPoint.weight,
-        isActual: false,
-        isForecast: true
-      });
-    }
+    // Insert the last actual point at the beginning of forecast data
+    forecastData.unshift({
+      date: lastActualPoint.date,
+      weight: lastActualPoint.weight,
+      isActual: false,
+      isForecast: true
+    });
   }
   
   // Sort the forecast data by date to ensure proper rendering
@@ -129,7 +122,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
         />
         
         {/* Forecast Weight Area (Orange) - Only visible in forecast view */}
-        {activeView === 'forecast' && (
+        {activeView === 'forecast' && forecastData.length > 0 && (
           <Area
             type="monotone"
             dataKey="weight"
