@@ -45,18 +45,22 @@ export const useWeightForecastData = (
     // Make sure we're using the target weight in the right units (lbs or kg)
     let displayTargetWeight = undefined;
     
-    if (currentPeriod.targetWeight) {
+    if (targetWeight !== undefined) {
+      // Use provided target weight that should already be in the right units
+      displayTargetWeight = targetWeight;
+    } else if (currentPeriod.targetWeight) {
       // If imperial, convert from kg to lbs, otherwise use as is
       displayTargetWeight = isImperial ? 
         currentPeriod.targetWeight * 2.20462 : 
         currentPeriod.targetWeight;
-        
-      console.log('Target weight conversion:', {
-        originalTarget: currentPeriod.targetWeight,
-        displayTargetWeight,
-        isImperial
-      });
     }
+    
+    console.log('Target weight conversion:', {
+      periodTargetWeight: currentPeriod.targetWeight,
+      targetWeight,
+      displayTargetWeight,
+      isImperial
+    });
     
     // Generate the target line based on the period's settings
     const targetLine = generateTargetLine(

@@ -57,38 +57,44 @@ export const generateForecastData = (
     isForecast: true  // Mark as forecast
   }];
 
-  // If we already reached the end date, no need to forecast further
-  if (new Date() >= periodEndDate) return forecastData;
-
-  // Generate forecast points from the day after last actual weigh-in
-  // We'll forecast either until we reach the target weight or until the end of the period
-  const lastDate = lastActualPoint.date;
-  
-  // Calculate maximum days to forecast - either 1 year or until period end, whichever is sooner
-  const daysToPeriodEnd = differenceInDays(periodEndDate, lastDate);
-  const maxDaysToForecast = Math.min(daysToPeriodEnd, 365); 
-  
-  console.log('Forecast range:', { lastDate, periodEndDate, daysToPeriodEnd, maxDaysToForecast });
-  
-  let previousWeight = lastActualPoint.weight;
-  
   // Check if the current trend aligns with the target weight goal
   const isWeightLoss = avgDailyChange < 0;
   
   if (convertedTargetWeight !== null) {
     // Check if trend aligns with goal
-    const isTargetLower = convertedTargetWeight < lastActualPoint.weight;
-    // If losing weight but target is higher, or gaining weight but target is lower, trend doesn't align
-    if ((isWeightLoss && !isTargetLower) || (!isWeightLoss && isTargetLower)) {
+    const isCompatible = isGoalDirectionCompatible(isWeightLoss, convertedTargetWeight, lastActualPoint.weight);
+    if (!isCompatible) {
       console.log('Trend does not align with goal direction');
       // Return only the last actual point for the forecast
       return forecastData;
     }
   }
 
+  // Calculate how many days it should take to reach target weight based on current progress
+  let daysToTarget = null;
+  if (convertedTargetWeight !== null) {
+    const weightToLose = Math.abs(lastActualPoint.weight - convertedTargetWeight);
+    daysToTarget = Math.abs(Math.ceil(weightToLose / Math.abs(avgDailyChange)));
+    console.log(`Estimated days to target: ${daysToTarget} with daily change of ${avgDailyChange}`);
+  }
+
+  // Limit the forecast to a reasonable timeframe
+  // Either until target weight is reached or up to 365 days, whichever comes first
+  const maxDaysToForecast = daysToTarget !== null ? 
+    Math.min(daysToTarget, 365) : 
+    365;
+  
+  console.log('Forecast range:', { 
+    lastActualDate: lastActualPoint.date, 
+    maxDaysToForecast, 
+    daysToTarget 
+  });
+  
+  let previousWeight = lastActualPoint.weight;
+
   // Start forecast FROM the day after the last actual weigh-in
   for (let i = 1; i <= maxDaysToForecast; i++) {
-    const forecastDate = addDays(lastDate, i);
+    const forecastDate = addDays(lastActualPoint.date, i);
     const forecastWeight = previousWeight + avgDailyChange;
     
     // If target weight is provided, check if we've reached it

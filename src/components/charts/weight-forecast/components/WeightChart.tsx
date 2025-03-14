@@ -8,6 +8,7 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
+  ReferenceLine
 } from 'recharts';
 import { format } from 'date-fns';
 import CustomTooltip from '../CustomTooltip';
@@ -66,16 +67,32 @@ const WeightChart: React.FC<WeightChartProps> = ({
   // Find target date (the last date in the forecast)
   const targetDate = forecastData.length > 0 ? new Date(forecastData[forecastData.length - 1].date) : null;
   
-  // Find the end date of the period (if any)
-  const periodEndDate = displayData.length > 0 ? 
-    new Date(displayData[displayData.length - 1].date) : null;
-    
+  // Find the last meaningful date in both datasets for x-axis range
+  let lastTargetLineDate = targetLine.length > 0 ? 
+    new Date(targetLine[targetLine.length - 1].date) : null;
+  
+  let lastForecastDate = forecastData.length > 0 ? 
+    new Date(forecastData[forecastData.length - 1].date) : null;
+  
+  // Determine the latest date between the two trend lines for x-axis domain
+  let latestEndDate = null;
+  if (lastTargetLineDate && lastForecastDate) {
+    latestEndDate = lastTargetLineDate > lastForecastDate ? lastTargetLineDate : lastForecastDate;
+  } else if (lastTargetLineDate) {
+    latestEndDate = lastTargetLineDate;
+  } else if (lastForecastDate) {
+    latestEndDate = lastForecastDate;
+  }
+  
   console.log('WeightChart render:', {
     minWeight,
     maxWeight,
     actualDataCount: actualData.length,
     forecastDataCount: forecastData.length,
     targetLineCount: targetLine.length,
+    lastTargetLineDate,
+    lastForecastDate,
+    latestEndDate,
     isImperial
   });
 
@@ -97,6 +114,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
+          domain={['dataMin', latestEndDate ? new Date(latestEndDate).getTime() : 'dataMax']}
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
@@ -172,7 +190,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           chartData={displayData}
           today={today}
           targetDate={targetDate}
-          periodEndDate={periodEndDate}
+          periodEndDate={latestEndDate || null}
         />
       </LineChart>
     </ResponsiveContainer>

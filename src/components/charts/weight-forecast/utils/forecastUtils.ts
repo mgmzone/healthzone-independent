@@ -84,6 +84,7 @@ export const getWeightRangeFromData = (weights: number[], targetWeight?: number)
   // If target weight is provided, ensure it's included in the range
   if (targetWeight !== undefined) {
     minWeight = Math.min(minWeight, targetWeight);
+    maxWeight = Math.max(maxWeight, targetWeight);
   }
   
   console.log('Raw weight range:', { minWeight, maxWeight, targetWeight });
