@@ -1,3 +1,4 @@
+
 import { differenceInDays, differenceInWeeks, differenceInMonths, format } from "date-fns";
 
 export const formatDate = (date: Date, formatStr: string): string => {
@@ -14,32 +15,42 @@ export const getMonthsInPeriod = (startDate: Date, endDate: Date | undefined): n
   return Math.ceil(differenceInMonths(endDate, startDate));
 };
 
-export const getTimeProgressPercentage = (startDate: Date, endDate: Date | undefined): number => {
-  if (!endDate) return 0;
+export const getTimeProgressPercentage = (startDate: Date | string, endDate: Date | string | undefined): number => {
+  const start = startDate instanceof Date ? startDate : new Date(startDate);
+  const end = endDate ? (endDate instanceof Date ? endDate : new Date(endDate)) : undefined;
+  
+  if (!end) return 0;
   
   const today = new Date();
-  if (today < startDate) return 0;
-  if (today > endDate) return 100;
+  if (today < start) return 0;
+  if (today > end) return 100;
   
-  const totalDays = differenceInDays(endDate, startDate);
-  const daysPassed = differenceInDays(today, startDate);
+  const totalDays = differenceInDays(end, start);
+  const daysPassed = differenceInDays(today, start);
   
   // Ensure we don't return negative values or values over 100
   return Math.min(Math.max(Math.round((daysPassed / totalDays) * 100), 0), 100);
 };
 
-export const getRemainingTimePercentage = (startDate: Date, endDate: Date | undefined): number => {
+export const getRemainingTimePercentage = (startDate: Date | string, endDate: Date | string | undefined): number => {
   if (!endDate) return 100;
   
   const timeProgress = getTimeProgressPercentage(startDate, endDate);
   return 100 - timeProgress;
 };
 
-export const getDaysRemaining = (endDate: Date | undefined): number => {
+export const getDaysRemaining = (endDate: Date | string | undefined): number => {
   if (!endDate) return 0;
   
+  const end = endDate instanceof Date ? endDate : new Date(endDate);
   const today = new Date();
-  if (today > endDate) return 0;
+  if (today > end) return 0;
   
-  return differenceInDays(endDate, today);
+  return differenceInDays(end, today);
+};
+
+// Helper to ensure we always have a Date object
+export const ensureDate = (dateValue: Date | string | undefined | null): Date | undefined => {
+  if (!dateValue) return undefined;
+  return dateValue instanceof Date ? dateValue : new Date(dateValue);
 };

@@ -86,6 +86,9 @@ export function usePeriodsData() {
 
   const updatePeriod = useMutation({
     mutationFn: async (period: Period) => {
+      const startDate = period.startDate instanceof Date ? period.startDate : new Date(period.startDate);
+      const endDate = period.endDate ? (period.endDate instanceof Date ? period.endDate : new Date(period.endDate)) : null;
+      
       const { data, error } = await supabase
         .from('periods')
         .update({
@@ -93,8 +96,8 @@ export function usePeriodsData() {
           target_weight: period.targetWeight,
           weight_loss_per_week: period.weightLossPerWeek,
           type: period.type,
-          start_date: period.startDate.toISOString(),
-          end_date: period.endDate ? period.endDate.toISOString() : null,
+          start_date: startDate.toISOString(),
+          end_date: endDate ? endDate.toISOString() : null,
           fasting_schedule: period.fastingSchedule
         })
         .eq('id', period.id)
@@ -147,8 +150,8 @@ export function usePeriodsData() {
   const getCurrentPeriod = () => {
     const today = new Date();
     return periods.find(period => {
-      const startDate = new Date(period.startDate);
-      const endDate = period.endDate ? new Date(period.endDate) : null;
+      const startDate = period.startDate instanceof Date ? period.startDate : new Date(period.startDate);
+      const endDate = period.endDate ? (period.endDate instanceof Date ? period.endDate : new Date(period.endDate)) : null;
       
       return startDate <= today && (!endDate || endDate >= today);
     });

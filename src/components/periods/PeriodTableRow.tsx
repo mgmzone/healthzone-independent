@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,8 +37,8 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
     ? format(new Date(period.projectedEndDate), "MMM d, yyyy")
     : "N/A";
   
-  const weeks = getWeeksInPeriod(period.startDate, period.endDate);
-  const months = getMonthsInPeriod(period.startDate, period.endDate);
+  const weeks = getWeeksInPeriod(new Date(period.startDate), period.endDate ? new Date(period.endDate) : undefined);
+  const months = getMonthsInPeriod(new Date(period.startDate), period.endDate ? new Date(period.endDate) : undefined);
   
   const isImperial = weightUnit === 'lbs';
   const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
