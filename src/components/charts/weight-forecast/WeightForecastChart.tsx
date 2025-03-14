@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart,
@@ -91,7 +92,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           cx={cx} 
           cy={cy} 
           r={4}
-          fill="#8884d8"
+          fill="#33C3F0"
           stroke="#fff"
           strokeWidth={2}
         />
@@ -119,10 +120,12 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
           textAnchor="end"
           height={80}
           interval="preserveStartEnd"
+          tick={{ fontSize: 10 }}
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
           tickFormatter={(value) => typeof value === 'number' ? value.toFixed(1) : value.toString()}
+          tick={{ fontSize: 10 }}
         />
         <Tooltip 
           content={<CustomTooltip isImperial={isImperial} />}
@@ -130,8 +133,8 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         <Area
           type="monotone"
           dataKey="weight"
-          stroke="#8884d8"
-          fill="#8884d8"
+          stroke="#33C3F0"
+          fill="#D3E4FD"
           name="Weight"
           dot={renderDot}
         />
@@ -144,7 +147,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
             value: 'Today', 
             position: 'insideTopRight',
             fill: '#2563eb',
-            fontSize: 12
+            fontSize: 10
           }}
         />
         
@@ -158,7 +161,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
               value: 'Target Date', 
               position: 'insideTopRight',
               fill: '#16a34a',
-              fontSize: 12
+              fontSize: 10
             }}
           />
         )}
@@ -172,7 +175,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
               value: 'Period End', 
               position: 'insideTopRight',
               fill: '#dc2626',
-              fontSize: 12
+              fontSize: 10
             }}
           />
         )}
