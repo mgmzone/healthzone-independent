@@ -31,32 +31,42 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
-  // Use currentPeriod's startWeight as the starting weight (stored in metric/kg)
-  const startingWeight = currentPeriod?.startWeight || formData.startingWeight;
+  // All weights in database are stored in kg
+  // For display we convert them to the user's preferred unit
   
-  // Calculate derived values
+  // Use currentPeriod's startWeight as the starting weight (stored in metric/kg)
+  const startingWeightKg = currentPeriod?.startWeight || formData.startingWeight;
+  const currentWeightKg = formData.currentWeight;
+  const targetWeightKg = currentPeriod?.targetWeight;
+  
+  // Calculate derived values (all calculations done with metric values)
   const progressPercentage = calculateProgressPercentage(
-    startingWeight,
-    formData.currentWeight,
-    currentPeriod?.targetWeight,
-    isImperial
+    startingWeightKg,
+    currentWeightKg,
+    targetWeightKg,
+    false // Always operate on metric values
   );
   
   const totalWeightLoss = calculateTotalWeightLoss(
-    startingWeight,
-    formData.currentWeight
+    startingWeightKg,
+    currentWeightKg
   );
   
   const targetLoss = calculateTargetLoss(
-    startingWeight,
-    currentPeriod?.targetWeight,
-    isImperial
+    startingWeightKg,
+    targetWeightKg,
+    false // Always operate on metric values
   );
   
-  // Convert all weights to display units (imperial or metric) for consistent display
-  const displayStartWeight = startingWeight ? convertWeight(startingWeight, isImperial) : undefined;
-  const displayCurrentWeight = formData.currentWeight ? convertWeight(formData.currentWeight, isImperial) : undefined;
-  const displayTargetWeight = currentPeriod?.targetWeight ? convertWeight(currentPeriod.targetWeight, isImperial) : undefined;
+  // Convert all weights to display units for rendering
+  const displayStartWeight = startingWeightKg !== undefined ? convertWeight(startingWeightKg, isImperial) : undefined;
+  const displayCurrentWeight = currentWeightKg !== undefined ? convertWeight(currentWeightKg, isImperial) : undefined;
+  const displayTargetWeight = targetWeightKg !== undefined ? convertWeight(targetWeightKg, isImperial) : undefined;
+  
+  // For the weekly loss rate, we need to convert it to display units
+  const displayWeightLossPerWeek = currentPeriod?.weightLossPerWeek !== undefined 
+    ? convertWeight(currentPeriod.weightLossPerWeek, isImperial) 
+    : undefined;
   
   return (
     <div className="mb-6 bg-muted/30 rounded-lg p-4 border">
@@ -64,7 +74,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
         {/* Dates Section */}
         <DateSection currentPeriod={currentPeriod} />
         
-        {/* Weights Section - pass display weights that are already converted */}
+        {/* Weights Section - pass metric weights and let the component handle display */}
         <WeightSection
           startingWeight={displayStartWeight}
           currentWeight={displayCurrentWeight}
@@ -76,7 +86,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
         
         {/* Progress Section */}
         <ProgressSection
-          weightLossPerWeek={currentPeriod?.weightLossPerWeek}
+          weightLossPerWeek={displayWeightLossPerWeek}
           currentAvgWeightLoss={currentAvgWeightLoss}
           progressPercentage={progressPercentage}
           currentWeight={displayCurrentWeight}

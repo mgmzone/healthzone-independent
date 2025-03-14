@@ -18,14 +18,14 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
   currentWeight,
   isImperial
 }) => {
-  // No double conversion needed - these values are already in kg
-  // Just format them with the appropriate unit using formatWeightWithUnit
-  const formattedTargetLoss = weightLossPerWeek 
-    ? formatWeightWithUnit(weightLossPerWeek, isImperial)
+  // Format the target loss per week
+  const formattedTargetLoss = weightLossPerWeek !== undefined
+    ? `${weightLossPerWeek.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
     : '';
     
+  // Format the actual loss per week
   const formattedActualLoss = currentAvgWeightLoss !== undefined
-    ? formatWeightWithUnit(Math.abs(currentAvgWeightLoss), isImperial)
+    ? `${Math.abs(currentAvgWeightLoss).toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
     : 'Not enough data';
     
   return (
@@ -33,14 +33,12 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
       <StatisticInput
         id="targetLossPerWeek"
         label="Target Loss/Week"
-        value={weightLossPerWeek ? 
-          `${formattedTargetLoss}/week` : ''}
+        value={weightLossPerWeek ? formattedTargetLoss : ''}
       />
       <StatisticInput
         id="actualLossPerWeek"
         label="Actual Loss/Week"
-        value={currentAvgWeightLoss !== undefined ? 
-          `${formattedActualLoss}/week` : 'Not enough data'}
+        value={currentAvgWeightLoss !== undefined ? formattedActualLoss : 'Not enough data'}
         badge={currentAvgWeightLoss !== undefined ? {
           text: currentAvgWeightLoss < 0 ? 'Loss' : 'Gain',
           variant: currentAvgWeightLoss < 0 ? "secondary" : "destructive"

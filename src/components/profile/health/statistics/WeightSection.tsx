@@ -20,33 +20,20 @@ const WeightSection: React.FC<WeightSectionProps> = ({
   targetLoss,
   isImperial
 }) => {
-  // Debug inputs for debugging
-  console.log('Weight Section Debug:', {
-    startingWeight,
-    currentWeight,
-    targetWeight,
-    totalWeightLoss,
-    targetLoss,
-    isImperial
-  });
-
-  // Format weight loss display - no conversion needed as displayValues are already converted by parent
+  // Format weight display
   let weightLossDisplay;
   
-  if (!startingWeight || !currentWeight) {
+  if (totalWeightLoss === null || !startingWeight || !currentWeight) {
     weightLossDisplay = '0.0 ' + (isImperial ? 'lbs' : 'kg');
   } else {
-    // Calculate weight difference (startingWeight and currentWeight are already in display units)
-    const weightChange = startingWeight - currentWeight;
-    
-    if (weightChange === 0) {
+    if (totalWeightLoss === 0) {
       weightLossDisplay = '0.0 ' + (isImperial ? 'lbs' : 'kg');
-    } else if (weightChange > 0) {
+    } else if (totalWeightLoss > 0) {
       // Weight LOSS (positive number = weight went down)
-      weightLossDisplay = formatWeightWithUnit(Math.abs(weightChange), isImperial);
+      weightLossDisplay = formatWeightWithUnit(totalWeightLoss, isImperial);
     } else {
       // Weight GAIN (negative number = weight went up)
-      weightLossDisplay = '+' + formatWeightWithUnit(Math.abs(weightChange), isImperial);
+      weightLossDisplay = '+' + formatWeightWithUnit(Math.abs(totalWeightLoss), isImperial);
     }
   }
   
