@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart,
@@ -11,6 +12,7 @@ import {
 } from 'recharts';
 import { WeeklyWeightData, calculateChartData, calculateWeightRange, formatDateForDisplay } from './weightForecastUtils';
 import { Period, WeighIn } from '@/lib/types';
+import CustomTooltip from './CustomTooltip';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -53,11 +55,10 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     if (!currentPeriod) return { minWeight: 0, maxWeight: 100 };
     
     const allWeights = chartData.map(item => item.weight);
-    const { minWeight, maxWeight } = calculateWeightRange(
-      currentPeriod.targetWeight,
-      currentPeriod.startWeight,
-      allWeights
-    );
+    // Fix here: Pass only the chartData array and targetWeight as optional second parameter
+    const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
+    const { minWeight, maxWeight } = calculateWeightRange(chartData, targetWeight);
+    
     return { minWeight, maxWeight };
   };
   
@@ -130,11 +131,11 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
-          tickFormatter={(weight) => weight.toFixed(1)}
+          // Fix here: Ensure value is a number before calling toFixed
+          tickFormatter={(value) => typeof value === 'number' ? value.toFixed(1) : value.toString()}
         />
         <Tooltip 
-          labelFormatter={(date) => formatDateForDisplay(date as Date)}
-          formatter={(value) => (Array.isArray(value) ? value[0].toFixed(1) : value.toFixed(1))}
+          content={<CustomTooltip isImperial={isImperial} />}
         />
         <Area
           type="monotone"
