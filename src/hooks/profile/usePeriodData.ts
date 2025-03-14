@@ -9,6 +9,7 @@ interface CurrentPeriod {
   endDate?: string;
   targetWeight: number;
   weightLossPerWeek: number;
+  startWeight: number; // Added startWeight field
 }
 
 export const usePeriodData = () => {
@@ -32,12 +33,24 @@ export const usePeriodData = () => {
         }
 
         if (periodData && periodData.length > 0) {
+          // Get the start_weight from the periods table
+          const { data: periodDetails, error: detailsError } = await supabase
+            .from('periods')
+            .select('start_weight')
+            .eq('id', periodData[0].id)
+            .single();
+
+          if (detailsError) {
+            console.error('Error fetching period details:', detailsError);
+          }
+
           setCurrentPeriod({
             id: periodData[0].id,
             startDate: periodData[0].start_date,
             endDate: periodData[0].end_date,
             targetWeight: periodData[0].target_weight,
-            weightLossPerWeek: periodData[0].weight_loss_per_week
+            weightLossPerWeek: periodData[0].weight_loss_per_week,
+            startWeight: periodDetails?.start_weight || 0 // Use the start_weight from period details
           });
 
           // Get average weight loss

@@ -17,6 +17,7 @@ interface HealthStatisticsProps {
     endDate?: string;
     targetWeight: number;
     weightLossPerWeek: number;
+    startWeight: number;
   };
   currentAvgWeightLoss?: number;
 }
@@ -29,21 +30,24 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
+  // Use currentPeriod's startWeight as the starting weight
+  const startingWeight = currentPeriod?.startWeight || formData.startingWeight;
+  
   // Calculate derived values
   const progressPercentage = calculateProgressPercentage(
-    formData.startingWeight,
+    startingWeight,
     formData.currentWeight,
     currentPeriod?.targetWeight,
     isImperial
   );
   
   const totalWeightLoss = calculateTotalWeightLoss(
-    formData.startingWeight,
+    startingWeight,
     formData.currentWeight
   );
   
   const targetLoss = calculateTargetLoss(
-    formData.startingWeight,
+    startingWeight,
     currentPeriod?.targetWeight,
     isImperial
   );
@@ -56,7 +60,7 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
         
         {/* Weights Section */}
         <WeightSection
-          startingWeight={formData.startingWeight}
+          startingWeight={startingWeight}
           currentWeight={formData.currentWeight}
           targetWeight={currentPeriod?.targetWeight}
           totalWeightLoss={totalWeightLoss}
