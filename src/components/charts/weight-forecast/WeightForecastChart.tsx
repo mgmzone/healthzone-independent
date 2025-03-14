@@ -56,9 +56,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   const calculateChartRange = () => {
     if (!currentPeriod) return { minWeight: 0, maxWeight: 100 };
     
-    const allWeights = chartData.map(item => item.weight);
-    const targetWeight = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
-    const { minWeight, maxWeight } = calculateWeightRange(chartData, targetWeight);
+    const { minWeight, maxWeight } = calculateWeightRange(chartData);
     
     return { minWeight, maxWeight };
   };
@@ -82,7 +80,9 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   }
 
   const today = new Date();
-  const formattedToday = formatDateForDisplay(today);
+  const formatDateForAxis = (date: Date): string => {
+    return format(date, 'MM/dd/yyyy');
+  };
   
   const renderDot = (props: any) => {
     const { cx, cy, payload } = props;
@@ -115,7 +115,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
           dataKey="date"
-          tickFormatter={(date) => formatDateForDisplay(date)}
+          tickFormatter={(date) => formatDateForAxis(date)}
           angle={-45}
           textAnchor="end"
           height={80}
@@ -140,7 +140,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         />
         
         <ReferenceLine
-          x={formattedToday}
+          x={formatDateForAxis(today)}
           stroke="#2563eb"
           strokeWidth={2}
           label={{ 
@@ -153,7 +153,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         
         {targetDate && (
           <ReferenceLine
-            x={formatDateForDisplay(targetDate)}
+            x={formatDateForAxis(targetDate)}
             stroke="#16a34a"
             strokeWidth={2}
             strokeDasharray="3 3"
@@ -168,7 +168,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
         
         {currentPeriod.endDate && (
           <ReferenceLine
-            x={formatDateForDisplay(new Date(currentPeriod.endDate))}
+            x={formatDateForAxis(new Date(currentPeriod.endDate))}
             stroke="#dc2626"
             strokeWidth={2}
             label={{ 
