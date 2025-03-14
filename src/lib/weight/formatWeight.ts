@@ -16,6 +16,8 @@ export const formatWeightValue = (value: number): string => {
  * Formats a weight with appropriate unit label
  */
 export const formatWeightWithUnit = (value: number, isImperial: boolean): string => {
+  if (value === undefined || value === null) return '0.0 ' + (isImperial ? 'lbs' : 'kg');
+  
   // Convert the value if needed (all values coming in are in kg)
   const displayValue = isImperial ? convertWeight(value, true) : value;
   const unit = isImperial ? 'lbs' : 'kg';

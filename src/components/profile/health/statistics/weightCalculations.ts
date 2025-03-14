@@ -35,7 +35,7 @@ export const calculateTotalWeightLoss = (
   // If either value is missing, we can't calculate
   if (!startingWeight || !currentWeight) return null;
   
-  // Simply return the raw difference
+  // Return the raw difference - positive means loss, negative means gain
   return startingWeight - currentWeight;
 };
 

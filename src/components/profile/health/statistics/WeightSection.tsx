@@ -34,7 +34,8 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       weightLossDisplay = formatWeightWithUnit(totalWeightLoss, isImperial);
     } else {
       // Weight GAIN (negative number = weight went up)
-      weightLossDisplay = '+' + formatWeightWithUnit(Math.abs(totalWeightLoss), isImperial);
+      const displayValue = Math.abs(isImperial ? convertWeight(totalWeightLoss, true) : totalWeightLoss);
+      weightLossDisplay = '+' + displayValue.toFixed(1) + ' ' + (isImperial ? 'lbs' : 'kg');
     }
   }
   

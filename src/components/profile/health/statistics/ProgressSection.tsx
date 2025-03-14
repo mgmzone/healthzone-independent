@@ -2,7 +2,6 @@
 import React from 'react';
 import StatisticInput from './StatisticInput';
 import { formatWeightWithUnit } from '@/lib/weight/formatWeight';
-import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface ProgressSectionProps {
   weightLossPerWeek?: number;
@@ -48,7 +47,7 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
       <StatisticInput
         id="weightLossProgress"
         label="Weight Loss Progress"
-        value={progressPercentage !== null ? `${progressPercentage.toFixed(1)}%` : ''}
+        value={progressPercentage !== null ? `${progressPercentage.toFixed(1)}%` : '0.0%'}
       />
       <StatisticInput
         id="currentWeight"
