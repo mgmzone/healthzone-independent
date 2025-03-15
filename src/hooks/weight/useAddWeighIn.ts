@@ -21,7 +21,11 @@ export function useAddWeighIn() {
         return null;
       }
       
-      // Step 2: Get weigh-ins for analysis
+      // Step 2: Extract required values from period data to avoid ambiguous references
+      const periodStartWeight = periodData.start_weight;
+      const periodTargetWeight = periodData.target_weight;
+      
+      // Step 3: Get weigh-ins for analysis
       const { data: weighIns, error: weighInsError } = await supabase
         .from('weigh_ins')
         .select('*')
@@ -32,10 +36,6 @@ export function useAddWeighIn() {
         console.error("Weigh-ins data error or insufficient data:", weighInsError);
         return null;
       }
-      
-      // Step 3: Extract required values from period data to avoid ambiguous references
-      const periodStartWeight = periodData.start_weight;
-      const periodTargetWeight = periodData.target_weight;
       
       // Step 4: Calculate date differences and weight loss rate
       const oldestWeighIn = weighIns[0];
