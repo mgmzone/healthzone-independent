@@ -42,22 +42,24 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       )}
       
       {/* Actual Weight Line (Blue) - Always visible with dots */}
-      <Line 
-        type="linear" 
-        dataKey="weight" 
-        data={actualData}
-        stroke="#0066CC" 
-        strokeWidth={2}
-        activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
-        dot={{ 
-          r: 4, 
-          fill: '#0066CC',
-          stroke: '#fff',
-          strokeWidth: 1
-        }}
-        isAnimationActive={false}
-        name="Actual Weight"
-      />
+      {actualData.length > 0 && (
+        <Line 
+          type="linear" 
+          dataKey="weight" 
+          data={actualData}
+          stroke="#0066CC" 
+          strokeWidth={2}
+          activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
+          dot={{ 
+            r: 4, 
+            fill: '#0066CC',
+            stroke: '#fff',
+            strokeWidth: 1
+          }}
+          isAnimationActive={false}
+          name="Actual Weight"
+        />
+      )}
       
       {/* Forecast Weight Line (Blue Dashed) - Only visible in forecast view */}
       {activeView === 'forecast' && forecastData.length > 0 && (

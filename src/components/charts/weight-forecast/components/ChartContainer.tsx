@@ -7,10 +7,14 @@ interface ChartContainerProps {
 }
 
 const ChartContainer: React.FC<ChartContainerProps> = ({ children }) => {
+  console.log('ChartContainer rendering with child type:', children.type.name || children.type);
+  
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      {children}
-    </ResponsiveContainer>
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
+        {children}
+      </ResponsiveContainer>
+    </div>
   );
 };
 
