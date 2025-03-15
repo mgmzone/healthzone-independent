@@ -1,13 +1,7 @@
 
 import { WeighIn, Period } from '@/lib/types';
 import { addDays, differenceInDays } from 'date-fns';
-
-/**
- * Converts weight units between metric and imperial
- */
-export const convertWeightUnits = (weight: number, isImperial: boolean): number => {
-  return isImperial ? weight * 2.20462 : weight;
-};
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 /**
  * Creates a data point for the chart

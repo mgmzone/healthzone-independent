@@ -1,6 +1,6 @@
 
 import { WeighIn, Period } from '@/lib/types';
-import { convertWeightUnits, createChartDataPoint } from './forecastUtils';
+import { createChartDataPoint } from './forecastUtils';
 
 /**
  * Processes weigh-in data to create chart data points
