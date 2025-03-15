@@ -50,14 +50,15 @@ const WeightChart: React.FC<WeightChartProps> = ({
     domainEnd,
     actualDataCount: actualData?.length || 0,
     forecastDataCount: forecastData?.length || 0,
-    targetLineCount: targetLine?.length || 0
+    targetLineCount: targetLine?.length || 0,
+    actualDataSample: actualData?.[0],
+    forecastDataSample: forecastData?.[0]
   });
 
-  // Important: Create a direct LineChart element to be passed to ChartContainer
+  // Create the chart
   return (
     <ChartContainer>
       <LineChart
-        data={displayData}
         margin={{
           top: 30,
           right: 30,
@@ -74,6 +75,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           tickLine={{ stroke: '#E0E0E0' }}
           domain={[domainStart, domainEnd]}
           type="number"
+          scale="time"
         />
         <YAxis 
           domain={[minWeight, maxWeight]}

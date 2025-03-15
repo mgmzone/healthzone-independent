@@ -13,14 +13,30 @@ export const useChartDomains = (
     console.log('useChartDomains input:', {
       displayDataCount: safeDisplayData.length,
       targetLineCount: safeTargetLine.length,
-      activeView
+      activeView,
+      dataSample: safeDisplayData[0]
     });
     
     // Find the earliest and latest dates for domain
     const today = new Date();
     
+    // Convert complex Date objects to timestamps for processing
+    const processData = (data: any[]) => {
+      return data.map(d => {
+        if (!d) return null;
+        return {
+          ...d,
+          date: d.date instanceof Date ? d.date.getTime() : 
+                typeof d.date === 'object' && d.date?._type === 'Date' ? d.date.value.value : 
+                new Date(d.date).getTime()
+        };
+      }).filter(Boolean);
+    };
+    
+    const processedDisplayData = processData(safeDisplayData);
+    
     // Separate actual and forecast data
-    const actualData = safeDisplayData.filter(d => d && d.isActual);
+    const actualData = processedDisplayData.filter(d => d && d.isActual);
     
     // Get the last actual data point
     const lastActualPoint = actualData.length > 0 ? actualData[actualData.length - 1] : null;
@@ -30,12 +46,11 @@ export const useChartDomains = (
     
     if (activeView === 'forecast' && lastActualPoint) {
       // Extract all forecast points (those marked with isForecast)
-      forecastData = safeDisplayData.filter(d => d && d.isForecast);
+      forecastData = processedDisplayData.filter(d => d && d.isForecast);
       
       // Ensure forecastData starts with the last actual point
       const lastActualExists = forecastData.some(
-        d => d && lastActualPoint && 
-        new Date(d.date).getTime() === new Date(lastActualPoint.date).getTime()
+        d => d && lastActualPoint && d.date === lastActualPoint.date
       );
       
       if (!lastActualExists && forecastData.length > 0 && lastActualPoint) {
@@ -47,15 +62,18 @@ export const useChartDomains = (
       }
       
       // Sort by date
-      forecastData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      forecastData.sort((a, b) => a.date - b.date);
     }
     
+    // Process target line data
+    const processedTargetLine = processData(safeTargetLine);
+    
     // Find earliest date from all data
-    let earliestDate = safeDisplayData.length > 0 ? new Date(safeDisplayData[0].date) : today;
+    let earliestDate = processedDisplayData.length > 0 ? new Date(processedDisplayData[0].date) : today;
     
     // Find target date (the last date in the forecast)
     const lastForecastPoint = forecastData.length > 0 ? forecastData[forecastData.length - 1] : null;
-    const lastTargetPoint = safeTargetLine.length > 0 ? safeTargetLine[safeTargetLine.length - 1] : null;
+    const lastTargetPoint = processedTargetLine.length > 0 ? processedTargetLine[processedTargetLine.length - 1] : null;
     
     // For x-axis domain, use the latest end date between forecast and target line
     let latestDate;
@@ -80,21 +98,19 @@ export const useChartDomains = (
     }
     
     // Ensure we have the earliest date from all data
-    if (safeDisplayData.length > 0) {
-      safeDisplayData.forEach(d => {
-        if (d && d.date) {
-          const date = new Date(d.date);
-          if (date < earliestDate) {
-            earliestDate = date;
-          }
+    processedDisplayData.forEach(d => {
+      if (d && d.date) {
+        const date = new Date(d.date);
+        if (date < earliestDate) {
+          earliestDate = date;
         }
-      });
-    }
+      }
+    });
     
     // If there's target line data, check its dates too
-    if (safeTargetLine.length > 0) {
+    if (processedTargetLine.length > 0) {
       // Get the earliest date
-      const targetEarliestDate = new Date(safeTargetLine[0].date);
+      const targetEarliestDate = new Date(processedTargetLine[0].date);
       if (targetEarliestDate < earliestDate) {
         earliestDate = targetEarliestDate;
       }
@@ -110,7 +126,9 @@ export const useChartDomains = (
       domainStart,
       domainEnd,
       actualDataCount: actualData.length,
-      forecastDataCount: forecastData.length
+      forecastDataCount: forecastData.length,
+      actualDataSample: actualData[0],
+      forecastDataSample: forecastData[0]
     });
 
     return {

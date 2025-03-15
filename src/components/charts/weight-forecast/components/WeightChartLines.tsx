@@ -19,7 +19,10 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
     actualDataCount: actualData?.length || 0,
     forecastDataCount: forecastData?.length || 0,
     targetLineCount: targetLine?.length || 0,
-    activeView
+    activeView,
+    actualDataSample: actualData?.[0],
+    forecastDataSample: forecastData?.[0],
+    targetLineSample: targetLine?.[0]
   });
 
   const hasTargetLine = activeView === 'forecast' && targetLine && targetLine.length > 0;
@@ -32,7 +35,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       {hasTargetLine && (
         <Line 
           key="target-line"
-          type="linear" 
+          type="monotone" 
           dataKey="weight"
           data={targetLine}
           stroke="#FF9966"
@@ -41,7 +44,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           dot={false}
           activeDot={false}
           name="Target Path"
-          connectNulls={true}
+          connectNulls
           isAnimationActive={false}
         />
       )}
@@ -50,7 +53,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       {hasActualData && (
         <Line 
           key="actual-line"
-          type="linear" 
+          type="monotone" 
           dataKey="weight" 
           data={actualData}
           stroke="#0066CC" 
@@ -64,6 +67,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           }}
           isAnimationActive={false}
           name="Actual Weight"
+          connectNulls
         />
       )}
       
@@ -71,7 +75,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       {hasForecastData && (
         <Line
           key="forecast-line"
-          type="linear"
+          type="monotone"
           dataKey="weight"
           data={forecastData}
           stroke="#0066CC"
@@ -81,7 +85,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           dot={false}
           name="Forecast"
           isAnimationActive={false}
-          connectNulls={true}
+          connectNulls
         />
       )}
     </>

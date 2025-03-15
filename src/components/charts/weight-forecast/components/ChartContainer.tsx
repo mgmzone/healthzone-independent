@@ -11,9 +11,9 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ children }) => {
     typeof children.type === 'string' ? children.type : (children.type as any).displayName || 'Unknown');
   
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-background">
       <ResponsiveContainer width="100%" height="100%">
-        {React.cloneElement(children)}
+        {children}
       </ResponsiveContainer>
     </div>
   );
