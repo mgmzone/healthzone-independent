@@ -81,9 +81,20 @@ const Dashboard = () => {
           isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight
         )
       : 0,
-    timeProgress: getTimeProgressPercentage(currentPeriod.startDate, currentPeriod.endDate),
-    timeRemaining: getRemainingTimePercentage(currentPeriod.startDate, currentPeriod.endDate),
-    daysRemaining: getDaysRemaining(currentPeriod.endDate),
+    timeProgress: getTimeProgressPercentage(
+      currentPeriod.startDate, 
+      currentPeriod.endDate,
+      currentPeriod.projectedEndDate
+    ),
+    timeRemaining: getRemainingTimePercentage(
+      currentPeriod.startDate, 
+      currentPeriod.endDate,
+      currentPeriod.projectedEndDate
+    ),
+    daysRemaining: getDaysRemaining(
+      currentPeriod.endDate,
+      currentPeriod.projectedEndDate
+    ),
     totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
     totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
     weightChange: latestWeight 

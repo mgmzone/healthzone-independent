@@ -41,9 +41,13 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
 
   // Get the projected end date
   const getProjectedEndDate = (): string => {
-    if (!currentPeriod || !currentPeriod.projectedEndDate) return "";
+    if (!currentPeriod) return "";
     
-    const projectedDate = new Date(currentPeriod.projectedEndDate);
+    // Prefer the projected end date if available
+    const dateToShow = currentPeriod.projectedEndDate || currentPeriod.endDate;
+    if (!dateToShow) return "";
+    
+    const projectedDate = new Date(dateToShow);
     return format(projectedDate, 'MMM d, yyyy');
   };
 

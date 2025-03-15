@@ -19,7 +19,7 @@ interface SummaryCardsProps {
   currentPeriod: Period | undefined;
   exerciseLogs: ExerciseLog[];
   fastingLogs: FastingLog[];
-  getDaysRemaining: (date: Date) => number;
+  getDaysRemaining: (date: Date, projectedEndDate?: Date | string | undefined) => number;
 }
 
 export const SummaryCards: React.FC<SummaryCardsProps> = ({
@@ -52,18 +52,9 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   const getEndDateForDisplay = (): Date | undefined => {
     if (!currentPeriod) return undefined;
     
-    // If we have a projected end date and it's not too far in the future, use it
+    // Always use projected end date if available
     if (currentPeriod.projectedEndDate) {
-      const projectedDate = new Date(currentPeriod.projectedEndDate);
-      const regularEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined;
-      
-      // Only use projected date if it's within a reasonable timeframe (less than 30 weeks)
-      const now = new Date();
-      const weeksDiff = Math.round((projectedDate.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000));
-      
-      if (weeksDiff <= 30) {
-        return projectedDate;
-      }
+      return new Date(currentPeriod.projectedEndDate);
     }
     
     // Fall back to regular end date
