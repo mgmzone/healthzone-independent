@@ -59,6 +59,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
   return (
     <ChartContainer>
       <LineChart
+        data={actualData} // Provide actualData as the base data
         margin={{
           top: 30,
           right: 30,
@@ -76,6 +77,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           domain={[domainStart, domainEnd]}
           type="number"
           scale="time"
+          allowDataOverflow
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
@@ -83,6 +85,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
+          allowDataOverflow
           label={{ 
             value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
             angle: -90, 

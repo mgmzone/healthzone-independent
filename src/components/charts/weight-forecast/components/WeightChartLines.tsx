@@ -44,7 +44,6 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           dot={false}
           activeDot={false}
           name="Target Path"
-          connectNulls
           isAnimationActive={false}
         />
       )}
@@ -67,7 +66,6 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           }}
           isAnimationActive={false}
           name="Actual Weight"
-          connectNulls
         />
       )}
       
@@ -85,7 +83,6 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           dot={false}
           name="Forecast"
           isAnimationActive={false}
-          connectNulls
         />
       )}
     </>

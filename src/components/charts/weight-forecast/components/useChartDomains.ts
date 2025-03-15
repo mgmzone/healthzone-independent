@@ -24,11 +24,22 @@ export const useChartDomains = (
     const processData = (data: any[]) => {
       return data.map(d => {
         if (!d) return null;
+        
+        // Handle both Date objects and timestamp numbers
+        let timestamp;
+        if (d.date instanceof Date) {
+          timestamp = d.date.getTime();
+        } else if (typeof d.date === 'number') {
+          timestamp = d.date;
+        } else if (d.date?._type === 'Date' && d.date?.value?.value) {
+          timestamp = d.date.value.value;
+        } else {
+          timestamp = new Date(d.date).getTime();
+        }
+        
         return {
           ...d,
-          date: d.date instanceof Date ? d.date.getTime() : 
-                typeof d.date === 'object' && d.date?._type === 'Date' ? d.date.value.value : 
-                new Date(d.date).getTime()
+          date: timestamp
         };
       }).filter(Boolean);
     };
