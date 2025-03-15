@@ -7,7 +7,8 @@ interface ChartContainerProps {
 }
 
 const ChartContainer: React.FC<ChartContainerProps> = ({ children }) => {
-  console.log('ChartContainer rendering with child type:', children.type.name || children.type);
+  console.log('ChartContainer rendering with child type:', 
+    typeof children.type === 'string' ? children.type : (children.type as any).displayName || 'Unknown');
   
   return (
     <div className="w-full h-full">

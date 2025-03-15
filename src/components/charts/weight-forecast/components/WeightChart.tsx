@@ -53,63 +53,62 @@ const WeightChart: React.FC<WeightChartProps> = ({
     targetLineCount: targetLine.length
   });
 
-  // A more explicit LineChart component that will definitely be a ReactElement
-  const chartElement = (
-    <LineChart
-      data={displayData}
-      margin={{
-        top: 30,
-        right: 30,
-        left: 20,
-        bottom: 30,
-      }}
-    >
-      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-      <XAxis 
-        dataKey="date"
-        tickFormatter={(date) => format(new Date(date), 'MMM d')}
-        tick={{ fill: '#666', fontSize: 12 }}
-        axisLine={{ stroke: '#E0E0E0' }}
-        tickLine={{ stroke: '#E0E0E0' }}
-        domain={[domainStart, domainEnd]}
-        type="number"
-      />
-      <YAxis 
-        domain={[minWeight, maxWeight]}
-        tickFormatter={(value) => value.toFixed(0)}
-        tick={{ fill: '#666', fontSize: 12 }}
-        axisLine={{ stroke: '#E0E0E0' }}
-        tickLine={{ stroke: '#E0E0E0' }}
-        label={{ 
-          value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
-          angle: -90, 
-          position: 'insideLeft', 
-          offset: 0,
-          style: { textAnchor: 'middle' },
-          fill: '#666' 
+  return (
+    <ChartContainer>
+      <LineChart
+        data={displayData}
+        margin={{
+          top: 30,
+          right: 30,
+          left: 20,
+          bottom: 30,
         }}
-      />
-      <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
-      
-      {/* Chart Lines: Actual, Forecast, and Target */}
-      <WeightChartLines 
-        actualData={actualData}
-        forecastData={forecastData}
-        targetLine={targetLine}
-        activeView={activeView}
-      />
-      
-      {/* Reference lines for current date and target date */}
-      <ReferenceLines 
-        chartData={displayData}
-        today={today}
-        targetDate={targetDate}
-        periodEndDate={periodEndDate}
-      />
-    </LineChart>
+      >
+        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+        <XAxis 
+          dataKey="date"
+          tickFormatter={(date) => format(new Date(date), 'MMM d')}
+          tick={{ fill: '#666', fontSize: 12 }}
+          axisLine={{ stroke: '#E0E0E0' }}
+          tickLine={{ stroke: '#E0E0E0' }}
+          domain={[domainStart, domainEnd]}
+          type="number"
+        />
+        <YAxis 
+          domain={[minWeight, maxWeight]}
+          tickFormatter={(value) => value.toFixed(0)}
+          tick={{ fill: '#666', fontSize: 12 }}
+          axisLine={{ stroke: '#E0E0E0' }}
+          tickLine={{ stroke: '#E0E0E0' }}
+          label={{ 
+            value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
+            angle: -90, 
+            position: 'insideLeft', 
+            offset: 0,
+            style: { textAnchor: 'middle' },
+            fill: '#666' 
+          }}
+        />
+        <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
+        
+        {/* Chart Lines: Actual, Forecast, and Target */}
+        <WeightChartLines 
+          actualData={actualData}
+          forecastData={forecastData}
+          targetLine={targetLine}
+          activeView={activeView}
+        />
+        
+        {/* Reference lines for current date and target date */}
+        <ReferenceLines 
+          chartData={displayData}
+          today={today}
+          targetDate={targetDate}
+          periodEndDate={periodEndDate}
+        />
+      </LineChart>
+    </ChartContainer>
   );
-
-  return <ChartContainer>{chartElement}</ChartContainer>;
 };
 
 export default WeightChart;
