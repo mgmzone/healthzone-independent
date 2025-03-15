@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { subDays } from 'date-fns';
 import { getFastingLogs } from '@/lib/services/fasting/getFastingLogs';
@@ -88,55 +87,37 @@ export const calculateWeeklyLossRate = (
   hasAggressiveHabits: boolean,
   isImperial: boolean
 ): number => {
-  // Enhanced max weight loss rate for users with aggressive habits
-  const ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL = hasAggressiveHabits ? 2.5 : MAX_WEEKLY_LOSS_IMPERIAL;
-  const ENHANCED_MAX_WEEKLY_LOSS = isImperial ? ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL : ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL / 2.20462;
-  const MAX_WEEKLY_LOSS = isImperial ? MAX_WEEKLY_LOSS_IMPERIAL : MAX_WEEKLY_LOSS_IMPERIAL / 2.20462;
-  const MAX_WEEKLY_LOSS_NEAR_GOAL = isImperial ? MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL : MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL / 2.20462;
+  // Set sustainable rate based on units
+  const sustainableRate = isImperial ? 2.0 : 0.9; // 2 lbs or 0.9 kg per week
   
-  let adjustedWeeklyRate = initialRate;
-  
-  // If current trend shows weight gain or maintenance when goal is loss
-  if (initialRate >= 0) {
-    // Assume reasonable loss
-    adjustedWeeklyRate = -ENHANCED_MAX_WEEKLY_LOSS;
-  } else {
-    // Determine how close we are to target date (if found already)
-    let weeksToTarget = -1;
-    if (targetWeekNum > 0) {
-      weeksToTarget = targetWeekNum - currentWeek;
-    }
-    
-    // Apply more appropriate weight loss rate
-    let maxLoss;
-    if (weeksToTarget > 0 && weeksToTarget <= 4) {
-      // Taper down weight loss in last 4 weeks
-      const taperFactor = weeksToTarget / 4; // 1.0 to 0.25
-      const minWeeklyLoss = isImperial ? 1.0 : 1.0 / 2.20462;
-      const maxWeeklyLoss = ENHANCED_MAX_WEEKLY_LOSS;
-      maxLoss = -(minWeeklyLoss + (maxWeeklyLoss - minWeeklyLoss) * taperFactor);
-    } else if (percentCompleted >= NEAR_GOAL_THRESHOLD) {
-      // Near goal threshold
-      maxLoss = -MAX_WEEKLY_LOSS_NEAR_GOAL;
-    } else {
-      // Use enhanced max loss for users with aggressive habits
-      maxLoss = -ENHANCED_MAX_WEEKLY_LOSS;
-    }
-    
-    // Ensure weight loss is not faster than our healthy max
-    if (initialRate < maxLoss) {
-      adjustedWeeklyRate = maxLoss;
-    }
-    
-    // Apply a very gentle tapering effect that ensures continued progress
-    const minEffectiveness = 0.7; // Maintain at least 70% effectiveness over time
-    const taperingFactor = minEffectiveness + 
-      (1 - minEffectiveness) * Math.exp(-0.02 * weeksFromLastReal);
-    
-    adjustedWeeklyRate *= taperingFactor;
+  // If the initial rate is already at or below the sustainable rate, keep it
+  if (initialRate <= sustainableRate) {
+    return initialRate;
   }
   
-  return adjustedWeeklyRate;
+  // Calculate progress factor (increases as we approach target)
+  const progressFactor = Math.min(1, percentCompleted * 1.5);
+  
+  // Calculate time factor (increases as we move further into future)
+  const timeFactor = Math.min(1, weeksFromLastReal / 12);  // Gradually over 12 weeks
+  
+  // Combined factor gives more weight to whichever is higher
+  const combinedFactor = Math.max(progressFactor, timeFactor);
+  
+  // Calculate adjusted rate - moves from initial rate towards sustainable rate
+  let adjustedRate = initialRate - ((initialRate - sustainableRate) * combinedFactor);
+  
+  // Apply habit adjustments if relevant
+  if (hasAggressiveHabits && adjustedRate < initialRate * 0.8) {
+    // With good habits, slow the decrease rate
+    adjustedRate = Math.min(initialRate * 0.8, adjustedRate * 1.2);
+  }
+  
+  // Set minimum reasonable rate
+  const minRate = isImperial ? 0.5 : 0.25; // 0.5 lbs or 0.25 kg
+  
+  // Ensure we don't go below the minimum rate
+  return Math.max(adjustedRate, minRate);
 };
 
 /**
@@ -149,34 +130,29 @@ export const calculateWeeklyGainRate = (
   hasAggressiveHabits: boolean,
   isImperial: boolean
 ): number => {
-  // Enhanced max weight gain rate for users with aggressive habits
-  const ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL = hasAggressiveHabits ? 2.5 : MAX_WEEKLY_LOSS_IMPERIAL;
-  const ENHANCED_MAX_WEEKLY_LOSS = isImperial ? ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL : ENHANCED_MAX_WEEKLY_LOSS_IMPERIAL / 2.20462;
+  // Set sustainable gain rate based on units
+  const sustainableRate = isImperial ? 1.0 : 0.45; // 1 lb or 0.45 kg per week
   
-  let adjustedWeeklyRate = initialRate;
+  // Calculate time factor (increases as we move further into future)
+  const timeFactor = Math.min(1, weeksFromLastReal / 8);  // Gradually over 8 weeks
   
-  // If current trend shows weight loss but goal is gain
-  if (initialRate <= 0) {
-    // Assume reasonable gain (half the rate of loss)
-    adjustedWeeklyRate = isImperial ? ENHANCED_MAX_WEEKLY_LOSS / 2 : (ENHANCED_MAX_WEEKLY_LOSS / 2) / 2.20462;
-  } else {
-    // Cap the weekly gain rate
-    const maxGain = percentCompleted >= NEAR_GOAL_THRESHOLD ? 
-      (isImperial ? MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL : MAX_WEEKLY_LOSS_NEAR_GOAL_IMPERIAL / 2.20462) : 
-      ENHANCED_MAX_WEEKLY_LOSS;
-    
-    // Ensure weight gain is not faster than our healthy max
-    if (initialRate > maxGain) {
-      adjustedWeeklyRate = maxGain;
-    }
-    
-    // Apply gentle tapering for weight gain too
-    const minEffectiveness = 0.7;
-    const taperingFactor = minEffectiveness + 
-      (1 - minEffectiveness) * Math.exp(-0.02 * weeksFromLastReal);
-    
-    adjustedWeeklyRate *= taperingFactor;
+  // Calculate progress factor (increases as we approach target)
+  const progressFactor = Math.min(1, percentCompleted * 1.2);
+  
+  // Combined factor
+  const combinedFactor = Math.max(progressFactor, timeFactor);
+  
+  // For weight gain, we go from initial rate towards sustainable rate
+  let adjustedRate = initialRate - ((initialRate - sustainableRate) * combinedFactor);
+  
+  // For muscle gain with exercise, maintain slightly higher rate
+  if (hasAggressiveHabits) {
+    const maxBoostRate = isImperial ? 1.5 : 0.7; // 1.5 lbs or 0.7 kg max with proper training
+    adjustedRate = Math.min(maxBoostRate, adjustedRate * 1.1);
   }
   
-  return adjustedWeeklyRate;
+  // Ensure at least minimum rate
+  const minRate = isImperial ? 0.25 : 0.1; // 0.25 lbs or 0.1 kg
+  
+  return Math.max(adjustedRate, minRate);
 };

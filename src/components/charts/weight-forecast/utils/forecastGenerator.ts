@@ -7,7 +7,8 @@ import {
 } from './forecastUtils';
 
 /**
- * Generates forecast data points based on actual weight data
+ * Generates forecast data points based on actual weight data using an improved
+ * weight loss rate model that gradually decreases to a sustainable rate
  */
 export const generateForecastData = (
   chartData: any[],
@@ -27,11 +28,13 @@ export const generateForecastData = (
   const lastActualPoint = chartData[chartData.length - 1];
   
   // Calculate the average daily weight change based on actual data
-  // This will give us the real trend based on user's actual progress
   const firstPoint = chartData[0];
   const daysElapsed = differenceInDays(new Date(lastActualPoint.date), new Date(firstPoint.date)) || 1;
   let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
   let avgDailyChange = totalWeightChange / daysElapsed;
+  
+  // Calculate weekly rate from daily rate
+  let initialWeeklyRate = Math.abs(avgDailyChange * 7);
   
   // Apply realistic limits to the calculated weight change rate
   avgDailyChange = calculateRealisticWeightChangeRate(avgDailyChange, isImperial);
@@ -44,6 +47,7 @@ export const generateForecastData = (
     daysElapsed,
     totalWeightChange,
     avgDailyChange,
+    initialWeeklyRate,
     weightLossPerWeek,
     targetWeight: convertedTargetWeight,
     isImperial
@@ -57,7 +61,7 @@ export const generateForecastData = (
     isForecast: true  // Mark as forecast
   }];
 
-  // Check if the current trend aligns with the target weight goal
+  // Check direction of weight change
   const isWeightLoss = avgDailyChange < 0;
   
   if (convertedTargetWeight !== null) {
@@ -70,17 +74,52 @@ export const generateForecastData = (
     }
   }
 
-  // Calculate how many days it should take to reach target weight based on current progress
+  // Set sustainable rate based on units
+  const finalSustainableRate = isImperial ? 2.0 / 7 : 0.9 / 7; // Convert weekly to daily
+  
+  // Calculate how many days it should take to reach target weight based on sustainable rate
   let daysToTarget = null;
-  if (convertedTargetWeight !== null && Math.abs(avgDailyChange) > 0.001) {
+  if (convertedTargetWeight !== null) {
     const weightToLose = Math.abs(lastActualPoint.weight - convertedTargetWeight);
-    daysToTarget = Math.abs(Math.ceil(weightToLose / Math.abs(avgDailyChange)));
-    console.log(`Estimated days to target: ${daysToTarget} with daily change of ${avgDailyChange}`);
     
-    // If daysToTarget is too large (over 2 years), cap it
-    if (daysToTarget > 730) {
-      daysToTarget = 730;
+    // Use a more complex model for days to target calculation
+    // This model assumes gradual rate decrease
+    let simulatedWeight = lastActualPoint.weight;
+    let dayCounter = 0;
+    const startWeight = lastActualPoint.weight;
+    
+    // We'll simulate day by day until we reach the target weight
+    while ((isWeightLoss && simulatedWeight > convertedTargetWeight) || 
+           (!isWeightLoss && simulatedWeight < convertedTargetWeight)) {
+      
+      // Calculate progress factor (0 to 1)
+      const progressFactor = isWeightLoss 
+        ? (startWeight - simulatedWeight) / (startWeight - convertedTargetWeight) 
+        : (simulatedWeight - startWeight) / (convertedTargetWeight - startWeight);
+      
+      // Adjust daily rate based on progress - gradually decrease to sustainable rate
+      const adjustedDailyRate = Math.abs(avgDailyChange) - 
+                              (Math.abs(avgDailyChange) - finalSustainableRate) * 
+                              Math.min(1, progressFactor * 1.5);
+      
+      // Apply the daily change
+      if (isWeightLoss) {
+        simulatedWeight -= adjustedDailyRate;
+      } else {
+        simulatedWeight += adjustedDailyRate;
+      }
+      
+      dayCounter++;
+      
+      // Safety exit if taking too long
+      if (dayCounter > 730) {
+        console.log('Forecast simulation reached maximum days limit');
+        break;
+      }
     }
+    
+    daysToTarget = dayCounter;
+    console.log(`Estimated days to target using gradual model: ${daysToTarget}`);
   }
 
   // Limit the forecast to either the period end date, or until target is reached, whichever comes first
@@ -104,11 +143,35 @@ export const generateForecastData = (
   });
   
   let previousWeight = lastActualPoint.weight;
+  const startWeight = lastActualPoint.weight;
 
   // Start forecast FROM the day after the last actual weigh-in
   for (let i = 1; i <= daysToForecast; i++) {
     const forecastDate = addDays(new Date(lastActualPoint.date), i);
-    const forecastWeight = previousWeight + avgDailyChange;
+    
+    // Calculate progress towards goal
+    const progressFactor = convertedTargetWeight === null ? 0 : isWeightLoss 
+      ? (startWeight - previousWeight) / (startWeight - convertedTargetWeight) 
+      : (previousWeight - startWeight) / (convertedTargetWeight - startWeight);
+    
+    // Calculate time factor
+    const timeFactor = Math.min(1, i / 90);  // Gradually over 90 days
+    
+    // Use the larger of the two factors
+    const combinedFactor = Math.max(progressFactor, timeFactor);
+    
+    // Adjust daily rate based on factors - gradually decrease to sustainable rate
+    const adjustedDailyRate = Math.abs(avgDailyChange) - 
+                            (Math.abs(avgDailyChange) - finalSustainableRate) * 
+                            Math.min(1, combinedFactor * 1.5);
+    
+    // Calculate new weight using adjusted rate
+    let forecastWeight;
+    if (isWeightLoss) {
+      forecastWeight = previousWeight - adjustedDailyRate;
+    } else {
+      forecastWeight = previousWeight + adjustedDailyRate;
+    }
     
     // If target weight is provided, check if we've reached it
     if (convertedTargetWeight !== null) {
@@ -146,6 +209,11 @@ export const generateForecastData = (
     ));
 
     previousWeight = forecastWeight;
+    
+    // Log progress every 7 days
+    if (i % 7 === 0) {
+      console.log(`Day ${i} (${forecastDate.toISOString().split('T')[0]}): ${forecastWeight.toFixed(1)} (daily rate: ${adjustedDailyRate.toFixed(3)})`);
+    }
   }
 
   return forecastData;
