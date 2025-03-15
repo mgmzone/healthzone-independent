@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 export const useChartDomains = (
   displayData: any[],
   targetLine: any[],
-  activeView: 'actual' | 'forecast'
+  activeView: 'forecast'
 ) => {
   return useMemo(() => {
     const safeDisplayData = displayData || [];
@@ -33,8 +33,11 @@ export const useChartDomains = (
           timestamp = d.date;
         } else if (d.date?._type === 'Date' && d.date?.value?.value) {
           timestamp = d.date.value.value;
-        } else {
+        } else if (typeof d.date === 'string') {
           timestamp = new Date(d.date).getTime();
+        } else {
+          // If we can't parse the date, use today
+          timestamp = today.getTime();
         }
         
         return {
@@ -55,7 +58,7 @@ export const useChartDomains = (
     // Process forecast data
     let forecastData: any[] = [];
     
-    if (activeView === 'forecast' && lastActualPoint) {
+    if (lastActualPoint) {
       // Extract all forecast points (those marked with isForecast)
       forecastData = processedDisplayData.filter(d => d && d.isForecast);
       
@@ -87,25 +90,18 @@ export const useChartDomains = (
     const lastTargetPoint = processedTargetLine.length > 0 ? processedTargetLine[processedTargetLine.length - 1] : null;
     
     // For x-axis domain, use the latest end date between forecast and target line
-    let latestDate;
+    const forecastEndDate = lastForecastPoint ? new Date(lastForecastPoint.date) : null;
+    const targetEndDate = lastTargetPoint ? new Date(lastTargetPoint.date) : null;
     
-    if (activeView === 'actual') {
-      // In actual view, just use the latest actual data point
-      latestDate = lastActualPoint ? new Date(lastActualPoint.date) : today;
+    let latestDate;
+    if (forecastEndDate && targetEndDate) {
+      latestDate = forecastEndDate > targetEndDate ? forecastEndDate : targetEndDate;
+    } else if (forecastEndDate) {
+      latestDate = forecastEndDate;
+    } else if (targetEndDate) {
+      latestDate = targetEndDate;
     } else {
-      // In forecast view, use the latest end date between forecast and target line
-      const forecastEndDate = lastForecastPoint ? new Date(lastForecastPoint.date) : null;
-      const targetEndDate = lastTargetPoint ? new Date(lastTargetPoint.date) : null;
-      
-      if (forecastEndDate && targetEndDate) {
-        latestDate = forecastEndDate > targetEndDate ? forecastEndDate : targetEndDate;
-      } else if (forecastEndDate) {
-        latestDate = forecastEndDate;
-      } else if (targetEndDate) {
-        latestDate = targetEndDate;
-      } else {
-        latestDate = today;
-      }
+      latestDate = today;
     }
     
     // Ensure we have the earliest date from all data

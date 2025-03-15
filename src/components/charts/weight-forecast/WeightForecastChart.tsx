@@ -1,11 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Period, WeighIn } from '@/lib/types';
-import ViewToggleButtons from './components/ViewToggleButtons';
 import WeightChart from './components/WeightChart';
 import { useWeightForecastData } from './hooks/useWeightForecastData';
-
-type ChartView = 'actual' | 'forecast';
 
 interface WeightForecastChartProps {
   weighIns: WeighIn[];
@@ -20,8 +17,6 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   isImperial = false,
   targetWeight,
 }) => {
-  const [activeView, setActiveView] = useState<ChartView>('forecast'); // Default to forecast view
-  
   // Use the hook to get formatted chart data
   const { chartData, targetLine, minWeight, maxWeight, hasValidData } = useWeightForecastData(
     weighIns,
@@ -49,14 +44,12 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
 
   return (
     <div className="h-[400px] w-full relative">
-      <ViewToggleButtons activeView={activeView} setActiveView={setActiveView} />
-      
       <WeightChart
         displayData={chartData}
         minWeight={minWeight}
         maxWeight={maxWeight}
         isImperial={isImperial}
-        activeView={activeView}
+        activeView="forecast"
         targetLine={targetLine}
       />
     </div>

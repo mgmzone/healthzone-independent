@@ -19,7 +19,7 @@ interface WeightChartProps {
   minWeight: number;
   maxWeight: number;
   isImperial: boolean;
-  activeView: 'actual' | 'forecast';
+  activeView: 'forecast';
   targetLine: any[];
 }
 
@@ -28,7 +28,6 @@ const WeightChart: React.FC<WeightChartProps> = ({
   minWeight,
   maxWeight,
   isImperial,
-  activeView,
   targetLine
 }) => {
   // Use the custom hook to calculate domains and separate data
@@ -40,7 +39,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
     today,
     targetDate,
     periodEndDate
-  } = useChartDomains(displayData, targetLine, activeView);
+  } = useChartDomains(displayData, targetLine, 'forecast');
   
   console.log('WeightChart rendering with:', {
     displayDataCount: displayData?.length || 0,
@@ -59,7 +58,6 @@ const WeightChart: React.FC<WeightChartProps> = ({
   return (
     <ChartContainer>
       <LineChart
-        data={actualData} // Provide actualData as the base data
         margin={{
           top: 30,
           right: 30,
@@ -102,7 +100,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           actualData={actualData || []}
           forecastData={forecastData || []}
           targetLine={targetLine || []}
-          activeView={activeView}
+          activeView="forecast"
         />
         
         {/* Reference lines for current date and target date */}

@@ -6,7 +6,7 @@ interface WeightChartLinesProps {
   actualData: any[];
   forecastData: any[];
   targetLine: any[];
-  activeView: 'actual' | 'forecast';
+  activeView: 'forecast';
 }
 
 const WeightChartLines: React.FC<WeightChartLinesProps> = ({
@@ -25,9 +25,9 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
     targetLineSample: targetLine?.[0]
   });
 
-  const hasTargetLine = activeView === 'forecast' && targetLine && targetLine.length > 0;
+  const hasTargetLine = targetLine && targetLine.length > 0;
   const hasActualData = actualData && actualData.length > 0;
-  const hasForecastData = activeView === 'forecast' && forecastData && forecastData.length > 0;
+  const hasForecastData = forecastData && forecastData.length > 0;
 
   return (
     <>
