@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
-import { ExerciseLog, FastingLog } from '@/lib/types';
-import { isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
+import { ExerciseLog, FastingLog, Period } from '@/lib/types';
+import { isWithinInterval, startOfWeek, endOfWeek, format } from 'date-fns';
 
 interface SummaryCardProps {
   title: string;
@@ -15,7 +16,7 @@ interface SummaryCardProps {
 interface SummaryCardsProps {
   latestWeight: number | null;
   weightUnit: string;
-  currentPeriod: any;
+  currentPeriod: Period | undefined;
   exerciseLogs: ExerciseLog[];
   fastingLogs: FastingLog[];
   getDaysRemaining: (date: Date) => number;
@@ -47,6 +48,51 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return currentWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
   };
 
+  // Get the most appropriate end date (projected or regular)
+  const getEndDateForDisplay = (): Date | undefined => {
+    if (!currentPeriod) return undefined;
+    
+    // If we have a projected end date and it's not too far in the future, use it
+    if (currentPeriod.projectedEndDate) {
+      const projectedDate = new Date(currentPeriod.projectedEndDate);
+      const regularEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined;
+      
+      // Only use projected date if it's within a reasonable timeframe (less than 30 weeks)
+      const now = new Date();
+      const weeksDiff = Math.round((projectedDate.getTime() - now.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      
+      if (weeksDiff <= 30) {
+        return projectedDate;
+      }
+    }
+    
+    // Fall back to regular end date
+    return currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined;
+  };
+  
+  // Get the remaining days for the active period
+  const getRemainingDaysForDisplay = (): string => {
+    if (!currentPeriod) return "No active period";
+    
+    const endDate = getEndDateForDisplay();
+    if (!endDate) return "Ongoing";
+    
+    const days = getDaysRemaining(endDate);
+    if (days > 365) return `${Math.round(days / 365)} years`;
+    if (days > 90) return `${Math.round(days / 30)} months`;
+    if (days <= 0) return "Completed";
+    
+    return `${days} days left`;
+  };
+  
+  // Format the end date for display
+  const getEndDateFormatted = (): string => {
+    const endDate = getEndDateForDisplay();
+    if (!endDate) return "";
+    
+    return ` (${format(endDate, 'MMM d, yyyy')})`;
+  };
+
   const summaryCards: SummaryCardProps[] = [
     {
       title: "Current Weight",
@@ -56,7 +102,9 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     },
     {
       title: "Active Period",
-      value: currentPeriod ? `${getDaysRemaining(currentPeriod.endDate)} days left` : "No active period",
+      value: currentPeriod 
+        ? `${getRemainingDaysForDisplay()}${getEndDateFormatted()}`
+        : "No active period",
       icon: Calendar,
       color: "#f5a742"
     },

@@ -55,7 +55,8 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
       boneMass: boneMass ? parseFloat(boneMass) : undefined,
       bodyWaterPercentage: bodyWaterPercentage ? parseFloat(bodyWaterPercentage) : undefined
     };
-    
+
+    console.log("Submitting weight form:", { weightValue, date, additionalMetrics });
     onSave(weightValue, date, additionalMetrics);
   };
   

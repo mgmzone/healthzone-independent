@@ -1,8 +1,8 @@
+
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { updateProfileCurrentWeight } from '@/lib/services/profileService';
 import { addWeeks, differenceInDays } from 'date-fns';
-import { supabase } from '@/lib/supabase';
 
 export function useAddWeighIn() {
   const { toast, queryClient, getCurrentPeriod, supabase } = useWeightBase();
@@ -34,17 +34,46 @@ export function useAddWeighIn() {
       
       if (daysDifference < 1) return null;
       
+      // Initial values
+      const initialWeightLossRate = 5.16; // Default high initial rate
+      const finalWeightLossRate = 2.0; // Sustainable rate
+      
+      // Calculate current weight loss per week
       const totalWeightLoss = oldestWeighIn.weight - latestWeighIn.weight;
-      const weightLossPerDay = totalWeightLoss / daysDifference;
-      const weightLossPerWeek = weightLossPerDay * 7;
+      let weightLossPerWeek = (totalWeightLoss / daysDifference) * 7;
       
-      if (weightLossPerWeek <= 0.05) return null;
+      // If weight loss is very small or negative (weight gain), use the default from period
+      if (weightLossPerWeek <= 0.05) {
+        weightLossPerWeek = periodData.weight_loss_per_week || 0.5;
+      }
       
-      const remainingWeightToLose = currentWeight - periodData.target_weight;
+      const totalWeightToLose = currentWeight - periodData.target_weight;
       
-      if (remainingWeightToLose <= 0) return null;
+      // Early exit if already at target
+      if (totalWeightToLose <= 0) return null;
       
-      const weeksNeeded = Math.ceil(remainingWeightToLose / weightLossPerWeek);
+      // Progress calculation
+      const startWeight = periodData.start_weight;
+      const targetWeight = periodData.target_weight;
+      const totalGoalWeight = startWeight - targetWeight;
+      const currentProgress = (startWeight - currentWeight) / totalGoalWeight;
+      
+      // Simulate the gradual weight loss
+      let remainingWeight = totalWeightToLose;
+      let weeksNeeded = 0;
+      
+      while (remainingWeight > 0) {
+        // Calculate progress-based weight loss rate
+        // This will decrease from initial rate to final rate as progress increases
+        const progressFactor = Math.min(1, (startWeight - currentWeight + (totalWeightToLose - remainingWeight)) / totalGoalWeight * 1.5);
+        const currentRate = Math.max(
+          finalWeightLossRate,
+          weightLossPerWeek - (weightLossPerWeek - finalWeightLossRate) * progressFactor
+        );
+        
+        remainingWeight -= currentRate;
+        weeksNeeded++;
+      }
       
       return addWeeks(new Date(), weeksNeeded);
     } catch (error) {
@@ -69,14 +98,20 @@ export function useAddWeighIn() {
         bodyWaterPercentage?: number;
       } 
     }) => {
+      console.log("Adding weigh-in with data:", { weight, date, additionalMetrics });
       const currentPeriod = getCurrentPeriod();
+      const userId = (await supabase.auth.getUser()).data.user?.id;
+      
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
       
       const { data, error } = await supabase
         .from('weigh_ins')
         .insert([{
           weight,
           date: date.toISOString(),
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: userId,
           period_id: currentPeriod?.id || null,
           bmi: additionalMetrics?.bmi || null,
           body_fat_percentage: additionalMetrics?.bodyFatPercentage || null,
@@ -87,7 +122,12 @@ export function useAddWeighIn() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting weigh-in:", error);
+        throw error;
+      }
+      
+      console.log("Weigh-in added successfully:", data);
       
       try {
         await updateProfileCurrentWeight(weight);
@@ -122,6 +162,7 @@ export function useAddWeighIn() {
       });
     },
     onError: (error: Error) => {
+      console.error("Error in add weigh-in mutation:", error);
       toast({
         title: 'Error adding weight',
         description: error.message,

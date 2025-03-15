@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import ProgressCircle from '@/components/ProgressCircle';
 import { Period, WeighIn, FastingLog } from '@/lib/types';
 import WeightForecastChart from '@/components/charts/WeightForecastChart';
-import { differenceInSeconds } from 'date-fns';
+import { differenceInSeconds, format } from 'date-fns';
 
 interface PeriodMetricsCardsProps {
   weightProgress: number;
@@ -37,6 +37,14 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   // Format weight with 1 decimal place
   const formatWeight = (weight: number): string => {
     return weight.toFixed(1);
+  };
+
+  // Get the projected end date
+  const getProjectedEndDate = (): string => {
+    if (!currentPeriod || !currentPeriod.projectedEndDate) return "";
+    
+    const projectedDate = new Date(currentPeriod.projectedEndDate);
+    return format(projectedDate, 'MMM d, yyyy');
   };
 
   // Calculate average daily fasting hours
@@ -73,6 +81,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   };
 
   const averageFasting = calculateAverageDailyFasting();
+  const projectedDate = getProjectedEndDate();
 
   return (
     <div className="grid grid-cols-1 gap-6 mb-6">
@@ -101,7 +110,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Time Progress</CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center pt-0">
+          <CardContent className="flex flex-col items-center pt-0">
             <ProgressCircle 
               value={timeProgress}
               size={120}
@@ -109,6 +118,13 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
               showPercentage={true}
               valueLabel={`${daysRemaining} days left`}
             />
+            {projectedDate && (
+              <div className="mt-3 text-center">
+                <span className="text-sm text-muted-foreground">
+                  Projected: {projectedDate}
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
