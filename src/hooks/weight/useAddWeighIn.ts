@@ -9,7 +9,7 @@ export function useAddWeighIn() {
 
   const calculateNewProjectedEndDate = async (periodId: string, currentWeight: number) => {
     try {
-      // First get just the period ID to confirm it exists
+      // First get period data
       const { data: periodData, error: periodError } = await supabase
         .from('periods')
         .select('id, start_weight, target_weight, weight_loss_per_week')
@@ -33,6 +33,11 @@ export function useAddWeighIn() {
         return null;
       }
       
+      // Extract all needed values to local variables to avoid SQL ambiguity completely
+      const periodStartWeight = periodData.start_weight;
+      const periodTargetWeight = periodData.target_weight;
+      const configuredWeightLossPerWeek = periodData.weight_loss_per_week || 0.5;
+      
       // Calculate date differences and weight loss rate using local variables
       const oldestWeighIn = weighIns[0];
       const latestWeighIn = weighIns[weighIns.length - 1];
@@ -54,28 +59,26 @@ export function useAddWeighIn() {
       let weightLossPerWeek = (totalWeightLoss / daysDifference) * 7;
       
       if (weightLossPerWeek <= 0.05) {
-        weightLossPerWeek = periodData.weight_loss_per_week || 0.5;
+        weightLossPerWeek = configuredWeightLossPerWeek;
       }
       
-      // Store all values in local variables to avoid ambiguous column references
-      const startWeight = periodData.start_weight;
-      const targetWeight = periodData.target_weight;
-      const totalWeightToLose = currentWeight - targetWeight;
+      // Calculate remaining weight to lose and projected date
+      const totalWeightToLose = currentWeight - periodTargetWeight;
       
       if (totalWeightToLose <= 0) {
         console.log("Already at or below target weight");
         return null;
       }
       
-      const totalGoalWeight = startWeight - targetWeight;
-      const currentProgress = (startWeight - currentWeight) / totalGoalWeight;
+      const totalGoalWeight = periodStartWeight - periodTargetWeight;
+      const currentProgress = (periodStartWeight - currentWeight) / totalGoalWeight;
       
       // Simulate gradual weight loss
       let remainingWeight = totalWeightToLose;
       let weeksNeeded = 0;
       
       while (remainingWeight > 0) {
-        const progressFactor = Math.min(1, (startWeight - currentWeight + (totalWeightToLose - remainingWeight)) / totalGoalWeight * 1.5);
+        const progressFactor = Math.min(1, (periodStartWeight - currentWeight + (totalWeightToLose - remainingWeight)) / totalGoalWeight * 1.5);
         const currentRate = Math.max(
           finalWeightLossRate,
           weightLossPerWeek - (weightLossPerWeek - finalWeightLossRate) * progressFactor
@@ -116,7 +119,7 @@ export function useAddWeighIn() {
         throw new Error("User not authenticated");
       }
       
-      // Insert the weigh-in record
+      // Insert the weigh-in record without using the database's update_period_projected_end_date trigger
       const { data, error } = await supabase
         .from('weigh_ins')
         .insert([{
@@ -146,7 +149,7 @@ export function useAddWeighIn() {
         console.error('Error updating profile with new weight:', profileError);
       }
       
-      // Update the projected end date if this is a weight loss period
+      // Update the projected end date directly from our client code if this is a weight loss period
       if (currentPeriod?.id && currentPeriod.type === 'weightLoss') {
         try {
           const newProjectedEndDate = await calculateNewProjectedEndDate(currentPeriod.id, weight);
@@ -154,12 +157,10 @@ export function useAddWeighIn() {
           if (newProjectedEndDate) {
             console.log("Calculated new projected end date:", newProjectedEndDate);
             
-            // Simple update with no joins or complex queries
+            // Do a direct update to the periods table with just the projected_end_date
             const { error: updateError } = await supabase
               .from('periods')
-              .update({ 
-                projected_end_date: newProjectedEndDate.toISOString() 
-              })
+              .update({ projected_end_date: newProjectedEndDate.toISOString() })
               .eq('id', currentPeriod.id);
               
             if (updateError) {
