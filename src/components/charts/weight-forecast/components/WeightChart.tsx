@@ -43,16 +43,17 @@ const WeightChart: React.FC<WeightChartProps> = ({
   } = useChartDomains(displayData, targetLine, activeView);
   
   console.log('WeightChart rendering with:', {
-    displayDataCount: displayData.length,
+    displayDataCount: displayData?.length || 0,
     minWeight,
     maxWeight,
     domainStart,
     domainEnd,
-    actualDataCount: actualData.length,
-    forecastDataCount: forecastData.length,
-    targetLineCount: targetLine.length
+    actualDataCount: actualData?.length || 0,
+    forecastDataCount: forecastData?.length || 0,
+    targetLineCount: targetLine?.length || 0
   });
 
+  // Important: Create a direct LineChart element to be passed to ChartContainer
   return (
     <ChartContainer>
       <LineChart
@@ -93,15 +94,15 @@ const WeightChart: React.FC<WeightChartProps> = ({
         
         {/* Chart Lines: Actual, Forecast, and Target */}
         <WeightChartLines 
-          actualData={actualData}
-          forecastData={forecastData}
-          targetLine={targetLine}
+          actualData={actualData || []}
+          forecastData={forecastData || []}
+          targetLine={targetLine || []}
           activeView={activeView}
         />
         
         {/* Reference lines for current date and target date */}
         <ReferenceLines 
-          chartData={displayData}
+          chartData={displayData || []}
           today={today}
           targetDate={targetDate}
           periodEndDate={periodEndDate}

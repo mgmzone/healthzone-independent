@@ -13,7 +13,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ children }) => {
   return (
     <div className="w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
-        {children}
+        {React.cloneElement(children)}
       </ResponsiveContainer>
     </div>
   );

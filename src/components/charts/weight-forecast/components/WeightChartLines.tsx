@@ -16,16 +16,20 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
   activeView
 }) => {
   console.log('WeightChartLines rendering:', {
-    actualDataCount: actualData.length,
-    forecastDataCount: forecastData.length,
-    targetLineCount: targetLine.length,
+    actualDataCount: actualData?.length || 0,
+    forecastDataCount: forecastData?.length || 0,
+    targetLineCount: targetLine?.length || 0,
     activeView
   });
+
+  const hasTargetLine = activeView === 'forecast' && targetLine && targetLine.length > 0;
+  const hasActualData = actualData && actualData.length > 0;
+  const hasForecastData = activeView === 'forecast' && forecastData && forecastData.length > 0;
 
   return (
     <>
       {/* Target Weight Line (Dashed Orange) - Shows the ideal weight loss path */}
-      {activeView === 'forecast' && targetLine && targetLine.length > 0 && (
+      {hasTargetLine && (
         <Line 
           key="target-line"
           type="linear" 
@@ -43,7 +47,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       )}
       
       {/* Actual Weight Line (Blue) - Always visible with dots */}
-      {actualData && actualData.length > 0 && (
+      {hasActualData && (
         <Line 
           key="actual-line"
           type="linear" 
@@ -64,7 +68,7 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       )}
       
       {/* Forecast Weight Line (Blue Dashed) - Only visible in forecast view */}
-      {activeView === 'forecast' && forecastData && forecastData.length > 0 && (
+      {hasForecastData && (
         <Line
           key="forecast-line"
           type="linear"
