@@ -106,6 +106,7 @@ export function useAddWeighIn() {
         throw new Error("User not authenticated");
       }
       
+      // Insert the weigh-in record
       const { data, error } = await supabase
         .from('weigh_ins')
         .insert([{
@@ -135,11 +136,13 @@ export function useAddWeighIn() {
         console.error('Error updating profile with new weight:', profileError);
       }
       
+      // Update the projected end date if this is a weight loss period
       if (currentPeriod?.id && currentPeriod.type === 'weightLoss') {
         try {
           const newProjectedEndDate = await calculateNewProjectedEndDate(currentPeriod.id, weight);
           
           if (newProjectedEndDate) {
+            // Update the period with the new projected date - using explicit column references
             await supabase
               .from('periods')
               .update({ projected_end_date: newProjectedEndDate.toISOString() })

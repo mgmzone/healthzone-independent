@@ -38,6 +38,7 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate the weight value
     const weightValue = parseFloat(weight);
     if (isNaN(weightValue) || weightValue <= 0) {
       toast({
@@ -48,6 +49,7 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
       return;
     }
     
+    // Process additional metrics
     const additionalMetrics = {
       bmi: bmi ? parseFloat(bmi) : undefined,
       bodyFatPercentage: bodyFatPercentage ? parseFloat(bodyFatPercentage) : undefined,
@@ -57,7 +59,17 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
     };
 
     console.log("Submitting weight form:", { weightValue, date, additionalMetrics });
-    onSave(weightValue, date, additionalMetrics);
+    
+    try {
+      onSave(weightValue, date, additionalMetrics);
+    } catch (error) {
+      console.error("Error submitting weight form:", error);
+      toast({
+        title: "Error adding weight",
+        description: "An error occurred while saving your weight data",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
