@@ -119,25 +119,23 @@ export function useAddWeighIn() {
         throw new Error("User not authenticated");
       }
       
-      // KEY FIX: Insert the weigh-in record with a special option to skip the trigger
-      // Add skipTriggers=true in a comment that can be parsed by the backend
+      // Instead of using headers (which isn't supported in the options), 
+      // insert the data directly without trying to bypass the trigger
+      const weighInData = {
+        weight,
+        date: date.toISOString(),
+        user_id: userId,
+        period_id: currentPeriod?.id || null,
+        bmi: additionalMetrics?.bmi || null,
+        body_fat_percentage: additionalMetrics?.bodyFatPercentage || null,
+        skeletal_muscle_mass: additionalMetrics?.skeletalMuscleMass || null,
+        bone_mass: additionalMetrics?.boneMass || null,
+        body_water_percentage: additionalMetrics?.bodyWaterPercentage || null
+      };
+      
       const { data, error } = await supabase
         .from('weigh_ins')
-        .insert([{
-          weight,
-          date: date.toISOString(),
-          user_id: userId,
-          period_id: currentPeriod?.id || null,
-          bmi: additionalMetrics?.bmi || null,
-          body_fat_percentage: additionalMetrics?.bodyFatPercentage || null,
-          skeletal_muscle_mass: additionalMetrics?.skeletalMuscleMass || null,
-          bone_mass: additionalMetrics?.boneMass || null,
-          body_water_percentage: additionalMetrics?.bodyWaterPercentage || null
-        }], 
-        { 
-          // This header tells Postgres to ignore our trigger
-          headers: { 'Prefer': 'missing=default' }
-        })
+        .insert(weighInData)
         .select()
         .single();
 
