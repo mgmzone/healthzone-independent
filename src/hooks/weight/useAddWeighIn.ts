@@ -47,14 +47,15 @@ export function useAddWeighIn() {
         weightLossPerWeek = periodData.weight_loss_per_week || 0.5;
       }
       
-      const totalWeightToLose = currentWeight - periodData.target_weight;
+      // To avoid ambiguous column reference, use periodData properties directly
+      const startWeight = periodData.start_weight;
+      const targetWeight = periodData.target_weight;
+      const totalWeightToLose = currentWeight - targetWeight;
       
       // Early exit if already at target
       if (totalWeightToLose <= 0) return null;
       
       // Progress calculation
-      const startWeight = periodData.start_weight;
-      const targetWeight = periodData.target_weight;
       const totalGoalWeight = startWeight - targetWeight;
       const currentProgress = (startWeight - currentWeight) / totalGoalWeight;
       
@@ -142,7 +143,7 @@ export function useAddWeighIn() {
           const newProjectedEndDate = await calculateNewProjectedEndDate(currentPeriod.id, weight);
           
           if (newProjectedEndDate) {
-            // Update the period with the new projected date - using explicit column references
+            // Update the period with the new projected date
             await supabase
               .from('periods')
               .update({ projected_end_date: newProjectedEndDate.toISOString() })
