@@ -40,6 +40,7 @@ export const calculateProgressPercentage = (
 /**
  * Calculate total weight loss (difference between starting and current weight)
  * Positive value means weight loss, negative means weight gain
+ * All values are expected to be in kg
  */
 export const calculateTotalWeightLoss = (
   startingWeight: number | undefined,
@@ -56,6 +57,7 @@ export const calculateTotalWeightLoss = (
 
 /**
  * Calculate target loss (difference between starting weight and target weight)
+ * All values are expected to be in kg
  */
 export const calculateTargetLoss = (
   startingWeight: number | undefined,

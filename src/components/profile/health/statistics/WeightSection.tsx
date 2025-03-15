@@ -29,6 +29,7 @@ const WeightSection: React.FC<WeightSectionProps> = ({
       weightLossDisplay = '0.0 ' + (isImperial ? 'lbs' : 'kg');
     } else if (totalWeightLoss > 0) {
       // Weight LOSS (positive number = weight went down)
+      // For display, conversion is done inside formatWeightWithUnit
       weightLossDisplay = formatWeightWithUnit(totalWeightLoss, isImperial);
     } else {
       // Weight GAIN (negative number = weight went up)

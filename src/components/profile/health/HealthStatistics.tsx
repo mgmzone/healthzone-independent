@@ -16,6 +16,7 @@ interface HealthStatisticsProps {
     id: string;
     startDate: string;
     endDate?: string;
+    projectedEndDate?: string;
     targetWeight: number;
     weightLossPerWeek: number;
     startWeight: number;

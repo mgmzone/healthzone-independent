@@ -7,6 +7,7 @@ interface DateSectionProps {
   currentPeriod?: {
     startDate: string;
     endDate?: string;
+    projectedEndDate?: string;
   };
 }
 
@@ -19,6 +20,9 @@ const DateSection: React.FC<DateSectionProps> = ({ currentPeriod }) => {
 
   if (!currentPeriod) return null;
 
+  // Prefer projected end date if available, otherwise fall back to regular end date
+  const endDateToDisplay = currentPeriod.projectedEndDate || currentPeriod.endDate;
+
   return (
     <>
       <StatisticInput
@@ -29,7 +33,7 @@ const DateSection: React.FC<DateSectionProps> = ({ currentPeriod }) => {
       <StatisticInput
         id="endDate"
         label="Session End Date"
-        value={formatDisplayDate(currentPeriod.endDate)}
+        value={formatDisplayDate(endDateToDisplay)}
       />
     </>
   );
