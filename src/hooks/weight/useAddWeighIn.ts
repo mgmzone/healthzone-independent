@@ -9,11 +9,11 @@ export function useAddWeighIn() {
 
   const calculateNewProjectedEndDate = async (periodId: string, currentWeight: number) => {
     try {
-      // Get period data first
+      // Get period data with explicit table alias
       const { data: periodData, error: periodError } = await supabase
-        .from('periods')
-        .select('*')
-        .eq('id', periodId)
+        .from('periods as p')
+        .select('p.start_weight, p.target_weight, p.weight_loss_per_week')
+        .eq('p.id', periodId)
         .single();
       
       if (periodError || !periodData) {
@@ -21,16 +21,12 @@ export function useAddWeighIn() {
         return null;
       }
       
-      // Extract period data to local variables to prevent ambiguous column references
-      const periodStartWeight = periodData.start_weight;
-      const periodTargetWeight = periodData.target_weight;
-      
-      // Get weigh-ins for analysis
+      // Get weigh-ins for analysis with explicit table alias
       const { data: weighIns, error: weighInsError } = await supabase
-        .from('weigh_ins')
-        .select('*')
-        .eq('period_id', periodId)
-        .order('date', { ascending: true });
+        .from('weigh_ins as w')
+        .select('w.weight, w.date')
+        .eq('w.period_id', periodId)
+        .order('w.date', { ascending: true });
       
       if (weighInsError || !weighIns || weighIns.length < 2) {
         console.error("Weigh-ins data error or insufficient data:", weighInsError);
@@ -61,7 +57,9 @@ export function useAddWeighIn() {
         weightLossPerWeek = periodData.weight_loss_per_week || 0.5;
       }
       
-      // Calculate total weight to lose and progress
+      // Calculate total weight to lose and progress - using explicit variable names
+      const periodStartWeight = periodData.start_weight;
+      const periodTargetWeight = periodData.target_weight;
       const totalWeightToLose = currentWeight - periodTargetWeight;
       
       if (totalWeightToLose <= 0) {
@@ -154,7 +152,9 @@ export function useAddWeighIn() {
           const newProjectedEndDate = await calculateNewProjectedEndDate(currentPeriod.id, weight);
           
           if (newProjectedEndDate) {
-            // Make sure we're explicitly updating ONLY the projected_end_date field
+            console.log("Attempting to update projected end date to:", newProjectedEndDate);
+            
+            // Use a direct, simple update with no ambiguity
             const { error: updateError } = await supabase
               .from('periods')
               .update({ projected_end_date: newProjectedEndDate.toISOString() })
