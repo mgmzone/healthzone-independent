@@ -1,10 +1,9 @@
 
-import { addDays, differenceInDays } from 'date-fns';
-import { 
-  calculateRealisticWeightChangeRate, 
-  createChartDataPoint,
-  isGoalDirectionCompatible
-} from './forecastUtils';
+import { differenceInDays, addDays } from 'date-fns';
+import { createChartDataPoint } from './forecastUtils';
+import { calculateForecastRate, getSustainableRate, validateTrendDirection } from './rateCalculator';
+import { calculateDaysToTarget } from './daysToTargetCalculator';
+import { generateForecastPoints } from './forecastPointGenerator';
 
 /**
  * Generates forecast data points based on actual weight data using an improved
@@ -30,30 +29,22 @@ export const generateForecastData = (
   // Calculate the average daily weight change based on actual data
   const firstPoint = chartData[0];
   const daysElapsed = differenceInDays(new Date(lastActualPoint.date), new Date(firstPoint.date)) || 1;
-  let totalWeightChange = lastActualPoint.weight - firstPoint.weight;
-  let avgDailyChange = totalWeightChange / daysElapsed;
   
-  // Calculate weekly rate from daily rate
-  let initialWeeklyRate = Math.abs(avgDailyChange * 7);
-  
-  // Apply realistic limits to the calculated weight change rate
-  avgDailyChange = calculateRealisticWeightChangeRate(avgDailyChange, isImperial);
+  // Calculate rate and direction
+  const { avgDailyChange, isWeightLoss } = calculateForecastRate(
+    firstPoint, 
+    lastActualPoint, 
+    daysElapsed, 
+    isImperial
+  );
   
   console.log('Forecast calculations:', {
-    firstPointDate: firstPoint.date,
-    firstPointWeight: firstPoint.weight,
-    lastPointDate: lastActualPoint.date,
-    lastPointWeight: lastActualPoint.weight,
-    daysElapsed,
-    totalWeightChange,
-    avgDailyChange,
-    initialWeeklyRate,
-    weightLossPerWeek,
     targetWeight: convertedTargetWeight,
-    isImperial
+    isImperial,
+    weightLossPerWeek
   });
   
-  // Start with the last actual point as the beginning of forecast
+  // Start with the last actual point for the forecast
   const forecastData = [{
     date: lastActualPoint.date,
     weight: lastActualPoint.weight,
@@ -61,12 +52,9 @@ export const generateForecastData = (
     isForecast: true  // Mark as forecast
   }];
 
-  // Check direction of weight change
-  const isWeightLoss = avgDailyChange < 0;
-  
+  // Check if trend aligns with goal
   if (convertedTargetWeight !== null) {
-    // Check if trend aligns with goal
-    const isCompatible = isGoalDirectionCompatible(isWeightLoss, convertedTargetWeight, lastActualPoint.weight);
+    const isCompatible = validateTrendDirection(isWeightLoss, convertedTargetWeight, lastActualPoint.weight);
     if (!isCompatible) {
       console.log('Trend does not align with goal direction');
       // Return only the last actual point for the forecast
@@ -75,51 +63,18 @@ export const generateForecastData = (
   }
 
   // Set sustainable rate based on units
-  const finalSustainableRate = isImperial ? 2.0 / 7 : 0.9 / 7; // Convert weekly to daily
+  const finalSustainableRate = getSustainableRate(isImperial);
   
   // Calculate how many days it should take to reach target weight based on sustainable rate
   let daysToTarget = null;
   if (convertedTargetWeight !== null) {
-    const weightToLose = Math.abs(lastActualPoint.weight - convertedTargetWeight);
-    
-    // Use a more complex model for days to target calculation
-    // This model assumes gradual rate decrease
-    let simulatedWeight = lastActualPoint.weight;
-    let dayCounter = 0;
-    const startWeight = lastActualPoint.weight;
-    
-    // We'll simulate day by day until we reach the target weight
-    while ((isWeightLoss && simulatedWeight > convertedTargetWeight) || 
-           (!isWeightLoss && simulatedWeight < convertedTargetWeight)) {
-      
-      // Calculate progress factor (0 to 1)
-      const progressFactor = isWeightLoss 
-        ? (startWeight - simulatedWeight) / (startWeight - convertedTargetWeight) 
-        : (simulatedWeight - startWeight) / (convertedTargetWeight - startWeight);
-      
-      // Adjust daily rate based on progress - gradually decrease to sustainable rate
-      const adjustedDailyRate = Math.abs(avgDailyChange) - 
-                              (Math.abs(avgDailyChange) - finalSustainableRate) * 
-                              Math.min(1, progressFactor * 1.5);
-      
-      // Apply the daily change
-      if (isWeightLoss) {
-        simulatedWeight -= adjustedDailyRate;
-      } else {
-        simulatedWeight += adjustedDailyRate;
-      }
-      
-      dayCounter++;
-      
-      // Safety exit if taking too long
-      if (dayCounter > 730) {
-        console.log('Forecast simulation reached maximum days limit');
-        break;
-      }
-    }
-    
-    daysToTarget = dayCounter;
-    console.log(`Estimated days to target using gradual model: ${daysToTarget}`);
+    daysToTarget = calculateDaysToTarget(
+      lastActualPoint.weight,
+      convertedTargetWeight,
+      avgDailyChange,
+      finalSustainableRate,
+      isWeightLoss
+    );
   }
 
   // Limit the forecast to either the period end date, or until target is reached, whichever comes first
@@ -142,79 +97,16 @@ export const generateForecastData = (
     endDate
   });
   
-  let previousWeight = lastActualPoint.weight;
-  const startWeight = lastActualPoint.weight;
-
-  // Start forecast FROM the day after the last actual weigh-in
-  for (let i = 1; i <= daysToForecast; i++) {
-    const forecastDate = addDays(new Date(lastActualPoint.date), i);
-    
-    // Calculate progress towards goal
-    const progressFactor = convertedTargetWeight === null ? 0 : isWeightLoss 
-      ? (startWeight - previousWeight) / (startWeight - convertedTargetWeight) 
-      : (previousWeight - startWeight) / (convertedTargetWeight - startWeight);
-    
-    // Calculate time factor
-    const timeFactor = Math.min(1, i / 90);  // Gradually over 90 days
-    
-    // Use the larger of the two factors
-    const combinedFactor = Math.max(progressFactor, timeFactor);
-    
-    // Adjust daily rate based on factors - gradually decrease to sustainable rate
-    const adjustedDailyRate = Math.abs(avgDailyChange) - 
-                            (Math.abs(avgDailyChange) - finalSustainableRate) * 
-                            Math.min(1, combinedFactor * 1.5);
-    
-    // Calculate new weight using adjusted rate
-    let forecastWeight;
-    if (isWeightLoss) {
-      forecastWeight = previousWeight - adjustedDailyRate;
-    } else {
-      forecastWeight = previousWeight + adjustedDailyRate;
-    }
-    
-    // If target weight is provided, check if we've reached it
-    if (convertedTargetWeight !== null) {
-      // For weight loss: stop if forecast goes below target
-      if (isWeightLoss && forecastWeight <= convertedTargetWeight) {
-        forecastData.push(createChartDataPoint(
-          forecastDate, 
-          convertedTargetWeight, 
-          false, 
-          true
-        ));
-        console.log(`Forecast reached target weight ${convertedTargetWeight} on day ${i}`);
-        // We've reached target, stop forecasting
-        break;
-      }
-      // For weight gain: stop if forecast goes above target
-      else if (!isWeightLoss && forecastWeight >= convertedTargetWeight) {
-        forecastData.push(createChartDataPoint(
-          forecastDate, 
-          convertedTargetWeight, 
-          false, 
-          true
-        ));
-        console.log(`Forecast reached target weight ${convertedTargetWeight} on day ${i}`);
-        // We've reached target, stop forecasting
-        break;
-      }
-    }
-    
-    forecastData.push(createChartDataPoint(
-      forecastDate, 
-      forecastWeight, 
-      false, 
-      true
-    ));
-
-    previousWeight = forecastWeight;
-    
-    // Log progress every 7 days
-    if (i % 7 === 0) {
-      console.log(`Day ${i} (${forecastDate.toISOString().split('T')[0]}): ${forecastWeight.toFixed(1)} (daily rate: ${adjustedDailyRate.toFixed(3)})`);
-    }
-  }
-
-  return forecastData;
+  // Generate forecast points
+  if (daysToForecast <= 0) return forecastData;
+  
+  return generateForecastPoints(
+    lastActualPoint,
+    daysToForecast,
+    lastActualPoint.weight,
+    convertedTargetWeight,
+    avgDailyChange,
+    finalSustainableRate,
+    isWeightLoss
+  );
 };
