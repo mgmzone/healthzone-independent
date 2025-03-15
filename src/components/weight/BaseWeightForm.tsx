@@ -33,6 +33,7 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
   const [skeletalMuscleMass, setSkeletalMuscleMass] = useState<string>('');
   const [boneMass, setBoneMass] = useState<string>('');
   const [bodyWaterPercentage, setBodyWaterPercentage] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,6 +61,8 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
 
     console.log("Submitting weight form:", { weightValue, date, additionalMetrics });
     
+    setIsSubmitting(true);
+    
     try {
       onSave(weightValue, date, additionalMetrics);
     } catch (error) {
@@ -69,6 +72,7 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
         description: "An error occurred while saving your weight data",
         variant: "destructive",
       });
+      setIsSubmitting(false);
     }
   };
   
@@ -110,10 +114,12 @@ const BaseWeightForm: React.FC<BaseWeightFormProps> = ({
         />
       </div>
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
+        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit">Save</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save"}
+        </Button>
       </DialogFooter>
     </form>
   );

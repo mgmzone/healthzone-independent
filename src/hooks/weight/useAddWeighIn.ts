@@ -9,7 +9,7 @@ export function useAddWeighIn() {
 
   const calculateNewProjectedEndDate = async (periodId: string, currentWeight: number) => {
     try {
-      // Step 1: Get period data
+      // Get period data first
       const { data: periodData, error: periodError } = await supabase
         .from('periods')
         .select('*')
@@ -21,11 +21,11 @@ export function useAddWeighIn() {
         return null;
       }
       
-      // Step 2: Extract required values from period data to avoid ambiguous references
+      // Extract period data to local variables to prevent ambiguous column references
       const periodStartWeight = periodData.start_weight;
       const periodTargetWeight = periodData.target_weight;
       
-      // Step 3: Get weigh-ins for analysis
+      // Get weigh-ins for analysis
       const { data: weighIns, error: weighInsError } = await supabase
         .from('weigh_ins')
         .select('*')
@@ -37,7 +37,7 @@ export function useAddWeighIn() {
         return null;
       }
       
-      // Step 4: Calculate date differences and weight loss rate
+      // Calculate date differences and weight loss rate
       const oldestWeighIn = weighIns[0];
       const latestWeighIn = weighIns[weighIns.length - 1];
       
@@ -50,7 +50,7 @@ export function useAddWeighIn() {
         return null;
       }
       
-      // Step 5: Calculate weight loss rate
+      // Calculate weight loss rate
       const initialWeightLossRate = 5.16; // Default high initial rate
       const finalWeightLossRate = 2.0; // Sustainable rate
       
@@ -61,7 +61,7 @@ export function useAddWeighIn() {
         weightLossPerWeek = periodData.weight_loss_per_week || 0.5;
       }
       
-      // Step 6: Calculate total weight to lose and progress
+      // Calculate total weight to lose and progress
       const totalWeightToLose = currentWeight - periodTargetWeight;
       
       if (totalWeightToLose <= 0) {
@@ -72,7 +72,7 @@ export function useAddWeighIn() {
       const totalGoalWeight = periodStartWeight - periodTargetWeight;
       const currentProgress = (periodStartWeight - currentWeight) / totalGoalWeight;
       
-      // Step 7: Simulate gradual weight loss
+      // Simulate gradual weight loss
       let remainingWeight = totalWeightToLose;
       let weeksNeeded = 0;
       
@@ -154,16 +154,16 @@ export function useAddWeighIn() {
           const newProjectedEndDate = await calculateNewProjectedEndDate(currentPeriod.id, weight);
           
           if (newProjectedEndDate) {
-            // Update ONLY the projected_end_date column
+            // Make sure we're explicitly updating ONLY the projected_end_date field
             const { error: updateError } = await supabase
               .from('periods')
-              .update({ 
-                projected_end_date: newProjectedEndDate.toISOString() 
-              })
+              .update({ projected_end_date: newProjectedEndDate.toISOString() })
               .eq('id', currentPeriod.id);
               
             if (updateError) {
               console.error("Error updating projected end date:", updateError);
+            } else {
+              console.log("Successfully updated projected end date to:", newProjectedEndDate);
             }
           }
         } catch (e) {
