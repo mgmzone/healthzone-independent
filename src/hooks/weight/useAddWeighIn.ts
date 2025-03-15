@@ -1,10 +1,10 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
-import { updateProfileCurrentWeight } from '@/lib/services/profileService';
+import { addWeighInRecord } from './services/weighInService';
 
 export function useAddWeighIn() {
-  const { toast, queryClient, getCurrentPeriod, supabase } = useWeightBase();
+  const { toast, queryClient, getCurrentPeriod } = useWeightBase();
 
   const addWeighIn = useMutation({
     mutationFn: async ({ 
@@ -24,44 +24,13 @@ export function useAddWeighIn() {
     }) => {
       console.log("Adding weigh-in with data:", { weight, date, additionalMetrics });
       const currentPeriod = getCurrentPeriod();
-      const userId = (await supabase.auth.getUser()).data.user?.id;
       
-      if (!userId) {
-        throw new Error("User not authenticated");
-      }
-      
-      const weighInData = {
+      return await addWeighInRecord(
         weight,
-        date: date.toISOString(),
-        user_id: userId,
-        period_id: currentPeriod?.id || null,
-        bmi: additionalMetrics?.bmi || null,
-        body_fat_percentage: additionalMetrics?.bodyFatPercentage || null,
-        skeletal_muscle_mass: additionalMetrics?.skeletalMuscleMass || null,
-        bone_mass: additionalMetrics?.boneMass || null,
-        body_water_percentage: additionalMetrics?.bodyWaterPercentage || null
-      };
-      
-      const { data, error } = await supabase
-        .from('weigh_ins')
-        .insert(weighInData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error inserting weigh-in:", error);
-        throw error;
-      }
-      
-      console.log("Weigh-in added successfully:", data);
-      
-      try {
-        await updateProfileCurrentWeight(weight);
-      } catch (profileError) {
-        console.error('Error updating profile with new weight:', profileError);
-      }
-      
-      return data;
+        date,
+        currentPeriod?.id || null,
+        additionalMetrics
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weighIns'] });
