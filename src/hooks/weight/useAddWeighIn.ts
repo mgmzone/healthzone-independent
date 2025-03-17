@@ -3,11 +3,13 @@ import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { differenceInDays, addDays } from 'date-fns';
 import { updateProfile } from '@/lib/services/profileService';
+import { usePeriodCalculations } from '@/hooks/periods/usePeriodCalculations';
 
 export function useAddWeighIn() {
   const { toast, queryClient, supabase, getCurrentPeriod } = useWeightBase();
+  const { calculateProjectedEndDate } = usePeriodCalculations();
 
-  const calculateProjectedEndDate = async (periodId: string, currentWeight: number) => {
+  const calculateProjectedEndDateFromWeights = async (periodId: string, currentWeight: number) => {
     try {
       // Get period details
       const { data: periodData, error: periodError } = await supabase
@@ -30,18 +32,17 @@ export function useAddWeighIn() {
         
       if (weighInsError || !weighIns || weighIns.length < 2) {
         // If we don't have enough data points, use the target weight loss rate
-        const weightToLose = periodData.start_weight - periodData.target_weight;
-        if (weightToLose <= 0) return null;
+        // and the period starting weight
+        const remainingWeight = currentWeight - periodData.target_weight;
+        if (remainingWeight <= 0) return null;
         
-        // Use curved calculation for weeks needed
-        const linearWeeksNeeded = weightToLose / periodData.weight_loss_per_week;
-        const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 3.1); // Increase from 70% to 210% to match chart forecast
-        
-        // Add two weeks buffer for smoother curve ending
-        const adjustedWeeks = curvedWeeksNeeded + 2;
-        
-        const startDate = new Date(periodData.start_date);
-        return new Date(startDate.setDate(startDate.getDate() + (adjustedWeeks * 7)));
+        // Use the same algorithm as in usePeriodCalculations
+        return calculateProjectedEndDate(
+          currentWeight, 
+          periodData.target_weight, 
+          periodData.weight_loss_per_week, 
+          new Date()
+        );
       }
       
       // Calculate based on actual data
@@ -60,15 +61,15 @@ export function useAddWeighIn() {
       // Only proceed if we're actually losing weight
       if (totalWeightLoss <= 0) return null;
       
-      // Calculate base linear rate
-      const linearWeightLossPerDay = totalWeightLoss / daysDifference;
+      // Get weekly rate from actual data
+      const actualWeeklyRate = (totalWeightLoss / daysDifference) * 7;
       
       console.log('Add weigh-in projected end date calculation:', {
         startWeight: oldestWeighIn.weight,
         latestWeight,
         totalWeightLoss,
         daysDifference,
-        linearWeightLossPerDay,
+        actualWeeklyRate,
         targetWeight: periodData.target_weight
       });
       
@@ -77,21 +78,13 @@ export function useAddWeighIn() {
       // If we've reached the target weight, return current date
       if (remainingWeightToLose <= 0) return new Date();
       
-      // Calculate days needed using a curved model instead of linear
-      // This adds more days to account for the slowdown as you approach your target weight
-      const linearDaysNeeded = remainingWeightToLose / linearWeightLossPerDay;
-      
-      // Apply curve adjustment - increase from 70% to 210% more time to account for greater slowing rate
-      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 3.1);
-      
-      // Add 14 days (2 weeks) to buffer the end of the curve
-      const bufferedDaysNeeded = curvedDaysNeeded + 14;
-      
-      console.log(`Projected days needed: ${bufferedDaysNeeded} (curved + buffer) vs ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
-      
-      // Calculate projected end date
-      return addDays(new Date(), bufferedDaysNeeded);
-      
+      // Use the same algorithm as in usePeriodCalculations
+      return calculateProjectedEndDate(
+        latestWeight, 
+        periodData.target_weight, 
+        actualWeeklyRate, 
+        new Date()
+      );
     } catch (error) {
       console.error("Error calculating projected end date:", error);
       return null;
@@ -145,9 +138,11 @@ export function useAddWeighIn() {
       // Update projected end date for the period if applicable
       if (currentPeriod?.id && currentPeriod.type === 'weightLoss') {
         try {
-          const newProjectedEndDate = await calculateProjectedEndDate(currentPeriod.id, weight);
+          const newProjectedEndDate = await calculateProjectedEndDateFromWeights(currentPeriod.id, weight);
           
           if (newProjectedEndDate) {
+            console.log("Updating projected end date to:", newProjectedEndDate);
+            
             const updateResult = await supabase
               .from('periods')
               .update({ projected_end_date: newProjectedEndDate.toISOString() })
