@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { FastingLog } from '@/lib/types';
 import { format, addHours } from 'date-fns';
 import FastingDateTimeFields from './modal/FastingDateTimeFields';
 import FastingHoursFields from './modal/FastingHoursFields';
-import { useFastingTimeCalculation } from '@/hooks/useFastingTimeCalculation';
+import { useFastingEntryCalculation } from '@/hooks/useFastingEntryCalculation';
 
 interface FastingEntryModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ const FastingEntryModal: React.FC<FastingEntryModalProps> = ({
     eatingWindowHours,
     setEatingWindowHours,
     calculateFastingHours
-  } = useFastingTimeCalculation(startDate, startTime, endDate, endTime, isAutoCalculate);
+  } = useFastingEntryCalculation(startDate, startTime, endDate, endTime, isAutoCalculate);
 
   useEffect(() => {
     if (initialFast) {
