@@ -14,7 +14,7 @@ const Admin = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 pt-24 pb-40">
+      <div className="container mx-auto p-6 pt-24 pb-48">
         <div className="flex items-center mb-8">
           <ShieldCheck className="h-6 w-6 mr-2 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -28,7 +28,7 @@ const Admin = () => {
         )}
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          <TabsList className="mb-2">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -43,7 +43,7 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-8">
-                <p>This is a protected admin area. Only users with admin privileges can access this page.</p>
+                <p className="mb-6">This is a protected admin area. Only users with admin privileges can access this page.</p>
                 
                 <SystemStatsCards stats={stats} isLoading={isLoading} />
                 

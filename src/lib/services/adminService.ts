@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ActivityLogItem } from "@/components/admin/charts/chartDataGenerator";
 import { User } from "@/lib/types";
@@ -25,7 +26,7 @@ export interface SystemStats {
 
 export async function getUsersWithStats(): Promise<UserStats[]> {
   try {
-    // Get all users using our security definer function with explicit column selection
+    // Get all users using our security definer function
     const { data: users, error: usersError } = await supabase
       .rpc('get_all_users_for_admin');
 
@@ -101,13 +102,7 @@ export async function getSystemStats(): Promise<SystemStats> {
 
     if (error) {
       console.error('Error fetching system stats:', error);
-      return {
-        totalUsers: 0,
-        activePeriods: 0,
-        totalWeighIns: 0,
-        totalFasts: 0,
-        totalExercises: 0
-      };
+      throw error;
     }
 
     const systemStats = stats && stats.length > 0 ? stats[0] : {
@@ -127,13 +122,7 @@ export async function getSystemStats(): Promise<SystemStats> {
     };
   } catch (error) {
     console.error('Error in getSystemStats:', error);
-    return {
-      totalUsers: 0,
-      activePeriods: 0,
-      totalWeighIns: 0,
-      totalFasts: 0,
-      totalExercises: 0
-    };
+    throw error;
   }
 }
 
