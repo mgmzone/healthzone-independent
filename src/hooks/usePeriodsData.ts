@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Period } from '@/lib/types';
@@ -32,7 +33,7 @@ export function usePeriodsData() {
         userId: item.user_id,
         startDate: new Date(item.start_date),
         endDate: item.end_date ? new Date(item.end_date) : undefined,
-        originalEndDate: item.end_date ? new Date(item.end_date) : undefined, // Use end_date as originalEndDate too
+        originalEndDate: item.end_date ? new Date(item.end_date) : undefined,
         type: item.type as 'weightLoss' | 'maintenance',
         startWeight: item.start_weight,
         targetWeight: item.target_weight,
@@ -44,12 +45,22 @@ export function usePeriodsData() {
   });
 
   const calculateProjectedEndDate = (startWeight: number, targetWeight: number, weightLossPerWeek: number, startDate: Date) => {
-    if (startWeight > targetWeight && weightLossPerWeek > 0) {
-      const totalWeightToLose = startWeight - targetWeight;
-      const weeksNeeded = Math.ceil(totalWeightToLose / weightLossPerWeek);
-      return addWeeks(startDate, weeksNeeded);
-    }
-    return undefined;
+    // Only calculate for weight loss
+    if (startWeight <= targetWeight || weightLossPerWeek <= 0) return undefined;
+    
+    // Calculate total weight to lose
+    const totalWeightToLose = startWeight - targetWeight;
+    
+    // Calculate weeks needed based on the target rate
+    const weeksNeeded = Math.ceil(totalWeightToLose / weightLossPerWeek);
+    
+    // Set a practical maximum on projected duration (2 years)
+    const maxWeeks = 104;
+    const adjustedWeeks = Math.min(weeksNeeded, maxWeeks);
+    
+    console.log(`Calculating initial projected end date: ${weeksNeeded} weeks needed to lose ${totalWeightToLose} at ${weightLossPerWeek}/week`);
+    
+    return addWeeks(startDate, adjustedWeeks);
   };
 
   const addPeriod = useMutation({

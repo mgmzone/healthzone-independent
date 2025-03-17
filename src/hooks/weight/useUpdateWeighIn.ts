@@ -1,3 +1,4 @@
+
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { useWeightQuery } from './useWeightQuery';
@@ -35,19 +36,42 @@ export function useUpdateWeighIn() {
       
       if (daysDifference < 1) return null;
       
+      // Calculate actual weight loss rate based on real data
       const totalWeightLoss = oldestWeighIn.weight - latestWeighIn.weight;
+      
+      // Only proceed if we're actually losing weight (for weight loss periods)
+      if (periodData.type === 'weightLoss' && totalWeightLoss <= 0) return null;
+      
       const weightLossPerDay = totalWeightLoss / daysDifference;
       const weightLossPerWeek = weightLossPerDay * 7;
       
+      console.log('Calculated weight change rate:', {
+        oldestWeight: oldestWeighIn.weight,
+        latestWeight: latestWeighIn.weight, 
+        totalWeightLoss,
+        daysDifference,
+        weightLossPerDay,
+        weightLossPerWeek,
+        targetWeight: periodData.target_weight
+      });
+      
+      // Only proceed if we have a meaningful weight loss rate
       if (weightLossPerWeek <= 0.05) return null;
       
-      const remainingWeightToLose = currentWeight - periodData.target_weight;
+      const remainingWeightToLose = latestWeighIn.weight - periodData.target_weight;
       
-      if (remainingWeightToLose <= 0) return null;
+      // If we've reached or surpassed the target weight, return the current date
+      if (remainingWeightToLose <= 0) return new Date();
       
-      const weeksNeeded = Math.ceil(remainingWeightToLose / weightLossPerWeek);
+      // Calculate days needed to reach target based on current rate
+      const daysNeeded = Math.ceil(remainingWeightToLose / weightLossPerDay);
+      console.log(`Based on current rate, need ${daysNeeded} more days to reach target weight`);
       
-      return addWeeks(new Date(), weeksNeeded);
+      // Calculate the projected end date
+      const projectedEndDate = new Date(latestDate);
+      projectedEndDate.setDate(projectedEndDate.getDate() + daysNeeded);
+      
+      return projectedEndDate;
     } catch (error) {
       console.error("Error calculating projected end date:", error);
       return null;
@@ -115,10 +139,16 @@ export function useUpdateWeighIn() {
             const newProjectedEndDate = await calculateNewProjectedEndDate(weighInData.period_id, weight);
             
             if (newProjectedEndDate) {
-              await supabase
+              const updateResult = await supabase
                 .from('periods')
                 .update({ projected_end_date: newProjectedEndDate.toISOString() })
                 .eq('id', weighInData.period_id);
+                
+              if (updateResult.error) {
+                console.error("Error saving projected end date:", updateResult.error);
+              } else {
+                console.log("Successfully updated projected end date to:", newProjectedEndDate);
+              }
             }
           } catch (e) {
             console.error("Error updating projected end date:", e);
