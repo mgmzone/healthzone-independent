@@ -19,11 +19,14 @@ export function usePeriodCalculations() {
     // Increasing from 70% to 210% to account for the significant slowdown in the curve model
     const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 3.1);
     
+    // Add two more weeks to allow for a smoother end to the curve
+    const adjustedWeeksWithBuffer = curvedWeeksNeeded + 2;
+    
     // Set a practical maximum on projected duration (2 years)
     const maxWeeks = 104;
-    const adjustedWeeks = Math.min(curvedWeeksNeeded, maxWeeks);
+    const adjustedWeeks = Math.min(adjustedWeeksWithBuffer, maxWeeks);
     
-    console.log(`Calculating projected end date using curved model: ${curvedWeeksNeeded} weeks (was ${linearWeeksNeeded.toFixed(1)} linear) needed to lose ${totalWeightToLose} at ${weightLossPerWeek}/week`);
+    console.log(`Calculating projected end date using curved model: ${curvedWeeksNeeded} weeks (was ${linearWeeksNeeded.toFixed(1)} linear) needed to lose ${totalWeightToLose} at ${weightLossPerWeek}/week, with 2 week buffer = ${adjustedWeeksWithBuffer}`);
     
     return addWeeks(startDate, adjustedWeeks);
   };

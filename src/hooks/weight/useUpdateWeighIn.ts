@@ -63,10 +63,13 @@ export function useUpdateWeighIn() {
       
       const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 3.1);
       
-      console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
+      // Add 14 days (2 weeks) buffer for a smoother curve ending
+      const bufferedDaysNeeded = curvedDaysNeeded + 14;
+      
+      console.log(`Projected days needed: ${bufferedDaysNeeded} (curved + buffer) vs ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
       const projectedEndDate = new Date(latestDate);
-      projectedEndDate.setDate(projectedEndDate.getDate() + curvedDaysNeeded);
+      projectedEndDate.setDate(projectedEndDate.getDate() + bufferedDaysNeeded);
       
       return projectedEndDate;
     } catch (error) {

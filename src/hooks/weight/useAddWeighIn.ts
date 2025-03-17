@@ -37,8 +37,11 @@ export function useAddWeighIn() {
         const linearWeeksNeeded = weightToLose / periodData.weight_loss_per_week;
         const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 3.1); // Increase from 70% to 210% to match chart forecast
         
+        // Add two weeks buffer for smoother curve ending
+        const adjustedWeeks = curvedWeeksNeeded + 2;
+        
         const startDate = new Date(periodData.start_date);
-        return new Date(startDate.setDate(startDate.getDate() + (curvedWeeksNeeded * 7)));
+        return new Date(startDate.setDate(startDate.getDate() + (adjustedWeeks * 7)));
       }
       
       // Calculate based on actual data
@@ -81,10 +84,13 @@ export function useAddWeighIn() {
       // Apply curve adjustment - increase from 70% to 210% more time to account for greater slowing rate
       const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 3.1);
       
-      console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
+      // Add 14 days (2 weeks) to buffer the end of the curve
+      const bufferedDaysNeeded = curvedDaysNeeded + 14;
+      
+      console.log(`Projected days needed: ${bufferedDaysNeeded} (curved + buffer) vs ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
       // Calculate projected end date
-      return addDays(new Date(), curvedDaysNeeded);
+      return addDays(new Date(), bufferedDaysNeeded);
       
     } catch (error) {
       console.error("Error calculating projected end date:", error);
