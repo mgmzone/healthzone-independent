@@ -37,6 +37,7 @@ export const calculateWeightRange = (
 };
 
 // Generate forecast data points from last actual weigh-in to target weight
+// with a curved trend line that shows faster loss at the beginning
 export const generateForecastPoints = (
   lastWeighIn: {date: Date, weight: number},
   targetWeight: number | undefined,
@@ -54,28 +55,38 @@ export const generateForecastPoints = (
   // Determine if this is weight loss or gain
   const isWeightLoss = lastWeighIn.weight > targetWeight;
   
-  // Calculate total weight change needed and daily rate
+  // Calculate total weight change needed
   const totalWeightChange = Math.abs(lastWeighIn.weight - targetWeight);
   
-  // Use the provided weekly rate if available, otherwise calculate based on end date
+  // Initialize variables for the curve generation
   let dailyRate;
+  
+  // Use the provided weekly rate if available, otherwise calculate based on end date
   if (weightLossPerWeek && weightLossPerWeek > 0) {
     dailyRate = weightLossPerWeek / 7;
   } else {
-    // Calculate required daily rate to reach target by end date
+    // Base rate calculation - this is a starting point, we'll adjust it with a curve
     dailyRate = totalWeightChange / daysToProjectedEnd;
   }
   
-  // Cap the daily rate to realistic values (0.1% - 0.5% of current weight per day)
+  // Cap the initial daily rate to realistic values (0.1% - 0.5% of current weight per day)
   const minRate = lastWeighIn.weight * 0.001; // 0.1% daily
   const maxRate = lastWeighIn.weight * 0.005; // 0.5% daily
-  dailyRate = Math.max(minRate, Math.min(dailyRate, maxRate));
+  
+  // Initial daily rate (will be adjusted as we progress)
+  const initialDailyRate = Math.max(minRate, Math.min(dailyRate, maxRate));
+  
+  // Final sustainable rate (lower than initial rate)
+  // For imperial units (lbs), around 0.3 lbs per day (2 lbs per week)
+  // For metric units (kg), around 0.14 kg per day (1 kg per week)
+  const finalSustainableRate = initialDailyRate * 0.6; // 60% of initial rate as a sustainable target
   
   console.log('Forecast calculation:', {
     daysToProjectedEnd,
     isWeightLoss,
     totalWeightChange,
-    dailyRate,
+    initialDailyRate,
+    finalSustainableRate,
     lastWeighInDate: lastWeighIn.date.toISOString().split('T')[0],
     lastWeighInWeight: lastWeighIn.weight,
     targetWeight,
@@ -94,12 +105,24 @@ export const generateForecastPoints = (
     isForecast: true
   });
   
-  // Generate points every 3 days until we reach the target or the end date
+  // Generate points every 3 days for a smoother curve with more data points
   for (let day = 3; day <= daysToProjectedEnd; day += 3) {
     currentDate = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
     
+    // Calculate progress percentage toward target (0 to 1)
+    const progressPercent = day / daysToProjectedEnd;
+    
+    // Calculate adjusted rate using a curve function
+    // This creates a more dramatic curve - faster at beginning, slower near end
+    // The exponent (0.5) creates a "square root" curve - fast initial progress that slows down
+    const curveFactor = Math.pow(progressPercent, 0.5);
+    
+    // Linear interpolation between initial and final rate based on curve
+    const adjustedDailyRate = initialDailyRate - (initialDailyRate - finalSustainableRate) * curveFactor;
+    
+    // Apply the 3-day change
     if (isWeightLoss) {
-      currentWeight -= dailyRate * 3; // 3 days of weight change
+      currentWeight -= adjustedDailyRate * 3; // 3 days of weight change
       // Stop if we've reached or passed the target
       if (currentWeight <= targetWeight) {
         forecastPoints.push({
@@ -110,7 +133,7 @@ export const generateForecastPoints = (
         break;
       }
     } else {
-      currentWeight += dailyRate * 3; // 3 days of weight change
+      currentWeight += adjustedDailyRate * 3; // 3 days of weight change
       // Stop if we've reached or passed the target
       if (currentWeight >= targetWeight) {
         forecastPoints.push({
