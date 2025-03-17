@@ -18,7 +18,7 @@ export function isToday(date: Date): boolean {
     date.getFullYear() === today.getFullYear();
 }
 
-export function prepareChartData(logs: ExerciseLog[], timeFilter: TimeFilter) {
+export function prepareChartData(logs: ExerciseLog[], timeFilter: TimeFilter, isImperial: boolean = false) {
   const today = new Date();
   const data: any[] = [];
   
@@ -36,10 +36,18 @@ export function prepareChartData(logs: ExerciseLog[], timeFilter: TimeFilter) {
                logDate.getFullYear() === date.getFullYear();
       });
       
+      // Calculate total distance in km first
+      const totalDistanceKm = dayLogs.reduce((sum, log) => sum + (log.distance || 0), 0);
+      
+      // Convert to miles if imperial units are selected
+      const totalDistance = isImperial 
+        ? (totalDistanceKm * 0.621371).toFixed(1) 
+        : totalDistanceKm.toFixed(1);
+      
       data.push({
         name: format(date, 'EEE'),
         minutes: dayLogs.reduce((sum, log) => sum + log.minutes, 0),
-        distance: dayLogs.reduce((sum, log) => sum + (log.distance || 0), 0).toFixed(1),
+        distance: totalDistance,
         walk: dayLogs.filter(log => log.type === 'walk').reduce((sum, log) => sum + log.minutes, 0),
         run: dayLogs.filter(log => log.type === 'run').reduce((sum, log) => sum + log.minutes, 0),
         bike: dayLogs.filter(log => log.type === 'bike').reduce((sum, log) => sum + log.minutes, 0),
@@ -63,10 +71,18 @@ export function prepareChartData(logs: ExerciseLog[], timeFilter: TimeFilter) {
         return logDate >= weekStart && logDate <= weekEnd;
       });
       
+      // Calculate total distance in km first
+      const totalDistanceKm = weekLogs.reduce((sum, log) => sum + (log.distance || 0), 0);
+      
+      // Convert to miles if imperial units are selected
+      const totalDistance = isImperial 
+        ? (totalDistanceKm * 0.621371).toFixed(1) 
+        : totalDistanceKm.toFixed(1);
+      
       data.push({
         name: `Week ${i + 1}`,
         minutes: weekLogs.reduce((sum, log) => sum + log.minutes, 0),
-        distance: weekLogs.reduce((sum, log) => sum + (log.distance || 0), 0).toFixed(1),
+        distance: totalDistance,
         walk: weekLogs.filter(log => log.type === 'walk').reduce((sum, log) => sum + log.minutes, 0),
         run: weekLogs.filter(log => log.type === 'run').reduce((sum, log) => sum + log.minutes, 0),
         bike: weekLogs.filter(log => log.type === 'bike').reduce((sum, log) => sum + log.minutes, 0),

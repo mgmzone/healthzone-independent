@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from 'recharts';
 import { ExerciseLog, TimeFilter } from '@/lib/types';
 import { prepareChartData } from './summaryUtils';
+import { useAuth } from '@/lib/AuthContext';
 
 interface ActivityChartsProps {
   exerciseLogs: ExerciseLog[];
@@ -14,7 +15,13 @@ const ActivityCharts: React.FC<ActivityChartsProps> = ({
   exerciseLogs,
   timeFilter
 }) => {
-  const dataForChart = prepareChartData(exerciseLogs, timeFilter);
+  const { profile } = useAuth();
+  const isImperial = profile?.measurementUnit === 'imperial';
+  
+  const dataForChart = prepareChartData(exerciseLogs, timeFilter, isImperial);
+  
+  // Get the appropriate distance unit label based on user's measurement preference
+  const distanceUnit = isImperial ? 'mi' : 'km';
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -54,7 +61,7 @@ const ActivityCharts: React.FC<ActivityChartsProps> = ({
                 <Tooltip />
                 <Legend />
                 <Line type="monotone" dataKey="minutes" stroke="#8884d8" name="Minutes" />
-                <Line type="monotone" dataKey="distance" stroke="#82ca9d" name="Distance (km)" />
+                <Line type="monotone" dataKey="distance" stroke="#82ca9d" name={`Distance (${distanceUnit})`} />
               </LineChart>
             </ResponsiveContainer>
           </div>
