@@ -26,7 +26,8 @@ export interface SystemStats {
 
 export async function getUsersWithStats(): Promise<UserStats[]> {
   try {
-    // Get all users using our security definer function
+    // Get all users using our security definer function with explicit column selection
+    // to avoid ambiguous column references
     const { data: users, error: usersError } = await supabase
       .rpc('get_all_users_for_admin');
 
@@ -138,7 +139,7 @@ export async function getSystemStats(): Promise<SystemStats> {
   }
 }
 
-// New function to fetch activity logs for charts
+// Function to fetch activity logs for charts
 export async function getActivityLogs(): Promise<ActivityLogItem[]> {
   try {
     // Fetch user weigh-ins
