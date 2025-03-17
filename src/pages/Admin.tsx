@@ -14,7 +14,7 @@ const Admin = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 pt-24 pb-24">
+      <div className="container mx-auto p-6 pt-24 pb-36">
         <div className="flex items-center mb-8">
           <ShieldCheck className="h-6 w-6 mr-2 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
