@@ -39,7 +39,12 @@ export const useChartDomains = (
         if (!d) return null;
         
         // Convert date to timestamp for consistent processing
-        const timestamp = ensureDate(d.date).getTime();
+        let timestamp;
+        if (typeof d.date === 'number') {
+          timestamp = d.date;
+        } else {
+          timestamp = ensureDate(d.date).getTime();
+        }
         
         return {
           ...d,
@@ -102,9 +107,9 @@ export const useChartDomains = (
     if (processedDisplayData.length > 0) {
       // Find the earliest date in processed data
       earliestDate = processedDisplayData.reduce((earliest, point) => {
-        const date = ensureDate(point.date);
+        const date = new Date(point.date);
         return date < earliest ? date : earliest;
-      }, ensureDate(processedDisplayData[0].date));
+      }, new Date(processedDisplayData[0].date));
     }
     
     // Find target date (the last date in the forecast)
@@ -112,8 +117,8 @@ export const useChartDomains = (
     const lastTargetPoint = processedTargetLine.length > 0 ? processedTargetLine[processedTargetLine.length - 1] : null;
     
     // For x-axis domain, use the latest end date between forecast and target line
-    const forecastEndDate = lastForecastPoint ? ensureDate(lastForecastPoint.date) : null;
-    const targetEndDate = lastTargetPoint ? ensureDate(lastTargetPoint.date) : null;
+    const forecastEndDate = lastForecastPoint ? new Date(lastForecastPoint.date) : null;
+    const targetEndDate = lastTargetPoint ? new Date(lastTargetPoint.date) : null;
     
     let latestDate = today;
     if (forecastEndDate && targetEndDate) {
@@ -136,8 +141,8 @@ export const useChartDomains = (
     const domainEnd = domainEndDate.getTime();
 
     console.log('Chart domains calculated:', {
-      earliestDate,
-      latestDate,
+      earliestDate: earliestDate.toISOString(),
+      latestDate: latestDate.toISOString(),
       domainStart,
       domainEnd,
       actualDataCount: actualData.length,
@@ -153,7 +158,7 @@ export const useChartDomains = (
       forecastData,
       lastActualPoint,
       today,
-      targetDate: lastForecastPoint ? ensureDate(lastForecastPoint.date) : null,
+      targetDate: lastForecastPoint ? new Date(lastForecastPoint.date) : null,
       periodEndDate: latestDate
     };
   }, [displayData, targetLine, activeView]);

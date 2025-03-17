@@ -10,7 +10,7 @@ export const calculateWeightRange = (
   const validWeights = weights.filter(w => w !== null && w !== undefined && !isNaN(w));
   
   if (validWeights.length === 0) {
-    return { minWeight: 0, maxWeight: 0 };
+    return { minWeight: 0, maxWeight: 100 }; // Default range for empty data
   }
   
   // Include target weight in range calculation if provided
@@ -21,9 +21,9 @@ export const calculateWeightRange = (
   
   // Ensure there's always space at the top and bottom of the chart (10% padding)
   const range = max - min;
-  const padding = Math.max(range * 0.1, 2);
+  const padding = Math.max(range * 0.15, 5); // At least 5 units of padding
   
-  // Round to more readable numbers
+  // Round values nicely
   const minWeight = Math.floor(min - padding);
   const maxWeight = Math.ceil(max + padding);
   

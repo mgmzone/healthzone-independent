@@ -29,10 +29,13 @@ export default function WeightForecastChartWrapper(props: WeightForecastChartPro
     weighInsCount: props.weighIns?.length || 0
   });
   
+  // Create a deep copy of weighIns to prevent any mutation issues
+  const weighInsCopy = props.weighIns.map(w => ({...w}));
+  
   return (
     <div className="w-full h-full">
       <WeightForecastChart 
-        weighIns={props.weighIns} 
+        weighIns={weighInsCopy} 
         currentPeriod={props.currentPeriod}
         isImperial={props.isImperial || false}
         targetWeight={displayTargetWeight}

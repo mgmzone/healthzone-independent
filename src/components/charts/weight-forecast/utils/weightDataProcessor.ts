@@ -101,7 +101,7 @@ export const processWeighInData = (
   
   return {
     chartData,
-    hasValidData: true
+    hasValidData: chartData.length >= 2
   };
 };
 
