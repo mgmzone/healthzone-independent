@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut, Calendar, Scale } from 'lucide-react';
+import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut, Calendar, Scale, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
@@ -14,7 +14,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   
   const isLandingPage = location.pathname === '/';
   
@@ -32,6 +32,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Base navigation links for all authenticated users
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: BarChart },
     { name: 'Weight', path: '/weight', icon: Scale },
@@ -40,6 +41,11 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
     { name: 'Periods', path: '/periods', icon: Calendar },
     { name: 'Profile', path: '/profile', icon: User },
   ];
+
+  // Add Admin link for admin users
+  if (profile?.isAdmin) {
+    navLinks.push({ name: 'Admin', path: '/admin', icon: ShieldCheck });
+  }
 
   return (
     <header 

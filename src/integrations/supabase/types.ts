@@ -205,6 +205,7 @@ export type Database = {
           health_goals: string | null
           height: number | null
           id: string
+          is_admin: boolean
           last_name: string | null
           measurement_unit: string | null
           starting_weight: number | null
@@ -223,6 +224,7 @@ export type Database = {
           health_goals?: string | null
           height?: number | null
           id: string
+          is_admin?: boolean
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
@@ -241,6 +243,7 @@ export type Database = {
           health_goals?: string | null
           height?: number | null
           id?: string
+          is_admin?: boolean
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null

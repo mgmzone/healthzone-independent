@@ -64,7 +64,8 @@ export async function getProfile() {
       firstName: data.first_name || '',
       lastName: data.last_name || '',
       avatarUrl: avatarUrl || data.avatar_url || '',
-      startingWeight: data.starting_weight || 0
+      startingWeight: data.starting_weight || 0,
+      isAdmin: data.is_admin || false // Added this field
     };
     return transformedData;
   }

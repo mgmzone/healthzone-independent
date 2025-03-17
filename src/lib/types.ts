@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -16,6 +15,7 @@ export interface User {
   lastName: string;
   avatarUrl?: string;
   startingWeight?: number;
+  isAdmin: boolean;
 }
 
 export interface Period {
@@ -23,7 +23,7 @@ export interface Period {
   userId: string;
   startDate: Date | string;
   endDate?: Date | string;
-  originalEndDate?: Date | string; // Added originalEndDate field
+  originalEndDate?: Date | string;
   type: 'weightLoss' | 'maintenance';
   startWeight: number;
   targetWeight: number;
@@ -96,6 +96,7 @@ export const mockUser: User = {
   lastName: 'Doe',
   avatarUrl: '',
   startingWeight: 90,
+  isAdmin: false,
 };
 
 export const mockWeighIns: WeighIn[] = [
