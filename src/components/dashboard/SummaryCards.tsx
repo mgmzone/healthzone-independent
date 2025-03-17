@@ -94,6 +94,21 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return currentWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
   };
 
+  const calculatePreviousWeekExercise = () => {
+    if (exerciseLogs.length === 0) return 0;
+    
+    const now = new Date();
+    const previousWeekStart = startOfWeek(subWeeks(now, 1));
+    const previousWeekEnd = endOfWeek(subWeeks(now, 1));
+    
+    const previousWeekLogs = exerciseLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return isWithinInterval(logDate, { start: previousWeekStart, end: previousWeekEnd });
+    });
+    
+    return previousWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
+  };
+
   const calculateAverageWeeklyExercise = () => {
     if (exerciseLogs.length === 0) return 0;
     
@@ -221,13 +236,8 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     });
     
     values.push({
-      label: "Weekly Avg",
-      value: `${calculateAverageWeeklyExercise()} mins`
-    });
-    
-    values.push({
-      label: "Goal",
-      value: `${calculateExerciseGoalPercentage()}%`
+      label: "Previous Week",
+      value: `${calculatePreviousWeekExercise()} mins`
     });
     
     return values;
