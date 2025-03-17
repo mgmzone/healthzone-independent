@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
@@ -13,6 +12,13 @@ interface SummaryCardProps {
   color: string;
 }
 
+interface MultiValueCardProps {
+  title: string;
+  values: { label: string; value: string }[];
+  icon: LucideIcon;
+  color: string;
+}
+
 interface SummaryCardsProps {
   latestWeight: number | null;
   weightUnit: string;
@@ -21,6 +27,49 @@ interface SummaryCardsProps {
   fastingLogs: FastingLog[];
   getDaysRemaining: (date: Date, projectedEndDate?: Date | string | undefined) => number;
 }
+
+const MultiValueCard: React.FC<MultiValueCardProps> = ({ title, values, icon: Icon, color }) => {
+  return (
+    <Card className="border-t-4" style={{ borderTopColor: color }}>
+      <CardContent className="pt-6">
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 rounded-full" style={{ backgroundColor: `${color}10` }}>
+              <Icon className="h-5 w-5" style={{ color: color }} />
+            </div>
+            <h3 className="font-semibold text-lg">{title}</h3>
+          </div>
+          <div className="grid grid-cols-1 gap-2 mt-2">
+            {values.map((item, idx) => (
+              <div key={idx} className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">{item.label}:</span>
+                <span className="text-sm font-medium">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const StandardCard: React.FC<SummaryCardProps> = ({ title, value, icon: Icon, color }) => {
+  return (
+    <Card className="border-t-4" style={{ borderTopColor: color }}>
+      <CardContent className="pt-6">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 rounded-full" style={{ backgroundColor: `${color}10` }}>
+            <Icon className="h-5 w-5" style={{ color: color }} />
+          </div>
+          <div>
+            <h3 className="font-semibold text-lg mb-1">{title}</h3>
+            <p className="text-sm text-muted-foreground">{value}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const SummaryCards: React.FC<SummaryCardsProps> = ({
   latestWeight,
@@ -84,13 +133,45 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return ` (${format(endDate, 'MMM d, yyyy')})`;
   };
 
-  const summaryCards: SummaryCardProps[] = [
-    {
-      title: "Current Weight",
-      value: latestWeight ? `${latestWeight.toFixed(1)} ${weightUnit}` : "No data",
-      icon: Scale,
-      color: "#4287f5"
-    },
+  // Format a weight value with the appropriate unit
+  const formatWeight = (weight: number | undefined | null): string => {
+    if (weight === undefined || weight === null) return "No data";
+    return `${weight.toFixed(1)} ${weightUnit}`;
+  };
+
+  // Create weight values array for the multi-value card
+  const getWeightValues = () => {
+    const values = [];
+    
+    // Add starting weight if available
+    if (currentPeriod) {
+      const startingWeight = currentPeriod.startWeight;
+      values.push({ 
+        label: "Starting", 
+        value: formatWeight(startingWeight ? (weightUnit === 'lbs' ? startingWeight * 2.20462 : startingWeight) : null) 
+      });
+    }
+    
+    // Add current weight
+    values.push({ 
+      label: "Current", 
+      value: formatWeight(latestWeight) 
+    });
+    
+    // Add target weight if available
+    if (currentPeriod) {
+      const targetWeight = currentPeriod.targetWeight;
+      values.push({ 
+        label: "Target", 
+        value: formatWeight(targetWeight ? (weightUnit === 'lbs' ? targetWeight * 2.20462 : targetWeight) : null) 
+      });
+    }
+    
+    return values;
+  };
+
+  // Standard cards (for exercise, fasting, and period)
+  const standardCards = [
     {
       title: "Active Period",
       value: currentPeriod 
@@ -116,20 +197,23 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {summaryCards.map((card, index) => (
-          <Card key={index} className="border-t-4" style={{ borderTopColor: card.color }}>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full" style={{ backgroundColor: `${card.color}10` }}>
-                  <card.icon className="h-5 w-5" style={{ color: card.color }} />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg mb-1">{card.title}</h3>
-                  <p className="text-sm text-muted-foreground">{card.value}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Weight multi-value card */}
+        <MultiValueCard
+          title="Weight"
+          values={getWeightValues()}
+          icon={Scale}
+          color="#4287f5"
+        />
+        
+        {/* Other standard cards */}
+        {standardCards.map((card, index) => (
+          <StandardCard
+            key={index}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            color={card.color}
+          />
         ))}
       </div>
     </div>
