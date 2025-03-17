@@ -59,35 +59,35 @@ export async function calculateProjectedEndDateFromWeights(
       weight: currentWeight // Use the new weight we're adding
     };
     
-    // Use the same forecast generator that the chart uses
+    // Calculate a preliminary end date using the period calculation method
+    // This gives us a reasonable starting point
+    const prelimEndDate = calculateProjectedEndDate(
+      currentWeight,
+      periodData.target_weight,
+      periodData.weight_loss_per_week,
+      new Date()
+    );
+    
+    console.log('Preliminary end date calculation:', prelimEndDate);
+    
+    // Use the same forecast generator that the chart uses, providing our preliminary end date
     const forecastPoints = generateForecastPoints(
       latestWeighIn,
       periodData.target_weight,
-      periodData.projected_end_date ? new Date(periodData.projected_end_date) : undefined,
+      prelimEndDate,
       periodData.weight_loss_per_week
     );
     
-    // If forecast was generated successfully and has at least one point with the target weight,
-    // use the date of that point as the projected end date
+    // If forecast was generated successfully and has at least one point
     if (forecastPoints.length > 0) {
-      // Find the point where the target weight is reached
-      const targetPoint = forecastPoints.find(point => 
-        Math.abs(point.weight - periodData.target_weight) < 0.1
-      );
-      
-      if (targetPoint) {
-        console.log('Using forecast to determine projected end date:', targetPoint.date);
-        return new Date(targetPoint.date);
-      }
-      
-      // If we couldn't find an exact match, use the last point
+      // The last point of our forecast should be at the target weight
       const lastPoint = forecastPoints[forecastPoints.length - 1];
-      console.log('Using last forecast point as projected end date:', lastPoint.date);
+      console.log('Using forecast endpoint as projected end date:', lastPoint.date, 'with weight', lastPoint.weight);
       return new Date(lastPoint.date);
     }
     
+    // Fall back to the calculation from usePeriodCalculations if forecast generation fails
     console.log('Falling back to period calculations for projected end date');
-    // Fall back to the calculation from usePeriodCalculations
     return calculateProjectedEndDate(
       currentWeight, 
       periodData.target_weight, 

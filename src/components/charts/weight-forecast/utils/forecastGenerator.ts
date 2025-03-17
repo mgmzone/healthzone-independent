@@ -12,9 +12,24 @@ export const generateForecastPoints = (
   projectedEndDate: Date | undefined,
   weightLossPerWeek?: number
 ) => {
-  if (!lastWeighIn || !targetWeight || !projectedEndDate) {
-    console.log('Missing data for forecast generation', { lastWeighIn, targetWeight, projectedEndDate });
+  if (!lastWeighIn || !targetWeight) {
+    console.log('Missing data for forecast generation', { lastWeighIn, targetWeight });
     return [];
+  }
+  
+  // If no projected end date is provided, calculate a reasonable one
+  if (!projectedEndDate) {
+    if (!weightLossPerWeek || weightLossPerWeek <= 0) {
+      console.log('Cannot generate forecast without either projectedEndDate or weightLossPerWeek');
+      return [];
+    }
+
+    // Calculate a reasonable projected end date using the weight loss rate
+    const totalWeightChange = Math.abs(lastWeighIn.weight - targetWeight);
+    const weeksNeeded = totalWeightChange / weightLossPerWeek;
+    const daysNeeded = Math.ceil(weeksNeeded * 7) + 14; // Add 2 weeks buffer
+    projectedEndDate = addDays(lastWeighIn.date, daysNeeded);
+    console.log(`Calculated projected end date: ${projectedEndDate.toISOString()}`);
   }
   
   // Calculate days between last weigh-in and projected end date
@@ -76,16 +91,31 @@ export const generateForecastPoints = (
   // Number of days per point - using smaller increments for smoother curve
   const daysPerPoint = 2; // Generate a point every 2 days
   
+  // Calculate days needed to reach target based on the actual rate
+  const actualDaysToTarget = isWeightLoss ? 
+    Math.ceil(totalWeightChange / (initialDailyRate * 0.8)) : // Loss slows down, so more days needed
+    Math.ceil(totalWeightChange / initialDailyRate);
+    
+  // Determine if we might not reach target by the projected date with our rate
+  const rateNeedsAdjustment = actualDaysToTarget > daysToProjectedEnd;
+  
+  // If we need to adjust, create a more aggressive rate so we hit the target weight on the projected date
+  const effectiveDailyRate = rateNeedsAdjustment ? 
+    (totalWeightChange / daysToProjectedEnd) * 1.1 : // 10% buffer to ensure we get there
+    initialDailyRate;
+  
+  console.log(`Adjusted rate calculation: actualDaysToTarget=${actualDaysToTarget}, needsAdjustment=${rateNeedsAdjustment}, effectiveRate=${effectiveDailyRate}`);
+  
   // Generate points every few days for a smoother curve with more data points
   for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
-    currentDate = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
+    currentDate = addDays(lastWeighIn.date, day);
     
     // Calculate progress percentage toward target (0 to 1)
     const progressPercent = day / daysToProjectedEnd;
     
     // Get adjusted daily rate using curve calculations
     const adjustedDailyRate = calculateAdjustedDailyRate(
-      initialDailyRate, 
+      effectiveDailyRate, 
       finalSustainableRate, 
       progressPercent
     );
@@ -120,8 +150,32 @@ export const generateForecastPoints = (
     });
   }
   
-  // Ensure no weird fluctuations by removing any points that would create
-  // a change in direction near the end of the forecast
+  // Ensure the last point is exactly on target weight on the projected end date
+  // This is crucial to fix the issue shown in the screenshot
+  const lastPoint = forecastPoints[forecastPoints.length - 1];
+  if (lastPoint.date.getTime() !== projectedEndDate.getTime() || 
+      Math.abs(lastPoint.weight - targetWeight) > 0.01) {
+    
+    // Remove any points very close to the end to avoid overcrowding
+    while (forecastPoints.length > 1 && 
+           Math.abs(forecastPoints[forecastPoints.length - 1].date.getTime() - projectedEndDate.getTime()) < (7 * 24 * 60 * 60 * 1000)) {
+      forecastPoints.pop();
+    }
+    
+    // Add the exact endpoint
+    forecastPoints.push({
+      date: new Date(projectedEndDate),
+      weight: targetWeight,
+      isForecast: true
+    });
+    
+    console.log('Added exact end point:', {
+      date: projectedEndDate.toISOString(),
+      weight: targetWeight
+    });
+  }
+  
+  // Ensure no weird fluctuations by making sure the trend is monotonic
   if (forecastPoints.length >= 3) {
     const filteredPoints = [forecastPoints[0]]; // Start with the first point
     
@@ -142,9 +196,10 @@ export const generateForecastPoints = (
       }
     }
     
-    // Make sure the last point is always at the target weight
-    const lastPoint = filteredPoints[filteredPoints.length - 1];
-    if (Math.abs(lastPoint.weight - targetWeight) > 0.1) {
+    // Make sure the last point is always at the target weight and at the projected end date
+    const lastFilteredPoint = filteredPoints[filteredPoints.length - 1];
+    if (Math.abs(lastFilteredPoint.weight - targetWeight) > 0.1 || 
+        lastFilteredPoint.date.getTime() !== projectedEndDate.getTime()) {
       filteredPoints.push({
         date: new Date(projectedEndDate),
         weight: targetWeight,
@@ -152,6 +207,7 @@ export const generateForecastPoints = (
       });
     }
     
+    console.log(`Generated ${filteredPoints.length} final forecast points`);
     return filteredPoints;
   }
   

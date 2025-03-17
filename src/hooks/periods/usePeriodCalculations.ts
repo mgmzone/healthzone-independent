@@ -9,31 +9,29 @@ export function usePeriodCalculations() {
     // Calculate total weight to lose
     const totalWeightToLose = startWeight - targetWeight;
     
-    // We want to use the specified rate for the first ~80% of the journey,
-    // then taper to 1 lb/week for the last ~20%
+    // Calculate weeks needed with a realistic approach
+    // This matches the algorithm in forecastGenerator.ts to ensure consistency
     
-    // Calculate how many pounds we'll lose at the specified rate
-    const poundsAtNormalRate = totalWeightToLose * 0.8; // 80% of weight at normal rate
+    // Base calculation - how many weeks at the specified rate
+    const baseWeeks = totalWeightToLose / weightLossPerWeek;
     
-    // Calculate how many pounds we'll lose at the tapered rate (1lb/week)
-    const poundsAtTaperedRate = totalWeightToLose * 0.2; // 20% of weight at tapered rate
+    // Add additional buffer time for the slowdown that naturally occurs
+    // This multiplier ensures the projection is realistic and matches the chart
+    const adjustmentFactor = 1.15; // 15% buffer to account for slowdown
+    const adjustedWeeks = baseWeeks * adjustmentFactor;
     
-    // Calculate weeks needed for each phase
-    const weeksAtNormalRate = poundsAtNormalRate / weightLossPerWeek;
-    const weeksAtTaperedRate = poundsAtTaperedRate / 1.0; // 1lb per week
-    
-    // Total weeks needed (rounded up) with a small buffer for the final approach
-    const totalWeeksNeeded = Math.ceil(weeksAtNormalRate + weeksAtTaperedRate) + 1;
+    // Round up and add a small buffer for final approach
+    const totalWeeksNeeded = Math.ceil(adjustedWeeks) + 1;
     
     // Set a practical maximum on projected duration (2 years)
     const maxWeeks = 104;
-    const adjustedWeeks = Math.min(totalWeeksNeeded, maxWeeks);
+    const adjustedWeeks2 = Math.min(totalWeeksNeeded, maxWeeks);
     
-    console.log(`Calculating projected end date: ${totalWeeksNeeded} weeks needed to lose ${totalWeightToLose} lbs. ` +
-                `Initial rate: ${weightLossPerWeek}/week for ${weeksAtNormalRate.toFixed(1)} weeks, ` +
-                `then 1 lb/week for ${weeksAtTaperedRate.toFixed(1)} weeks.`);
+    console.log(`Calculating projected end date: ${adjustedWeeks2} weeks needed to lose ${totalWeightToLose} units. ` +
+                `Base estimate: ${baseWeeks.toFixed(1)} weeks at ${weightLossPerWeek}/week, ` +
+                `Adjusted with ${((adjustmentFactor - 1) * 100).toFixed(0)}% buffer.`);
     
-    return addWeeks(startDate, adjustedWeeks);
+    return addWeeks(startDate, adjustedWeeks2);
   };
 
   return {
