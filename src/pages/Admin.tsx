@@ -4,8 +4,14 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShieldCheck, Users, BarChart } from 'lucide-react';
+import { useAdminData } from '@/hooks/admin/useAdminData';
+import UsersTable from '@/components/admin/UsersTable';
+import SystemStatsCards from '@/components/admin/SystemStatsCards';
+import ActivityStatsChart from '@/components/admin/ActivityStatsChart';
 
 const Admin = () => {
+  const { users, stats, isLoading, error } = useAdminData();
+
   return (
     <Layout>
       <div className="container mx-auto p-6 pt-24">
@@ -13,6 +19,13 @@ const Admin = () => {
           <ShieldCheck className="h-6 w-6 mr-2 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+            <p className="font-medium">Error loading admin data</p>
+            <p className="text-sm">{(error as Error).message}</p>
+          </div>
+        )}
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
@@ -31,31 +44,10 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <p>This is a protected admin area. Only users with admin privileges can access this page.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="text-2xl font-bold">--</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">Active Periods</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center">
-                        <BarChart className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="text-2xl font-bold">--</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                
+                <SystemStatsCards stats={stats} isLoading={isLoading} />
+                
+                <ActivityStatsChart stats={stats} isLoading={isLoading} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -69,7 +61,7 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p>User management interface will be implemented here.</p>
+                <UsersTable users={users} isLoading={isLoading} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -83,7 +75,7 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p>Analytics dashboard will be implemented here.</p>
+                <ActivityStatsChart stats={stats} isLoading={isLoading} />
               </CardContent>
             </Card>
           </TabsContent>
