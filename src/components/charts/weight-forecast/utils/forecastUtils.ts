@@ -63,3 +63,41 @@ export const formatChartDate = (date: Date | string | number): string => {
     day: 'numeric'
   }).format(dateObj);
 };
+
+/**
+ * Checks if the current weight change direction is compatible with the goal direction
+ */
+export const isGoalDirectionCompatible = (
+  isWeightLoss: boolean,
+  targetWeight: number,
+  currentWeight: number
+): boolean => {
+  // For weight loss goals, current weight should be higher than target
+  if (isWeightLoss) {
+    return currentWeight > targetWeight;
+  }
+  // For weight gain goals, current weight should be lower than target
+  return currentWeight < targetWeight;
+};
+
+/**
+ * Applies realistic limits to calculated weight change rates
+ */
+export const calculateRealisticWeightChangeRate = (
+  dailyChangeRate: number,
+  isImperial: boolean
+): number => {
+  // Convert limit based on measurement units
+  // Maximum recommended weight loss per week: ~2 lbs or ~0.9 kg
+  const maxWeeklyChange = isImperial ? 2.0 : 0.9;
+  const maxDailyChange = maxWeeklyChange / 7;
+  
+  // If this is weight loss (negative rate), cap at recommended max
+  if (dailyChangeRate < 0) {
+    return Math.max(dailyChangeRate, -maxDailyChange);
+  }
+  // If this is weight gain (positive rate), cap at recommended max
+  else {
+    return Math.min(dailyChangeRate, maxDailyChange);
+  }
+};
