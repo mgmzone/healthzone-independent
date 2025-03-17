@@ -1,6 +1,15 @@
 
 import { ExerciseLog } from '@/lib/types';
-import { isWithinInterval, startOfWeek, endOfWeek, subWeeks, isSameWeek } from 'date-fns';
+import { 
+  isWithinInterval, 
+  startOfWeek, 
+  endOfWeek, 
+  subWeeks, 
+  isSameWeek,
+  eachDayOfInterval,
+  format,
+  isEqual
+} from 'date-fns';
 
 export const calculateCurrentWeekExercise = (exerciseLogs: ExerciseLog[]): number => {
   if (exerciseLogs.length === 0) return 0;
@@ -22,10 +31,11 @@ export const calculatePreviousWeekExercise = (exerciseLogs: ExerciseLog[]): numb
   
   const now = new Date();
   const previousWeekStart = startOfWeek(subWeeks(now, 1));
+  const previousWeekEnd = endOfWeek(previousWeekStart);
   
   const previousWeekLogs = exerciseLogs.filter(log => {
     const logDate = new Date(log.date);
-    return isSameWeek(logDate, previousWeekStart);
+    return isWithinInterval(logDate, { start: previousWeekStart, end: previousWeekEnd });
   });
   
   return previousWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
