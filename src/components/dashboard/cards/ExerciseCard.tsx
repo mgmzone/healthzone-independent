@@ -72,6 +72,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
             valueLabel={`${currentWeekMinutes}/${weeklyExerciseGoal} min`}
             size={140}
             strokeWidth={12}
+            animate={true}
           />
         </CardContent>
       </Card>

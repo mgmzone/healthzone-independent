@@ -46,17 +46,16 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
 
   useEffect(() => {
     if (circleRef.current && animate) {
-      circleRef.current.style.setProperty('--progress', normalizedValue.toString());
+      // Use CSS transition instead of inline style to ensure consistent animation
+      circleRef.current.style.transition = 'stroke-dashoffset 1s ease-out';
       circleRef.current.style.strokeDashoffset = dashOffset.toString();
     }
     
     if (overflowCircleRef.current && animate && hasOverflow) {
-      overflowCircleRef.current.style.setProperty('--overflow-progress', overflowValue.toString());
+      overflowCircleRef.current.style.transition = 'stroke-dasharray 1s ease-out';
+      overflowCircleRef.current.style.strokeDasharray = overflowDasharray;
     }
-  }, [normalizedValue, overflowValue, dashOffset, animate, hasOverflow]);
-
-  // For display purposes, we show the actual value, even if it exceeds 100%
-  const displayValue = Math.round(value);
+  }, [normalizedValue, overflowValue, dashOffset, animate, hasOverflow, overflowDasharray]);
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
@@ -85,11 +84,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             strokeDasharray={circumference}
             strokeDashoffset={animate ? circumference : dashOffset}
             strokeLinecap="round"
-            className={animate ? "transition-all duration-1000 ease-out" : ""}
-            style={{
-              strokeDashoffset: animate ? dashOffset : undefined,
-              transition: animate ? 'stroke-dashoffset 1s ease-out' : undefined
-            }}
+            className="transition-all duration-1000 ease-out"
           />
           
           {/* Overflow progress circle (>100%) */}
@@ -105,16 +100,13 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
               strokeDasharray={overflowDasharray}
               strokeDashoffset={0}
               strokeLinecap="round"
-              className={animate ? "transition-all duration-1000 ease-out" : ""}
-              style={{
-                transition: animate ? 'stroke-dasharray 1s ease-out' : undefined
-              }}
+              className="transition-all duration-1000 ease-out"
             />
           )}
         </svg>
         {showPercentage && !children && (
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold">{displayValue}%</span>
+            <span className="text-2xl font-bold">{Math.round(value)}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
           </div>
         )}
