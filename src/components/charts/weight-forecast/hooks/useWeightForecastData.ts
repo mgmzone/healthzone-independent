@@ -47,8 +47,7 @@ export const useWeightForecastData = (
     
     if (targetWeight !== undefined) {
       // Use provided target weight that should already be in the right units
-      displayTargetWeight = isImperial ? 
-        targetWeight * 2.20462 : targetWeight;
+      displayTargetWeight = targetWeight;
     } else if (currentPeriod.targetWeight) {
       // If imperial, convert from kg to lbs, otherwise use as is
       displayTargetWeight = isImperial ? 
@@ -71,7 +70,12 @@ export const useWeightForecastData = (
     );
     
     // Generate forecast data based on actual data
-    const periodEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
+    const periodEndDate = currentPeriod.projectedEndDate ? 
+      new Date(currentPeriod.projectedEndDate) : 
+      currentPeriod.endDate ? 
+        new Date(currentPeriod.endDate) : 
+        new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from now as fallback
+    
     const forecastData = generateForecastData(
       actualData,
       periodEndDate,

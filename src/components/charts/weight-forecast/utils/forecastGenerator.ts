@@ -41,7 +41,12 @@ export const generateForecastData = (
   console.log('Forecast calculations:', {
     targetWeight: convertedTargetWeight,
     isImperial,
-    weightLossPerWeek
+    weightLossPerWeek,
+    avgDailyChange,
+    isWeightLoss,
+    firstPointDate: new Date(firstPoint.date).toISOString().split('T')[0],
+    lastPointDate: new Date(lastActualPoint.date).toISOString().split('T')[0],
+    daysElapsed
   });
   
   // Start with the last actual point for the forecast
@@ -62,8 +67,17 @@ export const generateForecastData = (
     }
   }
 
-  // Set sustainable rate based on units
+  // Set sustainable rate based on units - around 0.5 lbs per week or 0.2 kg per week
   const finalSustainableRate = getSustainableRate(isImperial);
+
+  // If we have a specific weightLossPerWeek value from the period settings, use that
+  // to inform our sustainable rate (convert from weekly to daily rate)
+  let customSustainableRate = finalSustainableRate;
+  if (weightLossPerWeek && weightLossPerWeek > 0) {
+    // Convert from weekly to daily
+    customSustainableRate = weightLossPerWeek / 7;
+    console.log(`Using custom sustainable daily rate: ${customSustainableRate} based on weekly goal: ${weightLossPerWeek}`);
+  }
   
   // Calculate how many days it should take to reach target weight based on sustainable rate
   let daysToTarget = null;
@@ -72,7 +86,7 @@ export const generateForecastData = (
       lastActualPoint.weight,
       convertedTargetWeight,
       avgDailyChange,
-      finalSustainableRate,
+      customSustainableRate,
       isWeightLoss
     );
   }
@@ -91,10 +105,10 @@ export const generateForecastData = (
   const daysToForecast = differenceInDays(endDate, new Date(lastActualPoint.date));
   
   console.log('Forecast range:', { 
-    lastActualDate: lastActualPoint.date, 
+    lastActualDate: new Date(lastActualPoint.date).toISOString().split('T')[0], 
     daysToForecast,
     daysToTarget,
-    endDate
+    endDate: endDate.toISOString().split('T')[0]
   });
   
   // Generate forecast points
@@ -103,10 +117,10 @@ export const generateForecastData = (
   return generateForecastPoints(
     lastActualPoint,
     daysToForecast,
-    lastActualPoint.weight,
+    firstPoint.weight, // Use starting weight of period, not last actual
     convertedTargetWeight,
     avgDailyChange,
-    finalSustainableRate,
+    customSustainableRate,
     isWeightLoss
   );
 };

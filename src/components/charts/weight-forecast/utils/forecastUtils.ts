@@ -1,19 +1,17 @@
 
-import { WeighIn, Period } from '@/lib/types';
-import { addDays, differenceInDays } from 'date-fns';
-import { convertWeight } from '@/lib/weight/convertWeight';
+import { addDays } from 'date-fns';
 
 /**
- * Creates a data point for the chart
+ * Create a standardized chart data point
  */
 export const createChartDataPoint = (
   date: Date,
   weight: number,
-  isActual: boolean = true,
+  isActual: boolean = false,
   isForecast: boolean = false
 ) => {
   return {
-    date,
+    date: date.getTime(), // Use timestamp for better charting
     weight,
     isActual,
     isForecast
@@ -21,77 +19,47 @@ export const createChartDataPoint = (
 };
 
 /**
- * Calculates a realistic daily weight change rate based on current data
+ * Calculate the min and max weight range for the chart
  */
-export const calculateRealisticWeightChangeRate = (
-  avgDailyChange: number,
-  isImperial: boolean
-): number => {
-  // Set realistic limits for weight loss/gain (in pounds or kg per day)
-  // For weight loss: max 2 pounds per week = ~0.286 pounds per day
-  // For weight gain: max 1 pound per week = ~0.143 pounds per day
-  const maxDailyLoss = isImperial ? 0.286 : 0.13; // 0.13 kg is ~0.286 pounds
-  const maxDailyGain = isImperial ? 0.143 : 0.065; // 0.065 kg is ~0.143 pounds
+export const getWeightRangeFromData = (weights: number[], targetWeight?: number) => {
+  // Filter out any invalid weights
+  const validWeights = weights.filter(w => w !== null && w !== undefined && !isNaN(w));
   
-  // Apply realistic limits
-  if (avgDailyChange < 0) {
-    // Weight loss case
-    return Math.max(avgDailyChange, -maxDailyLoss);
-  } else {
-    // Weight gain case
-    return Math.min(avgDailyChange, maxDailyGain);
-  }
-};
-
-/**
- * Determines if the target weight goal direction is compatible with current trend
- */
-export const isGoalDirectionCompatible = (
-  isWeightLoss: boolean,
-  targetWeight: number | null,
-  currentWeight: number
-): boolean => {
-  if (targetWeight === null) return true;
-  
-  const isTargetLower = targetWeight < currentWeight;
-  
-  // If the trend is opposite from the target goal, consider it incompatible
-  return !(
-    (isWeightLoss && !isTargetLower) || // losing weight but goal is to gain
-    (!isWeightLoss && isTargetLower)     // gaining weight but goal is to lose
-  );
-};
-
-/**
- * Gets weight range from data points for the chart (min and max)
- * Ensures the y-axis includes both target weight and starting weight with proper padding
- */
-export const getWeightRangeFromData = (weights: number[], targetWeight?: number): { minWeight: number; maxWeight: number } => {
-  if (weights.length === 0) {
+  if (validWeights.length === 0) {
     return { minWeight: 0, maxWeight: 0 };
   }
   
-  // Find min and max from data
-  let minWeight = Math.min(...weights);
-  let maxWeight = Math.max(...weights);
+  // Include target weight in range calculation if provided
+  const allWeights = targetWeight ? [...validWeights, targetWeight] : validWeights;
   
-  // If target weight is provided, ensure it's included in the range
-  if (targetWeight !== undefined) {
-    minWeight = Math.min(minWeight, targetWeight);
-    maxWeight = Math.max(maxWeight, targetWeight);
-  }
+  const min = Math.min(...allWeights);
+  const max = Math.max(...allWeights);
   
-  console.log('Raw weight range:', { minWeight, maxWeight, targetWeight });
+  // Ensure there's always space at the top and bottom of the chart (5% padding)
+  const range = max - min;
+  const padding = range * 0.05;
   
-  // Add some padding to min and max for better visualization (5%)
-  const range = maxWeight - minWeight;
-  const padding = Math.max(range * 0.05, 1);
+  // Round values nicely
+  const minWeight = Math.floor(min - padding);
+  const maxWeight = Math.ceil(max + padding);
   
-  // Ensure we get clean, rounded values for the axis
-  const minRounded = Math.floor(minWeight - padding);
-  const maxRounded = Math.ceil(maxWeight + padding);
+  console.log('Weight range calculation:', { 
+    min, max, range, padding, minWeight, maxWeight,
+    weightsCount: validWeights.length,
+    targetWeight
+  });
   
-  console.log('Adjusted chart weight range:', { minWeight: minRounded, maxWeight: maxRounded });
-  
-  return { minWeight: minRounded, maxWeight: maxRounded };
+  return { minWeight, maxWeight };
+};
+
+/**
+ * Format a date for display on the chart
+ */
+export const formatChartDate = (date: Date | string | number): string => {
+  if (!date) return 'Unknown';
+  const dateObj = typeof date === 'object' ? date : new Date(date);
+  return new Intl.DateTimeFormat('en-US', { 
+    month: 'short', 
+    day: 'numeric'
+  }).format(dateObj);
 };

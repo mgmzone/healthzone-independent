@@ -31,19 +31,19 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
 
   return (
     <>
-      {/* Target Weight Line (Dashed Orange) - Shows the ideal weight loss path */}
+      {/* Reference line for target weight (Light Blue Dashed) */}
       {hasTargetLine && (
         <Line 
           key="target-line"
           type="monotone" 
           dataKey="weight"
           data={targetLine}
-          stroke="#FF9966"
-          strokeWidth={1.5}
-          strokeDasharray="4 4"
+          stroke="#A5D8FF"
+          strokeWidth={1}
+          strokeDasharray="3 3"
           dot={false}
           activeDot={false}
-          name="Target Path"
+          name="Target Weight"
           isAnimationActive={false}
         />
       )}
@@ -55,12 +55,12 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
           type="monotone" 
           dataKey="weight" 
           data={actualData}
-          stroke="#0066CC" 
-          strokeWidth={2}
-          activeDot={{ r: 6, fill: '#0066CC', stroke: '#fff', strokeWidth: 2 }}
+          stroke="#0EA5E9" 
+          strokeWidth={2.5}
+          activeDot={{ r: 6, fill: '#0EA5E9', stroke: '#fff', strokeWidth: 2 }}
           dot={{ 
             r: 4, 
-            fill: '#0066CC',
+            fill: '#0EA5E9',
             stroke: '#fff',
             strokeWidth: 1
           }}
@@ -69,19 +69,19 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
         />
       )}
       
-      {/* Forecast Weight Line (Blue Dashed) - Only visible in forecast view */}
+      {/* Forecast Weight Line (Orange Dashed) - Only visible in forecast view */}
       {hasForecastData && (
         <Line
           key="forecast-line"
-          type="monotone"
+          type="natural"
           dataKey="weight"
           data={forecastData}
-          stroke="#0066CC"
+          stroke="#FEC6A1"
           strokeWidth={2}
           strokeDasharray="5 5"
           activeDot={false}
           dot={false}
-          name="Forecast"
+          name="Projected Loss"
           isAnimationActive={false}
         />
       )}

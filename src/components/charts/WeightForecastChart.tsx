@@ -17,12 +17,16 @@ export default function WeightForecastChartWrapper(props: WeightForecastChartPro
   // Get the target weight from the period (more accurate than profile target weight)
   const targetWeight = props.currentPeriod?.targetWeight || profile?.targetWeight || undefined;
   
+  // Convert target weight to display units if needed
+  const displayTargetWeight = targetWeight && props.isImperial ? 
+    targetWeight * 2.20462 : targetWeight;
+  
   console.log('WeightForecastChartWrapper:', {
     periodTargetWeight: props.currentPeriod?.targetWeight,
     profileTargetWeight: profile?.targetWeight,
-    selectedTargetWeight: targetWeight,
+    displayTargetWeight,
     isImperial: props.isImperial
   });
   
-  return <WeightForecastChart {...props} targetWeight={targetWeight} />;
+  return <WeightForecastChart {...props} targetWeight={displayTargetWeight} />;
 }

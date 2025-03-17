@@ -14,75 +14,54 @@ export const ReferenceLines: React.FC<ReferenceLinesProps> = ({
   chartData,
   today,
   targetDate,
-  periodEndDate,
+  periodEndDate
 }) => {
-  // Format date to string for use with ReferenceLine
-  const formatDateToString = (date: Date): string => {
-    return format(date, 'yyyy-MM-dd');
-  };
-  
-  // Get the date strings for reference lines
-  const todayStr = formatDateToString(today);
-  const targetDateStr = targetDate ? formatDateToString(targetDate) : null;
-  
-  // Find date objects in chartData that match (or are closest to) our reference dates
-  const findClosestDate = (targetDateStr: string | null): string | null => {
-    if (!targetDateStr || !chartData || chartData.length === 0) return null;
-    
-    const targetDate = new Date(targetDateStr);
-    const targetTime = targetDate.getTime();
-    
-    // Find the closest date in chartData
-    let closestDate = null;
-    let minDiff = Number.MAX_VALUE;
-    
-    for (const item of chartData) {
-      const itemDate = new Date(item.date);
-      const diff = Math.abs(itemDate.getTime() - targetTime);
-      
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestDate = item.date;
-      }
-    }
-    
-    return closestDate ? formatDateToString(new Date(closestDate)) : null;
-  };
-  
-  // Find closest dates in chart data
-  const closestTodayDate = findClosestDate(todayStr);
-  const closestTargetDate = findClosestDate(targetDateStr);
-  
+  if (!chartData || chartData.length === 0) return null;
+
   return (
     <>
-      {/* Current Date line (red) */}
-      {closestTodayDate && (
+      {/* "Today" line */}
+      <ReferenceLine
+        x={today.getTime()}
+        stroke="#6D28D9"
+        strokeDasharray="3 3"
+        strokeWidth={1.5}
+        label={{
+          value: 'Today',
+          position: 'top',
+          fill: '#6D28D9',
+          fontSize: 12
+        }}
+      />
+
+      {/* Target date line (if available) */}
+      {targetDate && (
         <ReferenceLine
-          x={closestTodayDate}
-          stroke="#E63946"
-          strokeWidth={2}
-          label={{ 
-            value: 'Current Date', 
+          x={targetDate.getTime()}
+          stroke="#6366F1"
+          strokeDasharray="5 5"
+          strokeWidth={1.5}
+          label={{
+            value: `Target (${format(targetDate, 'MMM d')})`,
             position: 'top',
-            fill: '#E63946',
-            fontSize: 14,
-            fontWeight: 600
+            fill: '#6366F1',
+            fontSize: 12
           }}
         />
       )}
-      
-      {/* Forecast Goal line (red) */}
-      {closestTargetDate && (
+
+      {/* Period end date line */}
+      {periodEndDate && (
         <ReferenceLine
-          x={closestTargetDate}
-          stroke="#E63946"
-          strokeWidth={2}
-          label={{ 
-            value: 'Forecast Goal', 
+          x={periodEndDate.getTime()}
+          stroke="#A5B4FC"
+          strokeDasharray="3 3"
+          strokeWidth={1.5}
+          label={{
+            value: `End (${format(periodEndDate, 'MMM d')})`,
             position: 'top',
-            fill: '#E63946', 
-            fontSize: 14,
-            fontWeight: 600
+            fill: '#A5B4FC',
+            fontSize: 12
           }}
         />
       )}

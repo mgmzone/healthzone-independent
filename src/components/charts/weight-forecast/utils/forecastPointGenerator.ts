@@ -4,6 +4,7 @@ import { createChartDataPoint } from './forecastUtils';
 
 /**
  * Generate forecast data points day by day using the adjusted rate model
+ * with a curved trend line that shows faster loss at the beginning
  */
 export const generateForecastPoints = (
   lastActualPoint: any,
@@ -23,23 +24,30 @@ export const generateForecastPoints = (
   }];
   
   let previousWeight = lastActualPoint.weight;
+  let totalForecastDistance = 0;
 
+  // For a curved line effect, we need to adjust the rate more gradually
   // Start forecast FROM the day after the last actual weigh-in
   for (let i = 1; i <= daysToForecast; i++) {
     const forecastDate = addDays(new Date(lastActualPoint.date), i);
+    
+    // Calculate progress towards timeline completion (0 to 1)
+    const timeProgress = i / daysToForecast;
     
     // Calculate progress towards goal
     const progressFactor = targetWeight === null ? 0 : isWeightLoss 
       ? (startWeight - previousWeight) / (startWeight - targetWeight) 
       : (previousWeight - startWeight) / (targetWeight - startWeight);
     
-    // Calculate time factor
-    const timeFactor = Math.min(1, i / 90);  // Gradually over 90 days
+    // Use a curve function to make weight loss faster at beginning and slower towards the end
+    // This creates a more realistic projection curve
+    const curveFactor = Math.pow(timeProgress, 0.8); // Exponential curve, more aggressive at start
     
-    // Use the larger of the two factors
-    const combinedFactor = Math.max(progressFactor, timeFactor);
+    // Combine progress factors
+    const combinedFactor = Math.max(progressFactor, curveFactor);
     
-    // Adjust daily rate based on factors - gradually decrease to sustainable rate
+    // Adjust daily rate based on curve - gradually decrease to sustainable rate
+    // The higher the curve factor, the more the rate decreases
     const adjustedDailyRate = Math.abs(avgDailyChange) - 
                             (Math.abs(avgDailyChange) - finalSustainableRate) * 
                             Math.min(1, combinedFactor * 1.5);
@@ -88,6 +96,7 @@ export const generateForecastPoints = (
     ));
 
     previousWeight = forecastWeight;
+    totalForecastDistance += adjustedDailyRate;
     
     // Log progress every 7 days
     if (i % 7 === 0) {
@@ -95,5 +104,6 @@ export const generateForecastPoints = (
     }
   }
 
+  console.log(`Total forecasted ${isWeightLoss ? 'loss' : 'gain'}: ${totalForecastDistance.toFixed(1)}`);
   return forecastData;
 };
