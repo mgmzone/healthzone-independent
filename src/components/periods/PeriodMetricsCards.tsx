@@ -56,6 +56,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
               valueLabel={`${weightChange.toFixed(1)} ${weightUnit} ${weightDirection}`}
               size={140}
               strokeWidth={12}
+              animate={true}
             />
           </CardContent>
         </Card>
@@ -71,6 +72,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
               valueLabel={`${daysRemaining} days left`}
               size={140} 
               strokeWidth={12}
+              animate={true}
             />
           </CardContent>
         </Card>
@@ -93,6 +95,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
               valueLabel="hours"
               size={140}
               strokeWidth={12}
+              animate={true}
             >
               <div className="text-center">
                 <div className="text-3xl font-bold">{avgFastingHours.toFixed(1)}</div>
