@@ -8,23 +8,22 @@
  */
 export const calculateCurveFactor = (progressPercent: number): number => {
   // Higher exponent creates a more gradual approach to the target
-  // Using 0.4 instead of 0.5 makes the curve even more gradual
-  return Math.pow(progressPercent, 0.4);
+  // Using 0.35 instead of 0.4 makes the curve even more gradual
+  return Math.pow(progressPercent, 0.35);
 };
 
 /**
  * Apply additional smoothing as we approach the end of the forecast
  */
 export const calculateEndingFactor = (progressPercent: number): number => {
-  // Only apply when we're more than 80% through the timeline
-  if (progressPercent <= 0.8) return 1.0;
+  // Only apply when we're more than 70% through the timeline (extended from 80%)
+  if (progressPercent <= 0.7) return 1.0;
   
   // Calculate how close we are to the end (0 to 1, where 1 is at the end date)
-  const endProximity = (progressPercent - 0.8) / 0.2;
+  const endProximity = (progressPercent - 0.7) / 0.3;
   
-  // Apply sigmoid-like curve for very smooth ending
-  // This creates an elegant taper as we approach the target
-  return 1 - (endProximity * endProximity);
+  // Apply smoother curve for the ending
+  return 1 - Math.pow(endProximity, 2.5);
 };
 
 /**
@@ -38,16 +37,16 @@ export const calculateAdjustedDailyRate = (
   const curveFactor = calculateCurveFactor(progressPercent);
   const endingFactor = calculateEndingFactor(progressPercent);
   
-  // Apply sigmoid-like curve for very smooth ending
-  if (progressPercent > 0.8) {
-    const endProximity = (progressPercent - 0.8) / 0.2;
-    
-    // Reduce rate as we approach the target date
-    return (initialDailyRate - 
-      ((initialDailyRate - finalSustainableRate) * curveFactor) - 
-      (finalSustainableRate * endProximity * 0.8)) * endingFactor; // Additional slowdown factor
-  } 
+  // Apply a more gradual curve for the entire forecast
+  let adjustedRate = initialDailyRate - 
+    ((initialDailyRate - finalSustainableRate) * curveFactor);
   
-  // Normal curve for most of the forecast
-  return initialDailyRate - ((initialDailyRate - finalSustainableRate) * curveFactor);
+  // Apply additional smoothing in the final portion
+  if (progressPercent > 0.7) {
+    // Further reduce rate as we approach the target date
+    // This creates an extremely gentle final approach
+    adjustedRate *= endingFactor;
+  }
+  
+  return adjustedRate;
 };

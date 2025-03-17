@@ -1,4 +1,3 @@
-
 import { addDays } from 'date-fns';
 import { calculateAdjustedDailyRate } from './curveCalculator';
 
@@ -122,39 +121,70 @@ export const generateForecastPoints = (
     });
   }
   
-  // Force include the target weight point at the projected end date if we haven't already reached it
-  // This ensures we always show the goal being reached by the projected date
+  // Check if we need to add a final target point
+  // Only add it if we haven't reached the target yet and we have at least one forecast point
   if (forecastPoints.length > 0 && 
       Math.abs(forecastPoints[forecastPoints.length - 1].weight - targetWeight) > 0.1) {
     
-    // Add an extra point ~10% before the end date for even smoother transition
-    const transitionDate = new Date(projectedEndDate);
-    transitionDate.setDate(transitionDate.getDate() - Math.max(5, Math.floor(daysToProjectedEnd * 0.1)));
-    
-    // Calculate weight for transition point - make it closer to target
-    const lastPointWeight = forecastPoints[forecastPoints.length - 1].weight;
-    const remainingChange = isWeightLoss ? 
-      lastPointWeight - targetWeight : 
-      targetWeight - lastPointWeight;
-    
-    // Make the transition point 80% of the way to the target
-    const transitionWeight = isWeightLoss ? 
-      targetWeight + (remainingChange * 0.2) : 
-      targetWeight - (remainingChange * 0.2);
-    
-    // Add the transition point
-    forecastPoints.push({
-      date: transitionDate,
-      weight: transitionWeight,
-      isForecast: true
-    });
-    
-    // Add the final target point
+    // Add the final target point at the projected end date
+    // This ensures a smooth approach to the target
     forecastPoints.push({
       date: new Date(projectedEndDate),
       weight: targetWeight,
       isForecast: true
     });
+  }
+  
+  // Ensure no weird fluctuations at the end by removing any points that would create
+  // a change in direction near the end of the forecast
+  if (forecastPoints.length >= 3) {
+    // Keep only the filtered points that maintain a consistent direction
+    const filteredPoints = [forecastPoints[0]]; // Start with the first point
+    
+    const isDescending = isWeightLoss; // Direction should be consistent with goal
+    
+    for (let i = 1; i < forecastPoints.length; i++) {
+      const prevPoint = filteredPoints[filteredPoints.length - 1];
+      const currentPoint = forecastPoints[i];
+      
+      // Check if this point would maintain the correct direction
+      if (isDescending) {
+        // For weight loss, each point should be <= the previous point
+        if (currentPoint.weight <= prevPoint.weight) {
+          filteredPoints.push(currentPoint);
+        } else {
+          // Skip this point as it would create an upward fluctuation
+          console.log('Skipping point that would create upward fluctuation:', currentPoint);
+        }
+      } else {
+        // For weight gain, each point should be >= the previous point
+        if (currentPoint.weight >= prevPoint.weight) {
+          filteredPoints.push(currentPoint);
+        } else {
+          // Skip this point as it would create a downward fluctuation
+          console.log('Skipping point that would create downward fluctuation:', currentPoint);
+        }
+      }
+    }
+    
+    // Make sure the last point is always the target weight at the end date
+    if (filteredPoints.length > 0) {
+      // If the last point isn't already at the target weight and end date
+      const lastPoint = filteredPoints[filteredPoints.length - 1];
+      if (Math.abs(lastPoint.weight - targetWeight) > 0.1 || 
+          Math.abs(lastPoint.date.getTime() - projectedEndDate.getTime()) > 1000 * 60 * 60 * 24) {
+        
+        // Add the target weight point
+        filteredPoints.push({
+          date: new Date(projectedEndDate),
+          weight: targetWeight,
+          isForecast: true
+        });
+      }
+    }
+    
+    // Replace the original points with the filtered ones
+    return filteredPoints;
   }
   
   console.log(`Generated ${forecastPoints.length} forecast points with enhanced smoothing at end`);
