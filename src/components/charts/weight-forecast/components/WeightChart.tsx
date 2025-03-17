@@ -36,8 +36,9 @@ const WeightChart: React.FC<WeightChartProps> = ({
   endDate,
   targetWeight
 }) => {
-  // Add padding to the end date to ensure labels aren't cut off (35 days after end date)
-  const paddedEndDate = addDays(new Date(endDate), 35).getTime();
+  // Add padding to the end date to ensure labels aren't cut off
+  // Reduced padding from 35 days to 15 days to minimize whitespace
+  const paddedEndDate = addDays(new Date(endDate), 15).getTime();
   
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -80,6 +81,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           dot={{ r: 4, fill: '#0EA5E9', stroke: '#fff', strokeWidth: 1 }}
           isAnimationActive={false}
           name="Actual Weight"
+          connectNulls={true}
         />
         
         {/* Forecast weight line */}
@@ -93,6 +95,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           dot={{ r: 4, fill: '#F97316', stroke: '#fff', strokeWidth: 1 }}
           isAnimationActive={false}
           name="Forecast"
+          connectNulls={true}
         />
         
         {/* Target weight line */}

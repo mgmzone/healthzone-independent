@@ -89,6 +89,7 @@ export const generateForecastPoints = (
   });
   
   // Number of days per point - using smaller increments for smoother curve
+  // Generate more frequent points for smoother curve
   const daysPerPoint = 2; // Generate a point every 2 days
   
   // Calculate days needed to reach target based on the actual rate
@@ -107,6 +108,7 @@ export const generateForecastPoints = (
   console.log(`Adjusted rate calculation: actualDaysToTarget=${actualDaysToTarget}, needsAdjustment=${rateNeedsAdjustment}, effectiveRate=${effectiveDailyRate}`);
   
   // Generate points every few days for a smoother curve with more data points
+  // Use a smaller increment near the end to ensure smoother approach to target
   for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
     currentDate = addDays(lastWeighIn.date, day);
     
@@ -123,23 +125,19 @@ export const generateForecastPoints = (
     // Apply the daily change for each day in this segment
     if (isWeightLoss) {
       currentWeight -= adjustedDailyRate * daysPerPoint;
+      
+      // Ensure we don't go below target weight
       if (currentWeight <= targetWeight) {
-        forecastPoints.push({
-          date: new Date(projectedEndDate),
-          weight: targetWeight,
-          isForecast: true
-        });
-        break;
+        // Don't break here, just cap the weight
+        currentWeight = targetWeight;
       }
     } else {
       currentWeight += adjustedDailyRate * daysPerPoint;
+      
+      // Ensure we don't go above target weight
       if (currentWeight >= targetWeight) {
-        forecastPoints.push({
-          date: new Date(projectedEndDate),
-          weight: targetWeight,
-          isForecast: true
-        });
-        break;
+        // Don't break here, just cap the weight
+        currentWeight = targetWeight;
       }
     }
     
@@ -148,21 +146,41 @@ export const generateForecastPoints = (
       weight: currentWeight,
       isForecast: true
     });
+    
+    // If we reached target weight and we're past 80% of the timeline,
+    // add more frequent points for a smoother ending
+    if ((isWeightLoss && currentWeight <= targetWeight && progressPercent > 0.8) ||
+        (!isWeightLoss && currentWeight >= targetWeight && progressPercent > 0.8)) {
+      // Add two more points between this and the end to ensure smooth ending
+      const remainingDays = daysToProjectedEnd - day;
+      if (remainingDays > 4) {
+        const intermediateDay1 = day + Math.floor(remainingDays/3);
+        const intermediateDay2 = day + Math.floor(remainingDays*2/3);
+        
+        forecastPoints.push({
+          date: addDays(lastWeighIn.date, intermediateDay1),
+          weight: targetWeight,
+          isForecast: true
+        });
+        
+        forecastPoints.push({
+          date: addDays(lastWeighIn.date, intermediateDay2),
+          weight: targetWeight,
+          isForecast: true
+        });
+      }
+      break;
+    }
   }
   
   // Ensure the last point is exactly on target weight on the projected end date
-  // This is crucial to fix the issue shown in the screenshot
+  // Check if we already have a point that's very close to the projected end date
   const lastPoint = forecastPoints[forecastPoints.length - 1];
-  if (lastPoint.date.getTime() !== projectedEndDate.getTime() || 
-      Math.abs(lastPoint.weight - targetWeight) > 0.01) {
-    
-    // Remove any points very close to the end to avoid overcrowding
-    while (forecastPoints.length > 1 && 
-           Math.abs(forecastPoints[forecastPoints.length - 1].date.getTime() - projectedEndDate.getTime()) < (7 * 24 * 60 * 60 * 1000)) {
-      forecastPoints.pop();
-    }
-    
-    // Add the exact endpoint
+  const daysDifference = Math.abs((lastPoint.date.getTime() - projectedEndDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // If the last point is more than 1 day away from the projected end date,
+  // add a new point exactly at the projected end date
+  if (daysDifference > 1 || Math.abs(lastPoint.weight - targetWeight) > 0.1) {
     forecastPoints.push({
       date: new Date(projectedEndDate),
       weight: targetWeight,
@@ -185,13 +203,32 @@ export const generateForecastPoints = (
       const prevPoint = filteredPoints[filteredPoints.length - 1];
       const currentPoint = forecastPoints[i];
       
+      // Skip points with duplicate dates (can happen with the added intermediate points)
+      if (prevPoint.date.getTime() === currentPoint.date.getTime()) {
+        continue;
+      }
+      
       if (isDescending) {
         if (currentPoint.weight <= prevPoint.weight) {
           filteredPoints.push(currentPoint);
+        } else {
+          // If weight increased (which shouldn't happen for weight loss),
+          // use the previous weight to maintain the trend
+          filteredPoints.push({
+            ...currentPoint,
+            weight: prevPoint.weight
+          });
         }
       } else {
         if (currentPoint.weight >= prevPoint.weight) {
           filteredPoints.push(currentPoint);
+        } else {
+          // If weight decreased (which shouldn't happen for weight gain),
+          // use the previous weight to maintain the trend
+          filteredPoints.push({
+            ...currentPoint,
+            weight: prevPoint.weight
+          });
         }
       }
     }
@@ -199,7 +236,7 @@ export const generateForecastPoints = (
     // Make sure the last point is always at the target weight and at the projected end date
     const lastFilteredPoint = filteredPoints[filteredPoints.length - 1];
     if (Math.abs(lastFilteredPoint.weight - targetWeight) > 0.1 || 
-        lastFilteredPoint.date.getTime() !== projectedEndDate.getTime()) {
+        Math.abs(lastFilteredPoint.date.getTime() - projectedEndDate.getTime()) > 24 * 60 * 60 * 1000) {
       filteredPoints.push({
         date: new Date(projectedEndDate),
         weight: targetWeight,

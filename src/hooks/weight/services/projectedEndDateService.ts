@@ -70,7 +70,7 @@ export async function calculateProjectedEndDateFromWeights(
     
     console.log('Preliminary end date calculation:', prelimEndDate);
     
-    // Use the same forecast generator that the chart uses, providing our preliminary end date
+    // Use the forecast generator to get a more accurate end date
     const forecastPoints = generateForecastPoints(
       latestWeighIn,
       periodData.target_weight,
@@ -78,11 +78,21 @@ export async function calculateProjectedEndDateFromWeights(
       periodData.weight_loss_per_week
     );
     
-    // If forecast was generated successfully and has at least one point
+    // Check if forecast was generated successfully and has at least one point
     if (forecastPoints.length > 0) {
-      // The last point of our forecast should be at the target weight
+      // Find the point where we first hit the target weight
+      const targetPoint = forecastPoints.find(point => 
+        Math.abs(point.weight - periodData.target_weight) < 0.1
+      );
+      
+      if (targetPoint) {
+        console.log('Target point found in forecast:', targetPoint.date, 'with weight', targetPoint.weight);
+        return new Date(targetPoint.date);
+      }
+      
+      // If no exact target point found, use the last point
       const lastPoint = forecastPoints[forecastPoints.length - 1];
-      console.log('Using forecast endpoint as projected end date:', lastPoint.date, 'with weight', lastPoint.weight);
+      console.log('Using last forecast point as projected end date:', lastPoint.date, 'with weight', lastPoint.weight);
       return new Date(lastPoint.date);
     }
     

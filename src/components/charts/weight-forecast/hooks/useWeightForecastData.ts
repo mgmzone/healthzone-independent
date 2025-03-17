@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
-import { calculateWeightRange } from '../../weightForecastUtils';
+import { calculateWeightRange } from '../weightForecastUtils';
 import { generateForecastPoints } from '../utils/forecastGenerator';
 
 interface UseWeightForecastDataProps {
@@ -69,17 +69,46 @@ export const useWeightForecastData = ({
       weightLossPerWeek: currentPeriod.weightLossPerWeek
     });
     
-    return generateForecastPoints(
+    // Use the same forecast generator that the calculation service uses
+    const forecast = generateForecastPoints(
       lastWeighIn,
       displayTargetWeight,
       projectedEndDate,
       currentPeriod.weightLossPerWeek
     );
+    
+    // Ensure the forecast includes the target weight point at the projected end date
+    const lastPoint = forecast.length > 0 ? forecast[forecast.length - 1] : null;
+    if (lastPoint && (Math.abs(lastPoint.weight - displayTargetWeight) > 0.1 || 
+        Math.abs(lastPoint.date.getTime() - projectedEndDate.getTime()) > 24 * 60 * 60 * 1000)) {
+      forecast.push({
+        date: new Date(projectedEndDate),
+        weight: displayTargetWeight,
+        isForecast: true
+      });
+    }
+    
+    return forecast;
   }, [lastWeighIn, displayTargetWeight, currentPeriod.projectedEndDate, currentPeriod.weightLossPerWeek]);
   
   // Combine actual and forecast data for the chart
   const combinedData = useMemo(() => {
-    return [...processedData, ...forecastData.slice(1)]; // Skip first forecast point as it duplicates last actual
+    // Skip first forecast point as it duplicates last actual
+    // But only if the dates match
+    if (forecastData.length > 0 && processedData.length > 0) {
+      const firstForecastDate = forecastData[0].date instanceof Date ? 
+        forecastData[0].date.getTime() : new Date(forecastData[0].date).getTime();
+      
+      const lastActualDate = processedData[processedData.length - 1].date instanceof Date ?
+        processedData[processedData.length - 1].date.getTime() : 
+        new Date(processedData[processedData.length - 1].date).getTime();
+      
+      if (Math.abs(firstForecastDate - lastActualDate) < 24 * 60 * 60 * 1000) { // Within 24 hours
+        return [...processedData, ...forecastData.slice(1)];
+      }
+    }
+    
+    return [...processedData, ...forecastData];
   }, [processedData, forecastData]);
   
   // Calculate min/max for y-axis
@@ -97,7 +126,7 @@ export const useWeightForecastData = ({
   }, [currentPeriod.startDate]);
   
   const endDate = useMemo(() => {
-    // Ensure there's enough room at the end of the chart by adding 15 days
+    // Use the projected end date from the period
     const projectedDate = currentPeriod.projectedEndDate ? 
       new Date(currentPeriod.projectedEndDate) : 
       (currentPeriod.endDate ? 
