@@ -25,25 +25,26 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     targetWeight
   );
   
-  if (!hasValidData) {
-    return (
-      <div className="text-center text-gray-500 h-64 flex items-center justify-center">
-        <p>Not enough data to create a weight chart.</p>
-      </div>
-    );
-  }
-
   console.log('WeightForecastChart rendering with:', {
     targetWeight,
     minWeight,
     maxWeight,
-    chartDataCount: chartData.length,
-    targetLineCount: targetLine.length,
-    isImperial
+    chartDataCount: chartData?.length || 0,
+    targetLineCount: targetLine?.length || 0,
+    isImperial,
+    hasValidData
   });
 
+  if (!hasValidData) {
+    return (
+      <div className="text-center text-gray-500 h-64 flex items-center justify-center">
+        <p>Not enough data to create a weight chart. Please add at least two weight entries.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-[400px] w-full relative">
+    <div className="h-[350px] w-full relative">
       <WeightChart
         displayData={chartData}
         minWeight={minWeight}

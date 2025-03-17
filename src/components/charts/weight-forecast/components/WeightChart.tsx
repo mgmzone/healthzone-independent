@@ -76,6 +76,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
           type="number"
           scale="time"
           allowDataOverflow
+          height={50}
         />
         <YAxis 
           domain={[minWeight, maxWeight]}
@@ -92,9 +93,11 @@ const WeightChart: React.FC<WeightChartProps> = ({
             style: { textAnchor: 'middle' },
             fill: '#666' 
           }}
-          // Note: We want weight loss to show going down, so we need to reverse the axis
-          // when the min weight (target) is less than max weight (starting)
-          reversed={minWeight < maxWeight}
+          width={60}
+          // For weight loss, we want lower weights at the top (default)
+          // For weight gain, we want higher weights at the top (reversed)
+          // We only reverse if losing weight (target < current)
+          reversed={false}
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         

@@ -29,7 +29,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
       </div>
 
       <Card className="mb-6">
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 h-[400px]">
           <WeightChart 
             data={weighIns} 
             isImperial={isImperial}
