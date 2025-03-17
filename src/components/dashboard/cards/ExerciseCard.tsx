@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
@@ -13,20 +13,29 @@ interface ExerciseCardProps {
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({ exerciseLogs }) => {
+  const [currentWeekMinutes, setCurrentWeekMinutes] = useState(0);
+  const [previousWeekMinutes, setPreviousWeekMinutes] = useState(0);
+  
+  useEffect(() => {
+    // Debug log to verify exercise logs received
+    console.log('Exercise logs in ExerciseCard:', exerciseLogs);
+    
+    // Calculate values with the complete exercise log data
+    setCurrentWeekMinutes(calculateCurrentWeekExercise(exerciseLogs));
+    setPreviousWeekMinutes(calculatePreviousWeekExercise(exerciseLogs));
+  }, [exerciseLogs]);
+
   const getExerciseValues = () => {
-    const values = [];
-    
-    values.push({
-      label: "This Week",
-      value: `${calculateCurrentWeekExercise(exerciseLogs)} mins`
-    });
-    
-    values.push({
-      label: "Previous Week",
-      value: `${calculatePreviousWeekExercise(exerciseLogs)} mins`
-    });
-    
-    return values;
+    return [
+      {
+        label: "This Week",
+        value: `${currentWeekMinutes} mins`
+      },
+      {
+        label: "Previous Week",
+        value: `${previousWeekMinutes} mins`
+      }
+    ];
   };
 
   return (

@@ -33,16 +33,28 @@ export const calculatePreviousWeekExercise = (exerciseLogs: ExerciseLog[]): numb
   const previousWeekStart = startOfWeek(subWeeks(now, 1));
   const previousWeekEnd = endOfWeek(previousWeekStart);
   
-  // Fix: Use proper date comparison
+  // Debug log to verify date range
+  console.log('Previous week range:', previousWeekStart, previousWeekEnd);
+  
   const previousWeekLogs = exerciseLogs.filter(log => {
     const logDate = new Date(log.date);
+    
+    // Debug log to see each log date being checked
+    console.log('Checking log date:', logDate, 
+      'Is within interval:', isWithinInterval(logDate, { start: previousWeekStart, end: previousWeekEnd }));
+    
     return isWithinInterval(logDate, { 
       start: previousWeekStart, 
       end: previousWeekEnd 
     });
   });
   
-  return previousWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
+  // Debug logs to inspect filtered logs and total minutes
+  console.log('Previous week logs:', previousWeekLogs);
+  const totalMinutes = previousWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
+  console.log('Total previous week minutes:', totalMinutes);
+  
+  return totalMinutes;
 };
 
 export const calculateAverageWeeklyExercise = (exerciseLogs: ExerciseLog[]): number => {
