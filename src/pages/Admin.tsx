@@ -42,7 +42,7 @@ const Admin = () => {
                   Welcome to the admin control panel. Here you can manage users and view system analytics.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pb-8">
+              <CardContent className="pb-16">
                 <p>This is a protected admin area. Only users with admin privileges can access this page.</p>
                 
                 <SystemStatsCards stats={stats} isLoading={isLoading} />
@@ -60,7 +60,7 @@ const Admin = () => {
                   View and manage user accounts.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-8">
                 <UsersTable users={users} isLoading={isLoading} />
               </CardContent>
             </Card>
@@ -74,7 +74,7 @@ const Admin = () => {
                   View system usage analytics and statistics.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pb-8">
+              <CardContent className="pb-16">
                 <ActivityStatsChart stats={stats} isLoading={isLoading} />
               </CardContent>
             </Card>
