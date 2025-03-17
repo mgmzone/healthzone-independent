@@ -168,6 +168,7 @@ const Dashboard = () => {
                   currentPeriod={currentPeriod}
                   isImperial={isImperial}
                   fastingLogs={fastingLogs}
+                  exerciseLogs={exerciseLogs}
                 />
               )}
             </>

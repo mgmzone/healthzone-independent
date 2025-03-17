@@ -3,17 +3,23 @@ import React, { useEffect, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
+import ProgressCircle from '@/components/ProgressCircle';
 import { useAuth } from '@/lib/AuthContext';
 import { 
   calculateCurrentWeekExercise,
   calculateExerciseGoalPercentage,
 } from '../utils/exerciseCalculations';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ExerciseCardProps {
   exerciseLogs: ExerciseLog[];
+  showProgressCircle?: boolean;
 }
 
-const ExerciseCard: React.FC<ExerciseCardProps> = ({ exerciseLogs }) => {
+const ExerciseCard: React.FC<ExerciseCardProps> = ({ 
+  exerciseLogs,
+  showProgressCircle = false 
+}) => {
   const { profile } = useAuth();
   const [currentWeekMinutes, setCurrentWeekMinutes] = useState(0);
   const [goalPercentage, setGoalPercentage] = useState(0);
@@ -48,6 +54,25 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exerciseLogs }) => {
       }
     ];
   };
+
+  if (showProgressCircle) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-medium">Weekly Exercise Goal</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center">
+          <ProgressCircle 
+            value={goalPercentage} 
+            showPercentage={true}
+            valueLabel={`${currentWeekMinutes}/${weeklyExerciseGoal} min`}
+            size={140}
+            strokeWidth={12}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <MultiValueCard
