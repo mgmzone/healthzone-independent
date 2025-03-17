@@ -1,125 +1,113 @@
 
 import React from 'react';
 import { 
-  LineChart,
+  LineChart, 
+  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip,
-  ResponsiveContainer
+  Tooltip, 
+  ResponsiveContainer,
+  ReferenceLine
 } from 'recharts';
 import { format } from 'date-fns';
-import CustomTooltip from '../CustomTooltip';
-import { ReferenceLines } from './ReferenceLines';
-import ChartContainer from './ChartContainer';
-import WeightChartLines from './WeightChartLines';
-import { useChartDomains } from './useChartDomains';
+import CustomTooltip from '../../CustomTooltip';
 
 interface WeightChartProps {
   displayData: any[];
+  actualData: any[];
+  forecastData: any[];
   minWeight: number;
   maxWeight: number;
   isImperial: boolean;
-  activeView: 'forecast';
-  targetLine: any[];
+  startDate: number;
+  endDate: number;
+  targetWeight?: number;
 }
 
 const WeightChart: React.FC<WeightChartProps> = ({
   displayData,
+  actualData,
+  forecastData,
   minWeight,
   maxWeight,
   isImperial,
-  targetLine
+  startDate,
+  endDate,
+  targetWeight
 }) => {
-  // Use the custom hook to calculate domains and separate data
-  const {
-    domainStart,
-    domainEnd,
-    actualData,
-    forecastData,
-    today,
-    targetDate,
-    periodEndDate
-  } = useChartDomains(displayData, targetLine, 'forecast');
-  
-  console.log('WeightChart rendering with:', {
-    displayDataCount: displayData?.length || 0,
-    minWeight,
-    maxWeight,
-    domainStart,
-    domainEnd,
-    actualDataCount: actualData?.length || 0,
-    forecastDataCount: forecastData?.length || 0,
-    targetLineCount: targetLine?.length || 0,
-    actualDataSample: actualData?.[0],
-    forecastDataSample: forecastData?.[0]
-  });
-
-  // Create the chart
   return (
-    <ChartContainer>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          margin={{
-            top: 30,
-            right: 30,
-            left: 20,
-            bottom: 30,
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={displayData}
+        margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+        <XAxis 
+          dataKey="date"
+          type="number"
+          domain={[startDate, endDate]}
+          tickFormatter={(date) => format(new Date(date), 'MMM d')}
+          scale="time"
+          tick={{ fill: '#666', fontSize: 12 }}
+          allowDataOverflow
+        />
+        <YAxis 
+          domain={[minWeight, maxWeight]}
+          tickFormatter={(value) => value.toFixed(0)}
+          tick={{ fill: '#666', fontSize: 12 }}
+          allowDataOverflow
+          label={{ 
+            value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
+            angle: -90, 
+            position: 'insideLeft', 
+            style: { textAnchor: 'middle' },
+            fill: '#666' 
           }}
-        >
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-          <XAxis 
-            dataKey="date"
-            tickFormatter={(date) => format(new Date(date), 'MMM d')}
-            tick={{ fill: '#666', fontSize: 12 }}
-            axisLine={{ stroke: '#E0E0E0' }}
-            tickLine={{ stroke: '#E0E0E0' }}
-            domain={[domainStart, domainEnd]}
-            type="number"
-            scale="time"
-            allowDataOverflow
-            height={50}
-          />
-          <YAxis 
-            domain={[minWeight, maxWeight]}
-            tickFormatter={(value) => value.toFixed(0)}
-            tick={{ fill: '#666', fontSize: 12 }}
-            axisLine={{ stroke: '#E0E0E0' }}
-            tickLine={{ stroke: '#E0E0E0' }}
-            allowDataOverflow
+        />
+        <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
+        
+        {/* Actual weight line */}
+        <Line 
+          type="monotone" 
+          dataKey="weight" 
+          data={actualData}
+          stroke="#0EA5E9"
+          strokeWidth={2}
+          dot={{ r: 4, fill: '#0EA5E9', stroke: '#fff', strokeWidth: 1 }}
+          isAnimationActive={false}
+          name="Actual Weight"
+        />
+        
+        {/* Forecast weight line */}
+        <Line 
+          type="monotone" 
+          dataKey="weight" 
+          data={forecastData}
+          stroke="#F97316" // Orange color for forecast
+          strokeWidth={2}
+          strokeDasharray="5 5" // Dashed line for forecast
+          dot={{ r: 4, fill: '#F97316', stroke: '#fff', strokeWidth: 1 }}
+          isAnimationActive={false}
+          name="Forecast"
+        />
+        
+        {/* Target weight line */}
+        {targetWeight && (
+          <ReferenceLine 
+            y={targetWeight} 
+            stroke="#10B981" 
+            strokeDasharray="3 3"
             label={{ 
-              value: `Weight (${isImperial ? 'lbs' : 'kg'})`, 
-              angle: -90, 
-              position: 'insideLeft', 
-              offset: 0,
-              style: { textAnchor: 'middle' },
-              fill: '#666' 
+              value: `Target: ${targetWeight.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}`,
+              position: 'right',
+              fill: '#10B981',
+              fontSize: 12
             }}
-            width={60}
-            // For weight loss, we want lower weights at the bottom
-            // Only reverse for weight gain goals
-            reversed={false}
           />
-          <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
-          
-          {/* Chart Lines: Actual, Forecast, and Target */}
-          <WeightChartLines 
-            actualData={actualData || []}
-            forecastData={forecastData || []}
-            targetLine={targetLine || []}
-            activeView="forecast"
-          />
-          
-          {/* Reference lines for current date and target date */}
-          <ReferenceLines 
-            chartData={displayData || []}
-            today={today}
-            targetDate={targetDate}
-            periodEndDate={periodEndDate}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </ChartContainer>
+        )}
+      </LineChart>
+    </ResponsiveContainer>
   );
 };
 

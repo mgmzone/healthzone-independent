@@ -1,117 +1,108 @@
 
 import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
-import { processWeighInData } from '../utils/weightDataProcessor';
-import { generateForecastData } from '../utils/forecastGenerator';
-import { generateTargetLine } from '../utils/targetLineGenerator';
-import { calculateWeightRange } from '../weightForecastUtils';
-import { combineChartData } from '../utils/weightDataProcessor';
+import { format } from 'date-fns';
+import { calculateWeightRange, generateForecastPoints } from '../../weightForecastUtils';
 
-/**
- * Hook that processes weight data and generates forecast data for the weight chart
- */
-export const useWeightForecastData = (
-  weighIns: WeighIn[],
-  currentPeriod: Period | undefined,
-  isImperial: boolean,
-  targetWeight?: number
-) => {
-  return useMemo(() => {
-    console.log('useWeightForecastData input:', {
-      weighInsCount: weighIns.length,
-      currentPeriod,
-      isImperial,
-      targetWeight
-    });
-    
-    // Initial processing of weigh-in data
-    const { chartData: actualData, hasValidData } = processWeighInData(
-      weighIns, 
-      currentPeriod, 
-      isImperial
-    );
-    
-    if (!hasValidData || !currentPeriod) {
-      return {
-        chartData: [],
-        targetLine: [],
-        minWeight: 0,
-        maxWeight: 0,
-        hasValidData: false
-      };
+interface UseWeightForecastDataProps {
+  weighIns: WeighIn[];
+  currentPeriod: Period;
+  isImperial?: boolean;
+  targetWeight?: number;
+}
+
+export const useWeightForecastData = ({
+  weighIns,
+  currentPeriod,
+  isImperial = false,
+  targetWeight,
+}: UseWeightForecastDataProps) => {
+  // Process data - convert to display format with proper units
+  const processedData = useMemo(() => {
+    return weighIns
+      .map(weighIn => {
+        // Convert weight to display units if needed
+        const displayWeight = isImperial ? 
+          weighIn.weight * 2.20462 : weighIn.weight;
+        
+        return {
+          date: new Date(weighIn.date),
+          weight: displayWeight,
+          isActual: true,
+          isForecast: false,
+          formattedDate: format(new Date(weighIn.date), 'MMM d')
+        };
+      })
+      .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date, oldest first
+  }, [weighIns, isImperial]);
+  
+  // Get the last actual weigh-in for forecasting
+  const lastWeighIn = useMemo(() => {
+    if (processedData.length === 0) return null;
+    return processedData[processedData.length - 1];
+  }, [processedData]);
+  
+  // Convert target weight to display units if needed
+  const displayTargetWeight = useMemo(() => {
+    return targetWeight !== undefined ? 
+      targetWeight : 
+      (currentPeriod.targetWeight ? 
+        (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight) : 
+        undefined);
+  }, [targetWeight, currentPeriod.targetWeight, isImperial]);
+  
+  // Generate forecast data points if we have a target weight
+  const forecastData = useMemo(() => {
+    if (!lastWeighIn || !displayTargetWeight || !currentPeriod.projectedEndDate) {
+      return [];
     }
     
-    // Convert target weight to proper display units if needed
-    // Make sure we're using the target weight in the right units (lbs or kg)
-    let displayTargetWeight = undefined;
+    const projectedEndDate = currentPeriod.projectedEndDate ? 
+      new Date(currentPeriod.projectedEndDate) : undefined;
     
-    if (targetWeight !== undefined) {
-      // Use provided target weight that should already be in the right units
-      displayTargetWeight = targetWeight;
-    } else if (currentPeriod.targetWeight) {
-      // If imperial, convert from kg to lbs, otherwise use as is
-      displayTargetWeight = isImperial ? 
-        currentPeriod.targetWeight * 2.20462 : 
-        currentPeriod.targetWeight;
-    }
-    
-    console.log('Target weight conversion:', {
-      periodTargetWeight: currentPeriod.targetWeight,
-      targetWeight,
+    return generateForecastPoints(
+      lastWeighIn,
       displayTargetWeight,
-      isImperial
-    });
-    
-    // Generate the target line based on the period's settings
-    const targetLine = generateTargetLine(
-      currentPeriod,
-      isImperial,
-      displayTargetWeight
-    );
-    
-    // Generate forecast data based on actual data
-    const periodEndDate = currentPeriod.projectedEndDate ? 
-      new Date(currentPeriod.projectedEndDate) : 
-      currentPeriod.endDate ? 
-        new Date(currentPeriod.endDate) : 
-        new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days from now as fallback
-    
-    const forecastData = generateForecastData(
-      actualData,
-      periodEndDate,
-      displayTargetWeight,
-      isImperial,
+      projectedEndDate,
       currentPeriod.weightLossPerWeek
     );
-    
-    // Combine actual and forecast data
-    const combinedData = combineChartData(actualData, forecastData);
-    
-    // Calculate min and max weights for y-axis based on target, actual, and forecast data
-    const allWeights = [
-      ...combinedData.map(item => item.weight),
-      ...targetLine.map(item => item.weight)
-    ];
-    
-    const { minWeight, maxWeight } = calculateWeightRange(allWeights, displayTargetWeight);
-    
-    console.log('useWeightForecastData output:', {
-      actualDataCount: actualData.length,
-      forecastDataCount: forecastData.length,
-      combinedDataCount: combinedData.length,
-      targetLineCount: targetLine.length,
-      displayTargetWeight,
-      minWeight,
-      maxWeight
-    });
+  }, [lastWeighIn, displayTargetWeight, currentPeriod.projectedEndDate, currentPeriod.weightLossPerWeek]);
+  
+  // Combine actual and forecast data for the chart
+  const combinedData = useMemo(() => {
+    return [...processedData, ...forecastData.slice(1)]; // Skip first forecast point as it duplicates last actual
+  }, [processedData, forecastData]);
+  
+  // Calculate min/max for y-axis
+  const weights = useMemo(() => {
+    return combinedData.map(d => d.weight);
+  }, [combinedData]);
+  
+  const { minWeight, maxWeight } = useMemo(() => {
+    return calculateWeightRange(weights, displayTargetWeight);
+  }, [weights, displayTargetWeight]);
+  
+  // Define chart domain
+  const startDate = useMemo(() => {
+    return new Date(currentPeriod.startDate).getTime();
+  }, [currentPeriod.startDate]);
+  
+  const endDate = useMemo(() => {
+    return currentPeriod.projectedEndDate ? 
+      new Date(currentPeriod.projectedEndDate).getTime() : 
+      (currentPeriod.endDate ? 
+        new Date(currentPeriod.endDate).getTime() : 
+        new Date().getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days from now if no end date
+  }, [currentPeriod.projectedEndDate, currentPeriod.endDate]);
 
-    return {
-      chartData: combinedData,
-      targetLine,
-      forecastData,
-      minWeight,
-      maxWeight,
-      hasValidData: true
-    };
-  }, [weighIns, currentPeriod, isImperial, targetWeight]);
+  return {
+    processedData,
+    forecastData,
+    combinedData,
+    minWeight,
+    maxWeight,
+    displayTargetWeight,
+    startDate,
+    endDate
+  };
 };
