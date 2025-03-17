@@ -26,7 +26,10 @@ export default function WeightForecastChartWrapper(props: WeightForecastChartPro
     profileTargetWeight: profile?.targetWeight,
     displayTargetWeight,
     isImperial: props.isImperial,
-    weighInsCount: props.weighIns?.length || 0
+    weighInsCount: props.weighIns?.length || 0,
+    periodStartDate: props.currentPeriod?.startDate,
+    periodEndDate: props.currentPeriod?.endDate,
+    periodProjectedEndDate: props.currentPeriod?.projectedEndDate
   });
   
   // Create a deep copy of weighIns to prevent any mutation issues
