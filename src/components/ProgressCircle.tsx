@@ -12,6 +12,7 @@ interface ProgressCircleProps {
   valueLabel?: string;
   animate?: boolean;
   allowExceedGoal?: boolean; // New prop to allow showing > 100%
+  children?: React.ReactNode; // Added children prop
 }
 
 const ProgressCircle: React.FC<ProgressCircleProps> = ({
@@ -24,6 +25,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   valueLabel,
   animate = true,
   allowExceedGoal = true, // Default to true to allow exceeding 100%
+  children, // Add children to component props
 }) => {
   const circleRef = useRef<SVGCircleElement>(null);
   const overflowCircleRef = useRef<SVGCircleElement>(null);
@@ -110,10 +112,15 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             />
           )}
         </svg>
-        {showPercentage && (
+        {showPercentage && !children && (
           <div className="absolute flex flex-col items-center justify-center text-center">
             <span className="text-2xl font-bold">{displayValue}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
+          </div>
+        )}
+        {children && (
+          <div className="absolute flex flex-col items-center justify-center text-center">
+            {children}
           </div>
         )}
       </div>

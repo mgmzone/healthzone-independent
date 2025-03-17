@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProgressCircle from '@/components/ProgressCircle';
 import { Period, WeighIn, FastingLog, ExerciseLog } from '@/lib/types';
-import { calculateAverageFastingHours } from '@/components/dashboard/utils/fastingCalculations';
+import { calculateAverageDailyFasting } from '@/components/dashboard/utils/fastingCalculations';
 import ExerciseCard from '@/components/dashboard/cards/ExerciseCard';
 
 interface PeriodMetricsCardsProps {
@@ -39,7 +39,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   fastingLogs,
   exerciseLogs = []
 }) => {
-  const avgFastingHours = calculateAverageFastingHours(fastingLogs);
+  const avgFastingHours = calculateAverageDailyFasting(fastingLogs);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
