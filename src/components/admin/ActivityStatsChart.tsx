@@ -5,10 +5,9 @@ import { ChartContainer } from '@/components/ui/chart';
 import { SystemStats } from '@/lib/services/adminService';
 import TimeFilterSelector, { TimeFilter } from './charts/TimeFilterSelector';
 import { 
-  generateSummaryData, 
-  processActivityLogs, 
-  ActivityLogItem, 
-  chartConfig 
+  ActivityLogItem,
+  chartConfig,
+  getChartData
 } from './charts/chartDataGenerator';
 import SummaryBarChart from './charts/SummaryBarChart';
 import StackedBarChart from './charts/StackedBarChart';
@@ -41,10 +40,8 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
     fetchActivityLogs();
   }, []);
   
-  // Generate chart data based on the selected time filter
-  const chartData = timeFilter === 'all' 
-    ? generateSummaryData(stats)
-    : processActivityLogs(activityLogs, timeFilter);
+  // Generate chart data based on the selected time filter using the refactored function
+  const chartData = getChartData(stats, activityLogs, timeFilter);
 
   if (isLoading || isLoadingLogs) {
     return (
