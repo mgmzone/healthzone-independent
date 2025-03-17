@@ -80,11 +80,8 @@ const Weight = () => {
       };
     }
     
-    addWeighIn({ 
-      weight: weightInKg, 
-      date, 
-      additionalMetrics: convertedMetrics 
-    });
+    // Fix here - pass the parameters separately, not as an object
+    addWeighIn(weightInKg, date, convertedMetrics);
     setIsModalOpen(false);
   };
 

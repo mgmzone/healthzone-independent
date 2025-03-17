@@ -1,4 +1,3 @@
-
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { differenceInDays, addDays } from 'date-fns';
@@ -83,21 +82,17 @@ export function useAddWeighIn() {
   };
 
   const addWeighIn = useMutation({
-    mutationFn: async ({
-      weight,
-      date,
-      additionalMetrics
-    }: {
-      weight: number;
-      date: Date;
+    mutationFn: async (
+      weight: number,
+      date: Date = new Date(),
       additionalMetrics: {
         bmi?: number;
         bodyFatPercentage?: number;
         skeletalMuscleMass?: number;
         boneMass?: number;
         bodyWaterPercentage?: number;
-      }
-    }) => {
+      } = {}
+    ) => {
       // Get the current period to associate with this weigh-in
       const currentPeriod = getCurrentPeriod();
       
@@ -179,6 +174,6 @@ export function useAddWeighIn() {
         boneMass?: number;
         bodyWaterPercentage?: number;
       } = {}
-    ) => addWeighIn.mutate({ weight, date, additionalMetrics })
+    ) => addWeighIn.mutate(weight, date, additionalMetrics)
   };
 }
