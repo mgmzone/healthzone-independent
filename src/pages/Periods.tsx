@@ -6,20 +6,9 @@ import { Plus } from "lucide-react";
 import { useAuth } from '@/lib/AuthContext';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
-import { useFastingData } from '@/hooks/useFastingData';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
-import { getProgressPercentage } from '@/lib/types';
-import { 
-  getTimeProgressPercentage,
-  getRemainingTimePercentage,
-  getDaysRemaining,
-  getWeeksInPeriod,
-  getMonthsInPeriod,
-  ensureDate
-} from '@/lib/utils/dateUtils';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
-import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import PeriodsTable from '@/components/periods/PeriodsTable';
 import { convertToMetric } from '@/lib/weight/convertWeight';
 
@@ -27,7 +16,6 @@ const Periods = () => {
   const { profile } = useAuth();
   const { periods, isLoading: periodsLoading, addPeriod, getCurrentPeriod, updatePeriod, deletePeriod } = usePeriodsData();
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
-  const { fastingLogs } = useFastingData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [needsFirstPeriod, setNeedsFirstPeriod] = useState(false);
 
@@ -85,47 +73,6 @@ const Periods = () => {
     );
   }
 
-  const currentMetrics = currentPeriod ? {
-    // Calculate weight progress correctly
-    weightProgress: latestWeight
-      ? getProgressPercentage(
-          latestWeight,
-          isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
-          isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight
-        )
-      : 0,
-    // Use projected end date for time calculations if available
-    timeProgress: getTimeProgressPercentage(
-      currentPeriod.startDate, 
-      currentPeriod.endDate, 
-      currentPeriod.projectedEndDate
-    ),
-    timeRemaining: getRemainingTimePercentage(
-      currentPeriod.startDate, 
-      currentPeriod.endDate, 
-      currentPeriod.projectedEndDate
-    ),
-    daysRemaining: getDaysRemaining(
-      currentPeriod.endDate, 
-      currentPeriod.projectedEndDate
-    ),
-    totalWeeks: getWeeksInPeriod(
-      currentPeriod.startDate, 
-      currentPeriod.projectedEndDate || currentPeriod.endDate
-    ),
-    totalMonths: getMonthsInPeriod(
-      currentPeriod.startDate, 
-      currentPeriod.projectedEndDate || currentPeriod.endDate
-    ),
-    // Calculate weight change correctly
-    weightChange: latestWeight 
-      ? Math.abs((isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight) - latestWeight)
-      : 0,
-    weightDirection: latestWeight && latestWeight < (isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight)
-      ? 'lost' as const
-      : 'gained' as const
-  } : null;
-
   return (
     <Layout>
       <div className="container mx-auto px-4 pt-24 pb-12">
@@ -135,27 +82,11 @@ const Periods = () => {
           </Button>
         </div>
 
-        {!needsFirstPeriod && (
+        {needsFirstPeriod ? (
+          <NoPeriodAlert onCreatePeriod={() => setIsModalOpen(true)} />
+        ) : (
           <>
             {!currentPeriod && <NoActivePeriodAlert />}
-
-            {currentPeriod && currentMetrics && (
-              <PeriodMetricsCards
-                weightProgress={currentMetrics.weightProgress}
-                timeProgress={currentMetrics.timeProgress}
-                timeRemaining={currentMetrics.timeRemaining}
-                daysRemaining={currentMetrics.daysRemaining}
-                totalWeeks={currentMetrics.totalWeeks}
-                totalMonths={currentMetrics.totalMonths}
-                weightChange={currentMetrics.weightChange}
-                weightDirection={currentMetrics.weightDirection}
-                weightUnit={weightUnit}
-                weighIns={weighIns}
-                currentPeriod={currentPeriod}
-                isImperial={isImperial}
-                fastingLogs={fastingLogs}
-              />
-            )}
 
             <PeriodsTable
               periods={periods}
