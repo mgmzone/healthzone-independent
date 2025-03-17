@@ -78,9 +78,7 @@ export const generateForecastPoints = (
   
   // Generate points every few days for a smoother curve with more data points
   for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
-    current
-
-Date = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
+    currentDate = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
     
     // Calculate progress percentage toward target (0 to 1)
     const progressPercent = day / daysToProjectedEnd;
