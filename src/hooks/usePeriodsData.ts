@@ -1,10 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Period } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { ensureDate } from '@/lib/utils/dateUtils';
-import { addWeeks } from 'date-fns';
+import { addWeeks, addDays } from 'date-fns';
 
 export function usePeriodsData() {
   const { toast } = useToast();
@@ -63,7 +62,6 @@ export function usePeriodsData() {
       fastingSchedule: string,
       weightLossPerWeek: number
     }) => {
-      // Calculate projected end date for weight loss periods
       const projectedEndDate = period.type === 'weightLoss' 
         ? calculateProjectedEndDate(period.startWeight, period.targetWeight, period.weightLossPerWeek, period.startDate)
         : undefined;
@@ -77,7 +75,7 @@ export function usePeriodsData() {
           type: period.type,
           start_date: period.startDate.toISOString(),
           end_date: period.endDate ? period.endDate.toISOString() : null,
-          original_end_date: period.endDate ? period.endDate.toISOString() : null, // This won't work yet, column doesn't exist
+          original_end_date: period.endDate ? period.endDate.toISOString() : null,
           fasting_schedule: period.fastingSchedule,
           projected_end_date: projectedEndDate ? projectedEndDate.toISOString() : null,
           user_id: (await supabase.auth.getUser()).data.user?.id
@@ -108,7 +106,6 @@ export function usePeriodsData() {
       const startDate = ensureDate(period.startDate);
       const endDate = period.endDate ? ensureDate(period.endDate) : null;
       
-      // Calculate projected end date for weight loss periods
       const projectedEndDate = period.type === 'weightLoss' && startDate
         ? calculateProjectedEndDate(period.startWeight, period.targetWeight, period.weightLossPerWeek, startDate)
         : undefined;

@@ -44,7 +44,7 @@ export const calculateWeightProjection = async (
       weekCount++;
     }
     
-    // If we don't have at least 2 data points, use simple calculation
+    // Calculate the weighted average weekly rate or use the simple difference if not enough data
     const initialWeeklyRate = weekCount > 0 
       ? Math.abs(totalChangeSum / weightSum)
       : Math.abs((lastRealDataPoint.weight - firstDataPoint.weight) / 
@@ -81,6 +81,7 @@ export const calculateWeightProjection = async (
     
     let currentWeight = lastRealDataPoint.weight;
     
+    // Improved projection logic that uses actual rate more heavily early on
     for (let week = lastRealDataPoint.week + 1; week < totalWeeks; week++) {
       // Calculate progress towards goal for rate adjustment
       const progressTowardsGoal = isWeightLoss 
@@ -91,11 +92,13 @@ export const calculateWeightProjection = async (
       let adjustedWeeklyRate;
       
       if (isWeightLoss) {
-        // For weight loss: gradually decrease from initial rate to sustainable rate
-        // The 1.5 factor controls how quickly the rate decreases
+        // Use a more realistic projection that starts with actual rate and transitions to target
+        // The transition happens slower at the beginning to account for initial fast weight loss
+        const transitionFactor = Math.min(1, progressTowardsGoal * 1.2); // Slows down the transition
+        
+        // Blend the initial rate (actual rate) with the sustainable rate based on progress
         adjustedWeeklyRate = initialWeeklyRate - 
-          (initialWeeklyRate - finalSustainableRate) * 
-          Math.min(1, progressTowardsGoal * 1.5);
+          (initialWeeklyRate - finalSustainableRate) * transitionFactor;
           
         // Ensure we don't go below the sustainable rate  
         adjustedWeeklyRate = Math.max(adjustedWeeklyRate, finalSustainableRate);
