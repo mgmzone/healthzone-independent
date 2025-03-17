@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ActivityLogItem } from "@/components/admin/charts/chartDataGenerator";
 import { User } from "@/lib/types";
@@ -27,7 +26,6 @@ export interface SystemStats {
 export async function getUsersWithStats(): Promise<UserStats[]> {
   try {
     // Get all users using our security definer function with explicit column selection
-    // to avoid ambiguous column references
     const { data: users, error: usersError } = await supabase
       .rpc('get_all_users_for_admin');
 
