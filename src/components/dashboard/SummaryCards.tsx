@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { ExerciseLog, FastingLog, Period } from '@/lib/types';
-import { isWithinInterval, startOfWeek, endOfWeek, format } from 'date-fns';
+import { isWithinInterval, startOfWeek, endOfWeek, format, subWeeks } from 'date-fns';
 
 interface SummaryCardProps {
   title: string;
@@ -80,7 +79,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   fastingLogs,
   getDaysRemaining
 }) => {
-  // Calculate current week's exercise minutes
   const calculateCurrentWeekExercise = () => {
     if (exerciseLogs.length === 0) return 0;
     
@@ -88,30 +86,49 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     const weekStart = startOfWeek(now);
     const weekEnd = endOfWeek(now);
     
-    // Filter logs from the current week
     const currentWeekLogs = exerciseLogs.filter(log => {
       const logDate = new Date(log.date);
       return isWithinInterval(logDate, { start: weekStart, end: weekEnd });
     });
     
-    // Calculate total minutes for the current week
     return currentWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
   };
 
-  // Get the most appropriate end date (projected or regular)
+  const calculateAverageWeeklyExercise = () => {
+    if (exerciseLogs.length === 0) return 0;
+    
+    const now = new Date();
+    const fourWeeksAgo = subWeeks(now, 4);
+    
+    const recentLogs = exerciseLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= fourWeeksAgo;
+    });
+    
+    if (recentLogs.length === 0) return 0;
+    
+    const totalMinutes = recentLogs.reduce((sum, log) => sum + log.minutes, 0);
+    
+    return Math.round(totalMinutes / 4);
+  };
+
+  const calculateExerciseGoalPercentage = () => {
+    const weeklyGoal = 150;
+    const currentWeekMinutes = calculateCurrentWeekExercise();
+    const percentage = (currentWeekMinutes / weeklyGoal) * 100;
+    return Math.min(Math.round(percentage), 100);
+  };
+
   const getEndDateForDisplay = (): Date | undefined => {
     if (!currentPeriod) return undefined;
     
-    // Always use projected end date if available
     if (currentPeriod.projectedEndDate) {
       return new Date(currentPeriod.projectedEndDate);
     }
     
-    // Fall back to regular end date
     return currentPeriod.endDate ? new Date(currentPeriod.endDate) : undefined;
   };
   
-  // Get the remaining days for the active period
   const getRemainingDaysForDisplay = (): string => {
     if (!currentPeriod) return "No active period";
     
@@ -126,7 +143,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return `${days} days left`;
   };
   
-  // Format the end date for display
   const getEndDateFormatted = (): string => {
     const endDate = getEndDateForDisplay();
     if (!endDate) return "";
@@ -134,7 +150,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return format(endDate, 'MMM d, yyyy');
   };
 
-  // Format the start date for display
   const getStartDateFormatted = (): string => {
     if (!currentPeriod || !currentPeriod.startDate) return "Not set";
     
@@ -142,17 +157,14 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return format(startDate, 'MMM d, yyyy');
   };
 
-  // Format a weight value with the appropriate unit
   const formatWeight = (weight: number | undefined | null): string => {
     if (weight === undefined || weight === null) return "No data";
     return `${weight.toFixed(1)} ${weightUnit}`;
   };
 
-  // Create weight values array for the multi-value card
   const getWeightValues = () => {
     const values = [];
     
-    // Add starting weight if available
     if (currentPeriod) {
       const startingWeight = currentPeriod.startWeight;
       values.push({ 
@@ -161,13 +173,11 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       });
     }
     
-    // Add current weight
     values.push({ 
       label: "Current", 
       value: formatWeight(latestWeight) 
     });
     
-    // Add target weight if available
     if (currentPeriod) {
       const targetWeight = currentPeriod.targetWeight;
       values.push({ 
@@ -179,17 +189,14 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return values;
   };
 
-  // Create period values array for the multi-value card
   const getPeriodValues = () => {
     const values = [];
     
-    // Add start date
     values.push({
       label: "Start Date",
       value: getStartDateFormatted()
     });
     
-    // Add end date if available
     if (currentPeriod && (currentPeriod.projectedEndDate || currentPeriod.endDate)) {
       values.push({
         label: "End Date",
@@ -197,7 +204,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       });
     }
     
-    // Add remaining days
     values.push({
       label: "Remaining",
       value: getRemainingDaysForDisplay()
@@ -206,14 +212,28 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return values;
   };
 
-  // Update to use MultiValueCard for Period
+  const getExerciseValues = () => {
+    const values = [];
+    
+    values.push({
+      label: "This Week",
+      value: `${calculateCurrentWeekExercise()} mins`
+    });
+    
+    values.push({
+      label: "Weekly Avg",
+      value: `${calculateAverageWeeklyExercise()} mins`
+    });
+    
+    values.push({
+      label: "Goal",
+      value: `${calculateExerciseGoalPercentage()}%`
+    });
+    
+    return values;
+  };
+
   const standardCards = [
-    {
-      title: "Current Week Exercise",
-      value: `${calculateCurrentWeekExercise()} mins`,
-      icon: Activity,
-      color: "#42f5ad"
-    },
     {
       title: "Fasting Streaks",
       value: `${fastingLogs.length} fasts`,
@@ -225,7 +245,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Weight multi-value card */}
         <MultiValueCard
           title="Weight"
           values={getWeightValues()}
@@ -233,7 +252,6 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
           color="#4287f5"
         />
         
-        {/* Period multi-value card */}
         <MultiValueCard
           title="Active Period"
           values={getPeriodValues()}
@@ -241,7 +259,13 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
           color="#f5a742"
         />
         
-        {/* Other standard cards */}
+        <MultiValueCard
+          title="Exercise"
+          values={getExerciseValues()}
+          icon={Activity}
+          color="#42f5ad"
+        />
+        
         {standardCards.map((card, index) => (
           <StandardCard
             key={index}
