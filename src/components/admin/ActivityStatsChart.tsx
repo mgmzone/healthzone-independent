@@ -47,7 +47,7 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
         <CardHeader>
           <CardTitle>Activity Statistics</CardTitle>
         </CardHeader>
-        <CardContent className="h-80 flex items-center justify-center">
+        <CardContent className="h-[300px] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </CardContent>
       </Card>
@@ -55,12 +55,12 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
   }
 
   return (
-    <Card className="mt-6">
+    <Card className="mt-6 mb-6">
       <CardHeader>
         <CardTitle>Activity Statistics</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
+        <div className="h-[300px]">
           <ChartContainer
             config={chartConfig}
           >

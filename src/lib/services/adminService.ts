@@ -25,75 +25,68 @@ export interface SystemStats {
 
 export async function getUsersWithStats(): Promise<UserStats[]> {
   try {
-    // Get all users from profiles
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('*');
+    // Get all users using our security definer function
+    const { data: users, error: usersError } = await supabase
+      .rpc('get_all_users_for_admin');
 
-    if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
       return [];
     }
 
-    // Get auth data for last login times
-    const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-    
-    if (authError) {
-      console.error('Error fetching auth data:', authError);
+    if (!users || users.length === 0) {
       return [];
     }
 
-    // Get counts of user data
-    const usersWithStats = await Promise.all(profiles.map(async (profile) => {
-      // Get weigh-ins count
-      const { count: weighInsCount, error: weighInError } = await supabase
-        .from('weigh_ins')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', profile.id);
+    // Get user stats for each user
+    const usersWithStats = await Promise.all(users.map(async (user) => {
+      // Get stats for this user
+      const { data: stats, error: statsError } = await supabase
+        .rpc('get_user_stats_for_admin', { p_user_id: user.id });
 
-      // Get fasting logs count
-      const { count: fastsCount, error: fastsError } = await supabase
-        .from('fasting_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', profile.id);
+      if (statsError) {
+        console.error(`Error fetching stats for user ${user.id}:`, statsError);
+        return null;
+      }
 
-      // Get exercise logs count
-      const { count: exercisesCount, error: exercisesError } = await supabase
-        .from('exercise_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', profile.id);
+      const userStats = stats && stats.length > 0 ? stats[0] : {
+        weigh_ins_count: 0,
+        fasts_count: 0,
+        exercises_count: 0,
+        has_active_period: false
+      };
 
-      // Check if user has active period
-      const { data: activePeriod, error: periodError } = await supabase
-        .rpc('get_current_active_period', { p_user_id: profile.id });
-
-      // Find auth data for this user
-      const userData = authData?.users ? authData.users.find(user => user.id === profile.id) : null;
-      
       // Check if profile is complete
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('first_name, current_weight, target_weight, height, birth_date')
+        .eq('id', user.id)
+        .single();
+
       const isProfileComplete = !!(
-        profile.first_name && 
-        profile.current_weight && 
-        profile.target_weight && 
-        profile.height &&
-        profile.birth_date
+        profile?.first_name && 
+        profile?.current_weight && 
+        profile?.target_weight && 
+        profile?.height &&
+        profile?.birth_date
       );
 
       return {
-        id: profile.id,
-        email: userData?.email || 'Unknown',
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
-        lastLogin: userData?.last_sign_in_at || null,
+        id: user.id,
+        email: user.email || 'Unknown',
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        lastLogin: user.last_sign_in_at || null,
         isProfileComplete,
-        hasActivePeriod: activePeriod && activePeriod.length > 0,
-        weighInsCount: weighInsCount || 0,
-        fastsCount: fastsCount || 0,
-        exercisesCount: exercisesCount || 0
+        hasActivePeriod: userStats.has_active_period,
+        weighInsCount: Number(userStats.weigh_ins_count) || 0,
+        fastsCount: Number(userStats.fasts_count) || 0,
+        exercisesCount: Number(userStats.exercises_count) || 0
       };
     }));
 
-    return usersWithStats;
+    // Filter out null values and return
+    return usersWithStats.filter(user => user !== null) as UserStats[];
   } catch (error) {
     console.error('Error in getUsersWithStats:', error);
     return [];
@@ -102,38 +95,35 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
 
 export async function getSystemStats(): Promise<SystemStats> {
   try {
-    // Get total users count
-    const { count: totalUsers, error: usersError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
+    // Get system stats using our security definer function
+    const { data: stats, error } = await supabase
+      .rpc('get_system_stats_for_admin');
 
-    // Get active periods count
-    const { count: activePeriods, error: periodsError } = await supabase
-      .from('periods')
-      .select('*', { count: 'exact', head: true })
-      .is('end_date', null);
+    if (error) {
+      console.error('Error fetching system stats:', error);
+      return {
+        totalUsers: 0,
+        activePeriods: 0,
+        totalWeighIns: 0,
+        totalFasts: 0,
+        totalExercises: 0
+      };
+    }
 
-    // Get weigh-ins count
-    const { count: totalWeighIns, error: weighInsError } = await supabase
-      .from('weigh_ins')
-      .select('*', { count: 'exact', head: true });
-
-    // Get fasting logs count
-    const { count: totalFasts, error: fastsError } = await supabase
-      .from('fasting_logs')
-      .select('*', { count: 'exact', head: true });
-
-    // Get exercise logs count
-    const { count: totalExercises, error: exercisesError } = await supabase
-      .from('exercise_logs')
-      .select('*', { count: 'exact', head: true });
+    const systemStats = stats && stats.length > 0 ? stats[0] : {
+      total_users: 0,
+      active_periods: 0,
+      total_weigh_ins: 0,
+      total_fasts: 0,
+      total_exercises: 0
+    };
 
     return {
-      totalUsers: totalUsers || 0,
-      activePeriods: activePeriods || 0,
-      totalWeighIns: totalWeighIns || 0,
-      totalFasts: totalFasts || 0,
-      totalExercises: totalExercises || 0
+      totalUsers: Number(systemStats.total_users) || 0,
+      activePeriods: Number(systemStats.active_periods) || 0,
+      totalWeighIns: Number(systemStats.total_weigh_ins) || 0,
+      totalFasts: Number(systemStats.total_fasts) || 0,
+      totalExercises: Number(systemStats.total_exercises) || 0
     };
   } catch (error) {
     console.error('Error in getSystemStats:', error);

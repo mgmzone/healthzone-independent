@@ -320,6 +320,17 @@ export type Database = {
         }
         Returns: string
       }
+      get_all_users_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          first_name: string
+          last_name: string
+          last_sign_in_at: string
+          created_at: string
+        }[]
+      }
       get_current_active_period: {
         Args: {
           p_user_id: string
@@ -330,6 +341,27 @@ export type Database = {
           end_date: string
           target_weight: number
           weight_loss_per_week: number
+        }[]
+      }
+      get_system_stats_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_users: number
+          active_periods: number
+          total_weigh_ins: number
+          total_fasts: number
+          total_exercises: number
+        }[]
+      }
+      get_user_stats_for_admin: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          weigh_ins_count: number
+          fasts_count: number
+          exercises_count: number
+          has_active_period: boolean
         }[]
       }
     }
