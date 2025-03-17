@@ -1,4 +1,3 @@
-
 import { ExerciseLog } from '@/lib/types';
 import { 
   isWithinInterval, 
@@ -10,9 +9,6 @@ import {
   format,
   isEqual
 } from 'date-fns';
-
-// Weekly exercise goal in minutes
-export const WEEKLY_EXERCISE_GOAL = 150;
 
 export const calculateCurrentWeekExercise = (exerciseLogs: ExerciseLog[]): number => {
   if (exerciseLogs.length === 0) return 0;
@@ -78,8 +74,8 @@ export const calculateAverageWeeklyExercise = (exerciseLogs: ExerciseLog[]): num
   return Math.round(totalMinutes / 4);
 };
 
-export const calculateExerciseGoalPercentage = (exerciseLogs: ExerciseLog[]): number => {
+export const calculateExerciseGoalPercentage = (exerciseLogs: ExerciseLog[], weeklyGoal: number = 150): number => {
   const currentWeekMinutes = calculateCurrentWeekExercise(exerciseLogs);
-  const percentage = (currentWeekMinutes / WEEKLY_EXERCISE_GOAL) * 100;
+  const percentage = (currentWeekMinutes / weeklyGoal) * 100;
   return Math.min(Math.round(percentage), 100);
 };

@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
+import { useAuth } from '@/lib/AuthContext';
 import { 
   calculateCurrentWeekExercise,
   calculateExerciseGoalPercentage,
-  WEEKLY_EXERCISE_GOAL
 } from '../utils/exerciseCalculations';
 
 interface ExerciseCardProps {
@@ -14,14 +14,23 @@ interface ExerciseCardProps {
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({ exerciseLogs }) => {
+  const { profile } = useAuth();
   const [currentWeekMinutes, setCurrentWeekMinutes] = useState(0);
   const [goalPercentage, setGoalPercentage] = useState(0);
+  
+  // Calculate weekly exercise goal based on user's daily target (7 days)
+  const weeklyExerciseGoal = profile?.exerciseMinutesPerDay 
+    ? profile.exerciseMinutesPerDay * 7 
+    : 150; // Default to 150 if no profile data
   
   useEffect(() => {
     // Calculate values with the complete exercise log data
     setCurrentWeekMinutes(calculateCurrentWeekExercise(exerciseLogs));
-    setGoalPercentage(calculateExerciseGoalPercentage(exerciseLogs));
-  }, [exerciseLogs]);
+    
+    // Calculate percentage based on the personal weekly goal
+    const percentage = (currentWeekMinutes / weeklyExerciseGoal) * 100;
+    setGoalPercentage(Math.min(Math.round(percentage), 100));
+  }, [exerciseLogs, weeklyExerciseGoal, currentWeekMinutes]);
 
   const getExerciseValues = () => {
     return [
@@ -31,7 +40,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exerciseLogs }) => {
       },
       {
         label: "Weekly Target",
-        value: `${WEEKLY_EXERCISE_GOAL} mins`
+        value: `${weeklyExerciseGoal} mins`
       },
       {
         label: "% Complete",
