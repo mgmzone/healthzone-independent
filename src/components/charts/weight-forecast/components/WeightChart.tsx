@@ -11,6 +11,7 @@ import {
   ReferenceLine
 } from 'recharts';
 import { format, addDays } from 'date-fns';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import CustomTooltip from '../../CustomTooltip';
 
 interface WeightChartProps {
@@ -40,8 +41,24 @@ const WeightChart: React.FC<WeightChartProps> = ({
   // Reduced padding from 35 days to 15 days to minimize whitespace
   const paddedEndDate = addDays(new Date(endDate), 15).getTime();
   
+  // Chart configuration
+  const chartConfig = {
+    actual: {
+      label: "Actual Weight",
+      color: "#0EA5E9"
+    },
+    forecast: {
+      label: "Forecast",
+      color: "#F97316"
+    },
+    target: {
+      label: "Target",
+      color: "#10B981"
+    }
+  };
+  
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ChartContainer config={chartConfig}>
       <LineChart
         data={displayData}
         margin={{ top: 20, right: 90, left: 20, bottom: 30 }} // Increased right margin to 90
@@ -69,16 +86,16 @@ const WeightChart: React.FC<WeightChartProps> = ({
             fill: '#666' 
           }}
         />
-        <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
+        <ChartTooltip content={<CustomTooltip isImperial={isImperial} />} />
         
         {/* Actual weight line */}
         <Line 
           type="monotone" 
           dataKey="weight" 
           data={actualData}
-          stroke="#0EA5E9"
+          stroke="var(--color-actual)"
           strokeWidth={2}
-          dot={{ r: 4, fill: '#0EA5E9', stroke: '#fff', strokeWidth: 1 }}
+          dot={{ r: 4, fill: "var(--color-actual)", stroke: '#fff', strokeWidth: 1 }}
           isAnimationActive={false}
           name="Actual Weight"
           connectNulls={true}
@@ -89,10 +106,10 @@ const WeightChart: React.FC<WeightChartProps> = ({
           type="monotone" 
           dataKey="weight" 
           data={forecastData}
-          stroke="#F97316" // Orange color for forecast
+          stroke="var(--color-forecast)" 
           strokeWidth={2}
           strokeDasharray="5 5" // Dashed line for forecast
-          dot={{ r: 4, fill: '#F97316', stroke: '#fff', strokeWidth: 1 }}
+          dot={{ r: 4, fill: "var(--color-forecast)", stroke: '#fff', strokeWidth: 1 }}
           isAnimationActive={false}
           name="Forecast"
           connectNulls={true}
@@ -102,18 +119,18 @@ const WeightChart: React.FC<WeightChartProps> = ({
         {targetWeight && (
           <ReferenceLine 
             y={targetWeight} 
-            stroke="#10B981" 
+            stroke="var(--color-target)" 
             strokeDasharray="3 3"
             label={{ 
               value: `Target: ${targetWeight.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}`,
               position: 'right',
-              fill: '#10B981',
+              fill: "var(--color-target)",
               fontSize: 12
             }}
           />
         )}
       </LineChart>
-    </ResponsiveContainer>
+    </ChartContainer>
   );
 };
 

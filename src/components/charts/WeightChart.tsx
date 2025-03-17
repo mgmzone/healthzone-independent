@@ -3,6 +3,11 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { format } from 'date-fns';
 import { WeighIn } from '@/lib/types';
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent 
+} from '@/components/ui/chart';
 
 interface WeightChartProps {
   data: WeighIn[];
@@ -74,22 +79,17 @@ const WeightChart: React.FC<WeightChartProps> = ({
     );
   }
 
-  // Custom Tooltip component
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-2 border border-gray-200 rounded shadow-sm">
-          <p className="font-medium">{`${payload[0].value.toFixed(1)} ${getMetricLabel()}`}</p>
-          <p className="text-xs text-gray-500">{format(new Date(label), 'MMM d, yyyy')}</p>
-        </div>
-      );
+  // Chart configuration for styling
+  const chartConfig = {
+    [metricKey]: {
+      label: `${metricKey.charAt(0).toUpperCase() + metricKey.slice(1)}`,
+      color: '#6366F1'
     }
-    return null;
   };
 
   return (
     <div className="w-full h-[200px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ChartContainer config={chartConfig}>
         <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 20 }}>
           <XAxis 
             dataKey="date" 
@@ -103,17 +103,27 @@ const WeightChart: React.FC<WeightChartProps> = ({
             domain={['dataMin - 5', 'dataMax + 5']} 
             hide={true}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <ChartTooltip 
+            content={
+              <ChartTooltipContent 
+                formatter={(value: number) => [
+                  `${value.toFixed(1)} ${getMetricLabel()}`,
+                  chartConfig[metricKey].label
+                ]}
+                labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy')}
+              />
+            } 
+          />
           <Line
             type="monotone"
             dataKey={metricKey}
-            stroke="#6366F1"
+            stroke="var(--color-weight)"
             strokeWidth={2}
-            dot={{ stroke: '#6366F1', strokeWidth: 2, r: 4, fill: 'white' }}
-            activeDot={{ r: 6, fill: '#6366F1' }}
+            dot={{ stroke: 'var(--color-weight)', strokeWidth: 2, r: 4, fill: 'white' }}
+            activeDot={{ r: 6, fill: 'var(--color-weight)' }}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
   );
 };
