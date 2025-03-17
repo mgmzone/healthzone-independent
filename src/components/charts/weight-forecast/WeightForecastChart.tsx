@@ -1,7 +1,6 @@
 
 import React, { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
-import { ResponsiveContainer } from 'recharts';
 import { useWeightForecastData } from './hooks/useWeightForecastData';
 import WeightChart from './components/WeightChart';
 import NoDataDisplay from './components/NoDataDisplay';

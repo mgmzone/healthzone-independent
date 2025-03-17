@@ -11,8 +11,8 @@ import {
   ReferenceLine
 } from 'recharts';
 import { format, addDays } from 'date-fns';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import CustomTooltip from '../../CustomTooltip';
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
+import CustomTooltip from '../CustomTooltip';
 
 interface WeightChartProps {
   displayData: any[];
@@ -61,7 +61,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
     <ChartContainer config={chartConfig}>
       <LineChart
         data={displayData}
-        margin={{ top: 20, right: 90, left: 20, bottom: 30 }} // Increased right margin to 90
+        margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
       >
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
