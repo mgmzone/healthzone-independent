@@ -5,6 +5,7 @@ import ProgressCircle from '@/components/ProgressCircle';
 import { Period, WeighIn, FastingLog, ExerciseLog } from '@/lib/types';
 import { calculateAverageDailyFasting } from '@/components/dashboard/utils/fastingCalculations';
 import ExerciseCard from '@/components/dashboard/cards/ExerciseCard';
+import WeightForecastChartWrapper from '@/components/charts/WeightForecastChart';
 
 interface PeriodMetricsCardsProps {
   weightProgress: number;
@@ -42,59 +43,75 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   const avgFastingHours = calculateAverageDailyFasting(fastingLogs);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card>
+    <div className="grid grid-cols-1 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">Weight Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <ProgressCircle 
+              value={weightProgress} 
+              showPercentage={true}
+              valueLabel={`${weightChange.toFixed(1)} ${weightUnit} ${weightDirection}`}
+              size={140}
+              strokeWidth={12}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">Time Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <ProgressCircle 
+              value={timeProgress} 
+              showPercentage={true}
+              valueLabel={`${daysRemaining} days left`}
+              size={140} 
+              strokeWidth={12}
+            />
+          </CardContent>
+        </Card>
+
+        <ExerciseCard 
+          exerciseLogs={exerciseLogs} 
+          showProgressCircle={true} 
+        />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">Average Daily Fasting</CardTitle>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <ProgressCircle 
+              value={(avgFastingHours / 24) * 100} 
+              showPercentage={false}
+              valueLabel="hours"
+              size={140}
+              strokeWidth={12}
+            >
+              <div className="text-center">
+                <div className="text-3xl font-bold">{avgFastingHours.toFixed(1)}</div>
+                <div className="text-xs text-muted-foreground">hours</div>
+              </div>
+            </ProgressCircle>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weight Forecast Chart */}
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-lg font-medium">Weight Progress</CardTitle>
+          <CardTitle>Weight Forecast</CardTitle>
         </CardHeader>
-        <CardContent className="flex justify-center">
-          <ProgressCircle 
-            value={weightProgress} 
-            showPercentage={true}
-            valueLabel={`${weightChange.toFixed(1)} ${weightUnit} ${weightDirection}`}
-            size={140}
-            strokeWidth={12}
+        <CardContent className="h-[400px]">
+          <WeightForecastChartWrapper 
+            weighIns={weighIns} 
+            currentPeriod={currentPeriod}
+            isImperial={isImperial}
           />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-medium">Time Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <ProgressCircle 
-            value={timeProgress} 
-            showPercentage={true}
-            valueLabel={`${daysRemaining} days left`}
-            size={140} 
-            strokeWidth={12}
-          />
-        </CardContent>
-      </Card>
-
-      <ExerciseCard 
-        exerciseLogs={exerciseLogs} 
-        showProgressCircle={true} 
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-medium">Average Daily Fasting</CardTitle>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <ProgressCircle 
-            value={(avgFastingHours / 24) * 100} 
-            showPercentage={false}
-            valueLabel="hours"
-            size={140}
-            strokeWidth={12}
-          >
-            <div className="text-center">
-              <div className="text-3xl font-bold">{avgFastingHours.toFixed(1)}</div>
-              <div className="text-xs text-muted-foreground">hours</div>
-            </div>
-          </ProgressCircle>
         </CardContent>
       </Card>
     </div>
