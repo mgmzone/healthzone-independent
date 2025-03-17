@@ -79,7 +79,7 @@ export const generateForecastPoints = (
   // Final sustainable rate (lower than initial rate)
   // For imperial units (lbs), around 0.3 lbs per day (2 lbs per week)
   // For metric units (kg), around 0.14 kg per day (1 kg per week)
-  const finalSustainableRate = initialDailyRate * 0.6; // 60% of initial rate as a sustainable target
+  const finalSustainableRate = initialDailyRate * 0.4; // Reduced to 40% of initial rate (from 60%) for a gentler approach to target
   
   console.log('Forecast calculation:', {
     daysToProjectedEnd,
@@ -105,24 +105,46 @@ export const generateForecastPoints = (
     isForecast: true
   });
   
-  // Generate points every 3 days for a smoother curve with more data points
-  for (let day = 3; day <= daysToProjectedEnd; day += 3) {
+  // Number of days per point - using smaller increments for smoother curve
+  const daysPerPoint = 3;
+  
+  // Generate points every few days for a smoother curve with more data points
+  for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
     currentDate = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
     
     // Calculate progress percentage toward target (0 to 1)
     const progressPercent = day / daysToProjectedEnd;
     
-    // Calculate adjusted rate using a curve function
-    // This creates a more dramatic curve - faster at beginning, slower near end
-    // The exponent (0.5) creates a "square root" curve - fast initial progress that slows down
-    const curveFactor = Math.pow(progressPercent, 0.5);
+    // Create a more gentle curve using a power function with a higher exponent
+    // Higher exponent creates a more gradual approach to the target
+    // Using 0.4 instead of 0.5 makes the curve even more gradual
+    const curveFactor = Math.pow(progressPercent, 0.4);
     
-    // Linear interpolation between initial and final rate based on curve
-    const adjustedDailyRate = initialDailyRate - (initialDailyRate - finalSustainableRate) * curveFactor;
+    // Apply exponential slowdown as we approach the target
+    // This creates a more gradual approach to the target weight at the end
+    let adjustedDailyRate;
     
-    // Apply the 3-day change
+    // If we're more than 80% through the timeline, apply additional slowdown
+    if (progressPercent > 0.8) {
+      // Calculate how close we are to the end (0 to 1, where 1 is at the end date)
+      const endProximity = (progressPercent - 0.8) / 0.2;
+      
+      // Apply sigmoid-like curve for very smooth ending
+      // This creates an elegant taper as we approach the target
+      const endingFactor = 1 - (endProximity * endProximity);
+      
+      // Reduce rate as we approach the target date
+      adjustedDailyRate = initialDailyRate - 
+        ((initialDailyRate - finalSustainableRate) * curveFactor) - 
+        (finalSustainableRate * endProximity * 0.8); // Additional slowdown factor
+    } else {
+      // Normal curve for most of the forecast
+      adjustedDailyRate = initialDailyRate - ((initialDailyRate - finalSustainableRate) * curveFactor);
+    }
+    
+    // Apply the daily change for each day in this segment
     if (isWeightLoss) {
-      currentWeight -= adjustedDailyRate * 3; // 3 days of weight change
+      currentWeight -= adjustedDailyRate * daysPerPoint; // Apply weight change
       // Stop if we've reached or passed the target
       if (currentWeight <= targetWeight) {
         forecastPoints.push({
@@ -133,7 +155,7 @@ export const generateForecastPoints = (
         break;
       }
     } else {
-      currentWeight += adjustedDailyRate * 3; // 3 days of weight change
+      currentWeight += adjustedDailyRate * daysPerPoint; // Apply weight change
       // Stop if we've reached or passed the target
       if (currentWeight >= targetWeight) {
         forecastPoints.push({
@@ -152,10 +174,34 @@ export const generateForecastPoints = (
     });
   }
   
-  // Ensure we include the target weight point at the projected end date
-  // (only if we haven't already reached it)
+  // Force include the target weight point at the projected end date if we haven't already reached it
+  // This ensures we always show the goal being reached by the projected date
   if (forecastPoints.length > 0 && 
-      forecastPoints[forecastPoints.length - 1].weight !== targetWeight) {
+      Math.abs(forecastPoints[forecastPoints.length - 1].weight - targetWeight) > 0.1) {
+    
+    // Add an extra point ~10% before the end date for even smoother transition
+    const transitionDate = new Date(projectedEndDate);
+    transitionDate.setDate(transitionDate.getDate() - Math.max(5, Math.floor(daysToProjectedEnd * 0.1)));
+    
+    // Calculate weight for transition point - make it closer to target
+    const lastPointWeight = forecastPoints[forecastPoints.length - 1].weight;
+    const remainingChange = isWeightLoss ? 
+      lastPointWeight - targetWeight : 
+      targetWeight - lastPointWeight;
+    
+    // Make the transition point 80% of the way to the target
+    const transitionWeight = isWeightLoss ? 
+      targetWeight + (remainingChange * 0.2) : 
+      targetWeight - (remainingChange * 0.2);
+    
+    // Add the transition point
+    forecastPoints.push({
+      date: transitionDate,
+      weight: transitionWeight,
+      isForecast: true
+    });
+    
+    // Add the final target point
     forecastPoints.push({
       date: new Date(projectedEndDate),
       weight: targetWeight,
@@ -163,7 +209,7 @@ export const generateForecastPoints = (
     });
   }
   
-  console.log(`Generated ${forecastPoints.length} forecast points`);
+  console.log(`Generated ${forecastPoints.length} forecast points with enhanced smoothing at end`);
   return forecastPoints;
 };
 

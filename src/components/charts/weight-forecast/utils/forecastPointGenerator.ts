@@ -46,11 +46,27 @@ export const generateForecastPoints = (
     // Combine progress factors
     const combinedFactor = Math.max(progressFactor, curveFactor);
     
+    // Additional smoothing logic for the final portion of the curve
+    let endingSmoothingFactor = 1.0;
+    
+    // Apply extra smoothing in the last 20% of the forecast
+    if (timeProgress > 0.8) {
+      // Calculate how far into the final portion we are (0 to 1)
+      const endingProgress = (timeProgress - 0.8) / 0.2;
+      
+      // Apply a smoothing factor that increases as we approach the end
+      // Using a quadratic function to create a gentle tapering
+      endingSmoothingFactor = 1.0 - (Math.pow(endingProgress, 2) * 0.8);
+    }
+    
     // Adjust daily rate based on curve - gradually decrease to sustainable rate
     // The higher the curve factor, the more the rate decreases
-    const adjustedDailyRate = Math.abs(avgDailyChange) - 
-                            (Math.abs(avgDailyChange) - finalSustainableRate) * 
-                            Math.min(1, combinedFactor * 1.5);
+    let adjustedDailyRate = Math.abs(avgDailyChange) - 
+                          (Math.abs(avgDailyChange) - finalSustainableRate) * 
+                          Math.min(1, combinedFactor * 1.5);
+    
+    // Apply additional smoothing to the rate at the end
+    adjustedDailyRate *= endingSmoothingFactor;
     
     // Calculate new weight using adjusted rate
     let forecastWeight;
