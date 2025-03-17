@@ -68,7 +68,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
           dataKey="date"
-          tickFormatter={(date) => format(new Date(date), 'MMM yyyy')}
+          tickFormatter={(date) => format(new Date(date), 'MMM d')}
           tick={{ fill: '#666', fontSize: 12 }}
           axisLine={{ stroke: '#E0E0E0' }}
           tickLine={{ stroke: '#E0E0E0' }}
@@ -92,8 +92,9 @@ const WeightChart: React.FC<WeightChartProps> = ({
             style: { textAnchor: 'middle' },
             fill: '#666' 
           }}
-          // Reverse the axis to show weight loss going up
-          reversed={true}
+          // Note: We want weight loss to show going down, so we need to reverse the axis
+          // when the min weight (target) is less than max weight (starting)
+          reversed={minWeight < maxWeight}
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />
         

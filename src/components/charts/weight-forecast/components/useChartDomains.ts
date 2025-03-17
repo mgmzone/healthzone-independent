@@ -1,6 +1,19 @@
 
 import { useMemo } from 'react';
 
+/**
+ * Safely converts various date formats to a Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'number') return new Date(date);
+  if (typeof date === 'string') return new Date(date);
+  if (date?._type === 'Date' && date?.value?.value) {
+    return new Date(date.value.value);
+  }
+  return new Date(); // fallback
+};
+
 export const useChartDomains = (
   displayData: any[],
   targetLine: any[],
@@ -25,20 +38,8 @@ export const useChartDomains = (
       return data.map(d => {
         if (!d) return null;
         
-        // Handle both Date objects and timestamp numbers
-        let timestamp;
-        if (d.date instanceof Date) {
-          timestamp = d.date.getTime();
-        } else if (typeof d.date === 'number') {
-          timestamp = d.date;
-        } else if (d.date?._type === 'Date' && d.date?.value?.value) {
-          timestamp = d.date.value.value;
-        } else if (typeof d.date === 'string') {
-          timestamp = new Date(d.date).getTime();
-        } else {
-          // If we can't parse the date, use today
-          timestamp = today.getTime();
-        }
+        // Convert date to timestamp for consistent processing
+        const timestamp = ensureDate(d.date).getTime();
         
         return {
           ...d,

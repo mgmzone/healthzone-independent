@@ -3,6 +3,19 @@ import { WeighIn, Period } from '@/lib/types';
 import { createChartDataPoint } from './forecastUtils';
 
 /**
+ * Safely converts various date formats to a Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'number') return new Date(date);
+  if (typeof date === 'string') return new Date(date);
+  if (date?._type === 'Date' && date?.value?.value) {
+    return new Date(date.value.value);
+  }
+  return new Date(); // fallback
+};
+
+/**
  * Processes weigh-in data to create chart data points
  */
 export const processWeighInData = (
@@ -18,8 +31,8 @@ export const processWeighInData = (
   }
   
   // Process and filter weigh-ins to only include those within the current period
-  const periodStartDate = new Date(currentPeriod.startDate);
-  const periodEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
+  const periodStartDate = ensureDate(currentPeriod.startDate);
+  const periodEndDate = currentPeriod.endDate ? ensureDate(currentPeriod.endDate) : new Date();
   
   console.log('Processing weight data:', {
     periodStartDate,
@@ -73,13 +86,11 @@ export const processWeighInData = (
     })
   );
   
-  // Sort again to ensure chronological order - Fix for the error here
-  // Make sure we're accessing the 'date' property correctly
+  // Sort again to ensure chronological order
   chartData.sort((a, b) => {
-    // Check if date is a Date object or a timestamp
-    const aTime = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
-    const bTime = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
-    return aTime - bTime;
+    const aDate = ensureDate(a.date);
+    const bDate = ensureDate(b.date);
+    return aDate.getTime() - bDate.getTime();
   });
   
   console.log('Processed chart data:', {
@@ -102,13 +113,10 @@ export const combineChartData = (actualData: any[], forecastData: any[]) => {
   
   // Only add forecast points that don't overlap with actual data
   forecastData.forEach(forecastPoint => {
-    // Fix for the same error when comparing dates
-    const forecastDate = typeof forecastPoint.date === 'number' ? 
-      forecastPoint.date : new Date(forecastPoint.date).getTime();
+    const forecastDate = ensureDate(forecastPoint.date).getTime();
       
     const existingPoint = actualData.find(actualPoint => {
-      const actualDate = typeof actualPoint.date === 'number' ? 
-        actualPoint.date : new Date(actualPoint.date).getTime();
+      const actualDate = ensureDate(actualPoint.date).getTime();
       return actualDate === forecastDate;
     });
     
@@ -117,10 +125,10 @@ export const combineChartData = (actualData: any[], forecastData: any[]) => {
     }
   });
   
-  // Sort combined data by date - Fix the sort method to properly handle the date property
+  // Sort combined data by date
   return combinedData.sort((a, b) => {
-    const aTime = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
-    const bTime = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
-    return aTime - bTime;
+    const aDate = ensureDate(a.date).getTime();
+    const bDate = ensureDate(b.date).getTime();
+    return aDate - bDate;
   });
 };

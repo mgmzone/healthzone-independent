@@ -16,7 +16,19 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label, i
   const value = payload[0].value;
   
   // Make sure label is properly converted to a Date
-  const date = typeof label === 'number' ? new Date(label) : new Date(label);
+  let date;
+  if (typeof label === 'number') {
+    date = new Date(label);
+  } else if (label instanceof Date) {
+    date = label;
+  } else if (typeof label === 'string') {
+    date = new Date(label);
+  } else if (label?._type === 'Date' && label?.value?.value) {
+    date = new Date(label.value.value);
+  } else {
+    date = new Date(); // fallback
+  }
+  
   const formattedDate = format(date, 'MMM d, yyyy');
   const weightUnit = isImperial ? 'lbs' : 'kg';
   

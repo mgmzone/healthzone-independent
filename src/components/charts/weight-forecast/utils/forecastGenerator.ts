@@ -6,6 +6,19 @@ import { calculateDaysToTarget } from './daysToTargetCalculator';
 import { generateForecastPoints } from './forecastPointGenerator';
 
 /**
+ * Safely converts various date formats to a Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  if (typeof date === 'number') return new Date(date);
+  if (typeof date === 'string') return new Date(date);
+  if (date?._type === 'Date' && date?.value?.value) {
+    return new Date(date.value.value);
+  }
+  return new Date(); // fallback
+};
+
+/**
  * Generates forecast data points based on actual weight data using an improved
  * weight loss rate model that gradually decreases to a sustainable rate
  */
@@ -30,14 +43,8 @@ export const generateForecastData = (
   const firstPoint = chartData[0];
   
   // Make sure we're accessing date properties correctly
-  const getDateFromPoint = (point: any): Date => {
-    // If date is already a number (timestamp), create a Date from it
-    // If it's a Date object or string, convert to Date to be safe
-    return typeof point.date === 'number' ? new Date(point.date) : new Date(point.date);
-  };
-  
-  const lastDate = getDateFromPoint(lastActualPoint);
-  const firstDate = getDateFromPoint(firstPoint);
+  const lastDate = ensureDate(lastActualPoint.date);
+  const firstDate = ensureDate(firstPoint.date);
   
   const daysElapsed = differenceInDays(lastDate, firstDate) || 1;
   
@@ -103,7 +110,7 @@ export const generateForecastData = (
   }
 
   // Limit the forecast to either the period end date, or until target is reached, whichever comes first
-  let endDate = new Date(periodEndDate);
+  let endDate = ensureDate(periodEndDate);
   if (daysToTarget !== null) {
     const targetDate = addDays(lastDate, daysToTarget);
     // Use whichever date comes first
