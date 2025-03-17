@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
@@ -130,7 +131,15 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     const endDate = getEndDateForDisplay();
     if (!endDate) return "";
     
-    return ` (${format(endDate, 'MMM d, yyyy')})`;
+    return format(endDate, 'MMM d, yyyy');
+  };
+
+  // Format the start date for display
+  const getStartDateFormatted = (): string => {
+    if (!currentPeriod || !currentPeriod.startDate) return "Not set";
+    
+    const startDate = new Date(currentPeriod.startDate);
+    return format(startDate, 'MMM d, yyyy');
   };
 
   // Format a weight value with the appropriate unit
@@ -170,16 +179,35 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     return values;
   };
 
-  // Standard cards (for exercise, fasting, and period)
+  // Create period values array for the multi-value card
+  const getPeriodValues = () => {
+    const values = [];
+    
+    // Add start date
+    values.push({
+      label: "Start Date",
+      value: getStartDateFormatted()
+    });
+    
+    // Add end date if available
+    if (currentPeriod && (currentPeriod.projectedEndDate || currentPeriod.endDate)) {
+      values.push({
+        label: "End Date",
+        value: getEndDateFormatted()
+      });
+    }
+    
+    // Add remaining days
+    values.push({
+      label: "Remaining",
+      value: getRemainingDaysForDisplay()
+    });
+    
+    return values;
+  };
+
+  // Update to use MultiValueCard for Period
   const standardCards = [
-    {
-      title: "Active Period",
-      value: currentPeriod 
-        ? `${getRemainingDaysForDisplay()}${getEndDateFormatted()}`
-        : "No active period",
-      icon: Calendar,
-      color: "#f5a742"
-    },
     {
       title: "Current Week Exercise",
       value: `${calculateCurrentWeekExercise()} mins`,
@@ -203,6 +231,14 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
           values={getWeightValues()}
           icon={Scale}
           color="#4287f5"
+        />
+        
+        {/* Period multi-value card */}
+        <MultiValueCard
+          title="Active Period"
+          values={getPeriodValues()}
+          icon={Calendar}
+          color="#f5a742"
         />
         
         {/* Other standard cards */}
