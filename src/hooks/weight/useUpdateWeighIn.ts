@@ -1,3 +1,4 @@
+
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { useWeightQuery } from './useWeightQuery';
@@ -60,7 +61,7 @@ export function useUpdateWeighIn() {
       
       const linearDaysNeeded = remainingWeightToLose / linearWeightLossPerDay;
       
-      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.7);
+      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 3.1);
       
       console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
