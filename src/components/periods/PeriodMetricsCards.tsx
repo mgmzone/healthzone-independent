@@ -45,7 +45,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="border-t-4" style={{ borderTopColor: '#4287f5' }}>
           <CardHeader>
             <CardTitle className="text-lg font-medium">Weight Progress</CardTitle>
           </CardHeader>
@@ -60,7 +60,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-t-4" style={{ borderTopColor: '#f5a742' }}>
           <CardHeader>
             <CardTitle className="text-lg font-medium">Time Progress</CardTitle>
           </CardHeader>
@@ -80,7 +80,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
           showProgressCircle={true} 
         />
 
-        <Card>
+        <Card className="border-t-4" style={{ borderTopColor: '#f542a7' }}>
           <CardHeader>
             <CardTitle className="text-lg font-medium">Average Daily Fasting</CardTitle>
           </CardHeader>
@@ -102,7 +102,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
       </div>
 
       {/* Weight Forecast Chart */}
-      <Card className="w-full">
+      <Card className="w-full border-t-4" style={{ borderTopColor: '#4287f5' }}>
         <CardHeader>
           <CardTitle>Weight Forecast</CardTitle>
         </CardHeader>
