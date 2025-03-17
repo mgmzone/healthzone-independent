@@ -13,7 +13,7 @@ export const getEndDateForDisplay = (currentPeriod?: Period): Date | undefined =
 };
 
 export const getRemainingDaysForDisplay = (
-  currentPeriod?: Period, 
+  currentPeriod: Period | undefined, 
   getDaysRemaining: (date: Date, projectedEndDate?: Date | string | undefined) => number
 ): string => {
   if (!currentPeriod) return "No active period";
