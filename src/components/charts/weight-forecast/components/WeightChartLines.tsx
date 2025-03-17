@@ -70,16 +70,16 @@ const WeightChartLines: React.FC<WeightChartLinesProps> = ({
       )}
       
       {/* Forecast Weight Line (Orange Dashed) - Only visible in forecast view */}
-      {hasForecastData && (
+      {hasForecastData && activeView === 'forecast' && (
         <Line
           key="forecast-line"
-          type="natural"
+          type="monotone"
           dataKey="weight"
           data={forecastData}
-          stroke="#FEC6A1"
+          stroke="#F97316"
           strokeWidth={2}
           strokeDasharray="5 5"
-          activeDot={false}
+          activeDot={{ r: 4, fill: '#F97316', stroke: '#fff', strokeWidth: 1 }}
           dot={false}
           name="Projected Loss"
           isAnimationActive={false}

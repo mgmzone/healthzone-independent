@@ -4,7 +4,7 @@ import { Period, WeighIn } from '@/lib/types';
 import { processWeighInData } from '../utils/weightDataProcessor';
 import { generateForecastData } from '../utils/forecastGenerator';
 import { generateTargetLine } from '../utils/targetLineGenerator';
-import { getWeightRangeFromData } from '../utils/forecastUtils';
+import { calculateWeightRange } from '../weightForecastUtils';
 import { combineChartData } from '../utils/weightDataProcessor';
 
 /**
@@ -93,7 +93,7 @@ export const useWeightForecastData = (
       ...targetLine.map(item => item.weight)
     ];
     
-    const { minWeight, maxWeight } = getWeightRangeFromData(allWeights, displayTargetWeight);
+    const { minWeight, maxWeight } = calculateWeightRange(allWeights, displayTargetWeight);
     
     console.log('useWeightForecastData output:', {
       actualDataCount: actualData.length,

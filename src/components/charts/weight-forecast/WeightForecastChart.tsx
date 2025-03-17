@@ -44,7 +44,7 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
   }
 
   return (
-    <div className="h-[350px] w-full relative">
+    <div className="h-[350px] w-full">
       <WeightChart
         displayData={chartData}
         minWeight={minWeight}

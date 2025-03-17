@@ -94,9 +94,8 @@ const WeightChart: React.FC<WeightChartProps> = ({
             fill: '#666' 
           }}
           width={60}
-          // For weight loss, we want lower weights at the top (default)
-          // For weight gain, we want higher weights at the top (reversed)
-          // We only reverse if losing weight (target < current)
+          // For weight loss, we want lower weights at the bottom
+          // Only reverse for weight gain goals
           reversed={false}
         />
         <Tooltip content={<CustomTooltip isImperial={isImperial} />} />

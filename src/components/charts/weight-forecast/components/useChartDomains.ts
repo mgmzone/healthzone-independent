@@ -124,16 +124,6 @@ export const useChartDomains = (
       latestDate = targetEndDate;
     }
     
-    // Ensure we have the earliest date from all data
-    processedDisplayData.forEach(d => {
-      if (d && d.date) {
-        const date = ensureDate(d.date);
-        if (date < earliestDate) {
-          earliestDate = date;
-        }
-      }
-    });
-    
     // Add some padding to the domain for better visualization
     const domainStartDate = new Date(earliestDate);
     domainStartDate.setDate(domainStartDate.getDate() - 2); // 2 days before earliest data point
