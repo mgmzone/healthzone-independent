@@ -44,7 +44,7 @@ const WeightChart: React.FC<WeightChartProps> = ({
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={displayData}
-        margin={{ top: 20, right: 90, left: 20, bottom: 30 }} // Increased right margin to 90
+        margin={{ top: 20, right: 30, left: 20, bottom: 30 }} // Reduced right margin to 30
       >
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
@@ -106,8 +106,23 @@ const WeightChart: React.FC<WeightChartProps> = ({
             strokeDasharray="3 3"
             label={{ 
               value: `Target: ${targetWeight.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}`,
-              position: 'right',
+              position: 'insideTopRight', // Changed from 'right' to 'insideTopRight'
               fill: '#10B981',
+              fontSize: 12
+            }}
+          />
+        )}
+        
+        {/* Projected End Date vertical line */}
+        {endDate && (
+          <ReferenceLine 
+            x={endDate} 
+            stroke="#6366F1" // Purple color for projected completion
+            strokeDasharray="3 3"
+            label={{ 
+              value: 'Projected Completion',
+              position: 'top',
+              fill: '#6366F1',
               fontSize: 12
             }}
           />
