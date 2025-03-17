@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Activity } from 'lucide-react';
+import { Dumbbell } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
 import ProgressCircle from '@/components/ProgressCircle';
@@ -82,7 +82,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     <MultiValueCard
       title="Exercise"
       values={getExerciseValues()}
-      icon={Activity}
+      icon={Dumbbell}
       color="#42f5ad"
     />
   );
