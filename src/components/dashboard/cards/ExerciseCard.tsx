@@ -14,11 +14,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface ExerciseCardProps {
   exerciseLogs: ExerciseLog[];
   showProgressCircle?: boolean;
+  cardClassName?: string;
+  cardStyle?: React.CSSProperties;
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({ 
   exerciseLogs,
-  showProgressCircle = false 
+  showProgressCircle = false,
+  cardClassName = "",
+  cardStyle = {}
 }) => {
   const { profile } = useAuth();
   const [currentWeekMinutes, setCurrentWeekMinutes] = useState(0);
@@ -57,7 +61,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
   if (showProgressCircle) {
     return (
-      <Card>
+      <Card className={cardClassName} style={cardStyle}>
         <CardHeader>
           <CardTitle className="text-lg font-medium">Weekly Exercise Goal</CardTitle>
         </CardHeader>

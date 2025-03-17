@@ -78,6 +78,8 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
         <ExerciseCard 
           exerciseLogs={exerciseLogs} 
           showProgressCircle={true} 
+          cardClassName="border-t-4"
+          cardStyle={{ borderTopColor: '#42f5ad' }}
         />
 
         <Card className="border-t-4" style={{ borderTopColor: '#f542a7' }}>
@@ -102,7 +104,7 @@ const PeriodMetricsCards: React.FC<PeriodMetricsCardsProps> = ({
       </div>
 
       {/* Weight Forecast Chart */}
-      <Card className="w-full border-t-4" style={{ borderTopColor: '#4287f5' }}>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Weight Forecast</CardTitle>
         </CardHeader>
