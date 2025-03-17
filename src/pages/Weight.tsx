@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Layout from '@/components/Layout';
@@ -22,11 +21,9 @@ const Weight = () => {
   const [selectedMetric, setSelectedMetric] = useState('weight');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('period');
 
-  // Get the unit based on user preference
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
-  // Check if there's an active period
   const currentPeriod = getCurrentPeriod();
 
   const { 
@@ -38,17 +35,13 @@ const Weight = () => {
     getStartingWeight
   } = useWeightCalculations(weighIns, isImperial);
 
-  // Filter weighIns based on selected time period
   const filteredWeighIns = filterWeighInsByTimePeriod(timeFilter);
   
-  // Get latest weight from the original unfiltered data
   const latestWeight = getLatestWeight();
   
-  // Calculate weights and changes using consistent formatting
   const periodStartWeight = getStartingWeight(timeFilter) || 0;
   const currentWeight = latestWeight ? Number(formatWeightValue(convertWeight(latestWeight.weight))) : 0;
   
-  // Calculate weight change based on the selected time filter
   const filteredChange = calculateFilteredWeightChange(timeFilter);
   const totalChange = Number(filteredChange.value || "0.0");
   const isWeightLoss = totalChange <= 0;
@@ -66,7 +59,6 @@ const Weight = () => {
   ) => {
     const weightInKg = isImperial ? weight / 2.20462 : weight;
     
-    // Convert additional metrics if needed
     let convertedMetrics = additionalMetrics;
     if (isImperial && additionalMetrics) {
       convertedMetrics = {
@@ -80,7 +72,6 @@ const Weight = () => {
       };
     }
     
-    // Fix here - pass the parameters separately, not as an object
     addWeighIn(weightInKg, date, convertedMetrics);
     setIsModalOpen(false);
   };
