@@ -11,7 +11,6 @@ import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
-import HealthStatisticsSection from '@/components/dashboard/HealthStatisticsSection';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -154,32 +153,22 @@ const Dashboard = () => {
           ) : (
             <>
               {!currentPeriod && <NoActivePeriodAlert />}
-              {currentPeriod && (
-                <>
-                  <HealthStatisticsSection 
-                    profile={profile}
-                    currentPeriod={currentPeriod}
-                    currentAvgWeightLoss={currentAvgWeightLoss}
-                  />
-                  
-                  {currentMetrics && (
-                    <PeriodMetricsCards
-                      weightProgress={currentMetrics.weightProgress}
-                      timeProgress={currentMetrics.timeProgress}
-                      timeRemaining={currentMetrics.timeRemaining}
-                      daysRemaining={currentMetrics.daysRemaining}
-                      totalWeeks={currentMetrics.totalWeeks}
-                      totalMonths={currentMetrics.totalMonths}
-                      weightChange={currentMetrics.weightChange}
-                      weightDirection={currentMetrics.weightDirection}
-                      weightUnit={weightUnit}
-                      weighIns={weighIns}
-                      currentPeriod={currentPeriod}
-                      isImperial={isImperial}
-                      fastingLogs={fastingLogs}
-                    />
-                  )}
-                </>
+              {currentPeriod && currentMetrics && (
+                <PeriodMetricsCards
+                  weightProgress={currentMetrics.weightProgress}
+                  timeProgress={currentMetrics.timeProgress}
+                  timeRemaining={currentMetrics.timeRemaining}
+                  daysRemaining={currentMetrics.daysRemaining}
+                  totalWeeks={currentMetrics.totalWeeks}
+                  totalMonths={currentMetrics.totalMonths}
+                  weightChange={currentMetrics.weightChange}
+                  weightDirection={currentMetrics.weightDirection}
+                  weightUnit={weightUnit}
+                  weighIns={weighIns}
+                  currentPeriod={currentPeriod}
+                  isImperial={isImperial}
+                  fastingLogs={fastingLogs}
+                />
               )}
             </>
           )}
