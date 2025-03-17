@@ -33,9 +33,13 @@ export const calculatePreviousWeekExercise = (exerciseLogs: ExerciseLog[]): numb
   const previousWeekStart = startOfWeek(subWeeks(now, 1));
   const previousWeekEnd = endOfWeek(previousWeekStart);
   
+  // Fix: Use proper date comparison
   const previousWeekLogs = exerciseLogs.filter(log => {
     const logDate = new Date(log.date);
-    return isWithinInterval(logDate, { start: previousWeekStart, end: previousWeekEnd });
+    return isWithinInterval(logDate, { 
+      start: previousWeekStart, 
+      end: previousWeekEnd 
+    });
   });
   
   return previousWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
