@@ -16,8 +16,8 @@ export function usePeriodCalculations() {
     const linearWeeksNeeded = totalWeightToLose / weightLossPerWeek;
     
     // Apply curve adjustment - weight loss slows as you approach target
-    // Adding 30% to account for the slowdown that happens in the curve model
-    const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 1.3);
+    // Increasing from 30% to 70% to account for the significant slowdown in the curve model
+    const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 1.7);
     
     // Set a practical maximum on projected duration (2 years)
     const maxWeeks = 104;

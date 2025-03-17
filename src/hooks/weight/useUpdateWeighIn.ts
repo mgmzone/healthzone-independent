@@ -1,4 +1,3 @@
-
 import { useMutation } from '@tanstack/react-query';
 import { useWeightBase } from './useWeightBase';
 import { useWeightQuery } from './useWeightQuery';
@@ -36,10 +35,8 @@ export function useUpdateWeighIn() {
       
       if (daysDifference < 1) return null;
       
-      // Calculate actual weight loss rate based on real data
       const totalWeightLoss = oldestWeighIn.weight - latestWeighIn.weight;
       
-      // Only proceed if we're actually losing weight (for weight loss periods)
       if (periodData.type === 'weightLoss' && totalWeightLoss <= 0) return null;
       
       const linearWeightLossPerDay = totalWeightLoss / daysDifference;
@@ -55,23 +52,18 @@ export function useUpdateWeighIn() {
         targetWeight: periodData.target_weight
       });
       
-      // Only proceed if we have a meaningful weight loss rate
       if (weightLossPerWeek <= 0.05) return null;
       
       const remainingWeightToLose = latestWeighIn.weight - periodData.target_weight;
       
-      // If we've reached or surpassed the target weight, return the current date
       if (remainingWeightToLose <= 0) return new Date();
       
-      // Calculate days needed with curved model
       const linearDaysNeeded = remainingWeightToLose / linearWeightLossPerDay;
       
-      // Apply curve adjustment - add 30% more time to account for slowing rate
-      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.3);
+      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.7);
       
       console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
-      // Calculate the projected end date
       const projectedEndDate = new Date(latestDate);
       projectedEndDate.setDate(projectedEndDate.getDate() + curvedDaysNeeded);
       

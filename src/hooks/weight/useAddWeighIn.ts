@@ -35,7 +35,7 @@ export function useAddWeighIn() {
         
         // Use curved calculation for weeks needed
         const linearWeeksNeeded = weightToLose / periodData.weight_loss_per_week;
-        const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 1.3); // Add 30% to account for slowdown
+        const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 1.7); // Increase from 30% to 70% to match chart forecast
         
         const startDate = new Date(periodData.start_date);
         return new Date(startDate.setDate(startDate.getDate() + (curvedWeeksNeeded * 7)));
@@ -78,8 +78,8 @@ export function useAddWeighIn() {
       // This adds more days to account for the slowdown as you approach your target weight
       const linearDaysNeeded = remainingWeightToLose / linearWeightLossPerDay;
       
-      // Apply curve adjustment - add 30% more time to account for slowing rate
-      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.3);
+      // Apply curve adjustment - increase from 30% to 70% more time to account for greater slowing rate
+      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.7);
       
       console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
