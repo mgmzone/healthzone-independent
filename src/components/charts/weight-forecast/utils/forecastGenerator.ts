@@ -28,7 +28,18 @@ export const generateForecastData = (
   
   // Calculate the average daily weight change based on actual data
   const firstPoint = chartData[0];
-  const daysElapsed = differenceInDays(new Date(lastActualPoint.date), new Date(firstPoint.date)) || 1;
+  
+  // Make sure we're accessing date properties correctly
+  const getDateFromPoint = (point: any): Date => {
+    // If date is already a number (timestamp), create a Date from it
+    // If it's a Date object or string, convert to Date to be safe
+    return typeof point.date === 'number' ? new Date(point.date) : new Date(point.date);
+  };
+  
+  const lastDate = getDateFromPoint(lastActualPoint);
+  const firstDate = getDateFromPoint(firstPoint);
+  
+  const daysElapsed = differenceInDays(lastDate, firstDate) || 1;
   
   // Calculate rate and direction
   const { avgDailyChange, isWeightLoss } = calculateForecastRate(
@@ -44,8 +55,8 @@ export const generateForecastData = (
     weightLossPerWeek,
     avgDailyChange,
     isWeightLoss,
-    firstPointDate: new Date(firstPoint.date).toISOString().split('T')[0],
-    lastPointDate: new Date(lastActualPoint.date).toISOString().split('T')[0],
+    firstPointDate: firstDate.toISOString().split('T')[0],
+    lastPointDate: lastDate.toISOString().split('T')[0],
     daysElapsed
   });
   
@@ -94,7 +105,7 @@ export const generateForecastData = (
   // Limit the forecast to either the period end date, or until target is reached, whichever comes first
   let endDate = new Date(periodEndDate);
   if (daysToTarget !== null) {
-    const targetDate = addDays(new Date(lastActualPoint.date), daysToTarget);
+    const targetDate = addDays(lastDate, daysToTarget);
     // Use whichever date comes first
     if (targetDate < endDate) {
       endDate = targetDate;
@@ -102,10 +113,10 @@ export const generateForecastData = (
   }
   
   // Calculate days between last actual point and end date
-  const daysToForecast = differenceInDays(endDate, new Date(lastActualPoint.date));
+  const daysToForecast = differenceInDays(endDate, lastDate);
   
   console.log('Forecast range:', { 
-    lastActualDate: new Date(lastActualPoint.date).toISOString().split('T')[0], 
+    lastActualDate: lastDate.toISOString().split('T')[0], 
     daysToForecast,
     daysToTarget,
     endDate: endDate.toISOString().split('T')[0]

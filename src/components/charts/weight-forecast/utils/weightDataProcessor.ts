@@ -73,8 +73,14 @@ export const processWeighInData = (
     })
   );
   
-  // Sort again to ensure chronological order
-  chartData.sort((a, b) => a.date.getTime() - b.date.getTime());
+  // Sort again to ensure chronological order - Fix for the error here
+  // Make sure we're accessing the 'date' property correctly
+  chartData.sort((a, b) => {
+    // Check if date is a Date object or a timestamp
+    const aTime = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
+    const bTime = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
+    return aTime - bTime;
+  });
   
   console.log('Processed chart data:', {
     chartDataCount: chartData.length,
@@ -96,15 +102,25 @@ export const combineChartData = (actualData: any[], forecastData: any[]) => {
   
   // Only add forecast points that don't overlap with actual data
   forecastData.forEach(forecastPoint => {
-    const existingPoint = actualData.find(
-      actualPoint => new Date(actualPoint.date).getTime() === new Date(forecastPoint.date).getTime()
-    );
+    // Fix for the same error when comparing dates
+    const forecastDate = typeof forecastPoint.date === 'number' ? 
+      forecastPoint.date : new Date(forecastPoint.date).getTime();
+      
+    const existingPoint = actualData.find(actualPoint => {
+      const actualDate = typeof actualPoint.date === 'number' ? 
+        actualPoint.date : new Date(actualPoint.date).getTime();
+      return actualDate === forecastDate;
+    });
     
     if (!existingPoint) {
       combinedData.push(forecastPoint);
     }
   });
   
-  // Sort combined data by date
-  return combinedData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Sort combined data by date - Fix the sort method to properly handle the date property
+  return combinedData.sort((a, b) => {
+    const aTime = typeof a.date === 'number' ? a.date : new Date(a.date).getTime();
+    const bTime = typeof b.date === 'number' ? b.date : new Date(b.date).getTime();
+    return aTime - bTime;
+  });
 };
