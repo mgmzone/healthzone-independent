@@ -1,6 +1,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePeriodCalculations } from '@/hooks/periods/usePeriodCalculations';
+import { generateForecastPoints } from '@/components/charts/weight-forecast/utils/forecastGenerator';
 
 /**
  * Calculates the projected end date for a weight loss period
@@ -47,42 +48,50 @@ export async function calculateProjectedEndDateFromWeights(
       );
     }
     
-    // Calculate based on actual data
-    const oldestWeighIn = weighIns[0];
-    const latestWeight = currentWeight; // Use the new weight we're adding
+    // Sort weigh-ins by date (newest first)
+    const sortedWeighIns = [...weighIns].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
     
-    const startDate = new Date(oldestWeighIn.date);
-    const latestDate = new Date(); // Use current date as the latest
-    const daysDifference = Math.max(1, (latestDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    // Get the latest weigh-in
+    const latestWeighIn = {
+      date: new Date(sortedWeighIns[0].date),
+      weight: currentWeight // Use the new weight we're adding
+    };
     
-    // Calculate weight loss rate
-    const totalWeightLoss = oldestWeighIn.weight - latestWeight;
+    // Use the same forecast generator that the chart uses
+    const forecastPoints = generateForecastPoints(
+      latestWeighIn,
+      periodData.target_weight,
+      periodData.projected_end_date ? new Date(periodData.projected_end_date) : undefined,
+      periodData.weight_loss_per_week
+    );
     
-    // Only proceed if we're actually losing weight
-    if (totalWeightLoss <= 0) return null;
+    // If forecast was generated successfully and has at least one point with the target weight,
+    // use the date of that point as the projected end date
+    if (forecastPoints.length > 0) {
+      // Find the point where the target weight is reached
+      const targetPoint = forecastPoints.find(point => 
+        Math.abs(point.weight - periodData.target_weight) < 0.1
+      );
+      
+      if (targetPoint) {
+        console.log('Using forecast to determine projected end date:', targetPoint.date);
+        return new Date(targetPoint.date);
+      }
+      
+      // If we couldn't find an exact match, use the last point
+      const lastPoint = forecastPoints[forecastPoints.length - 1];
+      console.log('Using last forecast point as projected end date:', lastPoint.date);
+      return new Date(lastPoint.date);
+    }
     
-    // Get weekly rate from actual data
-    const actualWeeklyRate = (totalWeightLoss / daysDifference) * 7;
-    
-    console.log('Add weigh-in projected end date calculation:', {
-      startWeight: oldestWeighIn.weight,
-      latestWeight,
-      totalWeightLoss,
-      daysDifference,
-      actualWeeklyRate,
-      targetWeight: periodData.target_weight
-    });
-    
-    const remainingWeightToLose = latestWeight - periodData.target_weight;
-    
-    // If we've reached the target weight, return current date
-    if (remainingWeightToLose <= 0) return new Date();
-    
-    // Use the same algorithm as in usePeriodCalculations
+    console.log('Falling back to period calculations for projected end date');
+    // Fall back to the calculation from usePeriodCalculations
     return calculateProjectedEndDate(
-      latestWeight, 
+      currentWeight, 
       periodData.target_weight, 
-      actualWeeklyRate, 
+      periodData.weight_loss_per_week, 
       new Date()
     );
   } catch (error) {

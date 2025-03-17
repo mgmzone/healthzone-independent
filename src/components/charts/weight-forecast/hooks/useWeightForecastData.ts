@@ -2,7 +2,8 @@
 import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
-import { calculateWeightRange, generateForecastPoints } from '../../weightForecastUtils';
+import { calculateWeightRange } from '../../weightForecastUtils';
+import { generateForecastPoints } from '../utils/forecastGenerator';
 
 interface UseWeightForecastDataProps {
   weighIns: WeighIn[];
@@ -59,6 +60,14 @@ export const useWeightForecastData = ({
     
     const projectedEndDate = currentPeriod.projectedEndDate ? 
       new Date(currentPeriod.projectedEndDate) : undefined;
+    
+    console.log('Generating forecast data with:', {
+      lastWeighInDate: lastWeighIn.date.toISOString(),
+      lastWeighInWeight: lastWeighIn.weight,
+      displayTargetWeight,
+      projectedEndDate: projectedEndDate?.toISOString(),
+      weightLossPerWeek: currentPeriod.weightLossPerWeek
+    });
     
     return generateForecastPoints(
       lastWeighIn,
