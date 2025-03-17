@@ -1,5 +1,6 @@
 
 import { useMemo } from 'react';
+import { addDays } from 'date-fns';
 
 /**
  * Safely converts various date formats to a Date object
@@ -134,7 +135,8 @@ export const useChartDomains = (
     domainStartDate.setDate(domainStartDate.getDate() - 2); // 2 days before earliest data point
     
     const domainEndDate = new Date(latestDate);
-    domainEndDate.setDate(domainEndDate.getDate() + 5); // 5 days after latest data point
+    // Add more padding at the end (15 days) to ensure labels aren't cut off
+    domainEndDate.setDate(domainEndDate.getDate() + 15);
     
     // For domain, use timestamps
     const domainStart = domainStartDate.getTime();

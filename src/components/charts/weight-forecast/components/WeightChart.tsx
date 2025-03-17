@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import CustomTooltip from '../../CustomTooltip';
 
 interface WeightChartProps {
@@ -36,17 +36,21 @@ const WeightChart: React.FC<WeightChartProps> = ({
   endDate,
   targetWeight
 }) => {
+  // Add padding to the end date to ensure labels aren't cut off
+  // Add 15 days after the end date for better visualization
+  const paddedEndDate = addDays(new Date(endDate), 15).getTime();
+  
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={displayData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+        margin={{ top: 20, right: 50, left: 20, bottom: 30 }}
       >
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 
           dataKey="date"
           type="number"
-          domain={[startDate, endDate]}
+          domain={[startDate, paddedEndDate]} 
           tickFormatter={(date) => format(new Date(date), 'MMM d')}
           scale="time"
           tick={{ fill: '#666', fontSize: 12 }}

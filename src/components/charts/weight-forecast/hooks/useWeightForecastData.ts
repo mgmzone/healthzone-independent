@@ -1,7 +1,7 @@
 
 import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { calculateWeightRange, generateForecastPoints } from '../../weightForecastUtils';
 
 interface UseWeightForecastDataProps {
@@ -88,11 +88,14 @@ export const useWeightForecastData = ({
   }, [currentPeriod.startDate]);
   
   const endDate = useMemo(() => {
-    return currentPeriod.projectedEndDate ? 
-      new Date(currentPeriod.projectedEndDate).getTime() : 
+    // Ensure there's enough room at the end of the chart by adding 15 days
+    const projectedDate = currentPeriod.projectedEndDate ? 
+      new Date(currentPeriod.projectedEndDate) : 
       (currentPeriod.endDate ? 
-        new Date(currentPeriod.endDate).getTime() : 
-        new Date().getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days from now if no end date
+        new Date(currentPeriod.endDate) : 
+        addDays(new Date(), 30)); // 30 days from now if no end date
+    
+    return projectedDate.getTime();
   }, [currentPeriod.projectedEndDate, currentPeriod.endDate]);
 
   return {
