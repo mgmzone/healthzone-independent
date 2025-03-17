@@ -1,13 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer } from '@/components/ui/chart';
 import { SystemStats } from '@/lib/services/adminService';
 import TimeFilterSelector, { TimeFilter } from './charts/TimeFilterSelector';
-import { generateTimeBasedData, generateSummaryData, chartConfig } from './charts/chartDataGenerator';
+import { 
+  generateSummaryData, 
+  processActivityLogs, 
+  ActivityLogItem, 
+  chartConfig 
+} from './charts/chartDataGenerator';
 import SummaryBarChart from './charts/SummaryBarChart';
 import StackedBarChart from './charts/StackedBarChart';
 import ChartLoadingState from './charts/ChartLoadingState';
+import { getActivityLogs } from '@/lib/services/adminService';
 
 interface ActivityStatsChartProps {
   stats: SystemStats;
@@ -16,13 +22,31 @@ interface ActivityStatsChartProps {
 
 const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoading }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
+  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState<boolean>(false);
+  
+  useEffect(() => {
+    const fetchActivityLogs = async () => {
+      setIsLoadingLogs(true);
+      try {
+        const logs = await getActivityLogs();
+        setActivityLogs(logs);
+      } catch (error) {
+        console.error('Error fetching activity logs:', error);
+      } finally {
+        setIsLoadingLogs(false);
+      }
+    };
+    
+    fetchActivityLogs();
+  }, []);
   
   // Generate chart data based on the selected time filter
   const chartData = timeFilter === 'all' 
     ? generateSummaryData(stats)
-    : generateTimeBasedData(timeFilter);
+    : processActivityLogs(activityLogs, timeFilter);
 
-  if (isLoading) {
+  if (isLoading || isLoadingLogs) {
     return (
       <Card className="mt-6">
         <CardHeader>
@@ -42,7 +66,7 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
           onFilterChange={setTimeFilter} 
         />
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-10">
         <div className="h-[300px] w-full pb-6">
           <ChartContainer config={chartConfig}>
             {timeFilter === 'all' ? (
