@@ -1,3 +1,4 @@
+
 import { addDays } from 'date-fns';
 import { calculateAdjustedDailyRate } from './curveCalculator';
 
@@ -46,7 +47,7 @@ export const generateForecastPoints = (
   // Final sustainable rate (lower than initial rate)
   // For imperial units (lbs), around 0.3 lbs per day (2 lbs per week)
   // For metric units (kg), around 0.14 kg per day (1 kg per week)
-  const finalSustainableRate = initialDailyRate * 0.4; // Reduced to 40% of initial rate for a gentler approach to target
+  const finalSustainableRate = initialDailyRate * 0.3; // Reduced to 30% of initial rate for an even gentler approach
   
   console.log('Forecast calculation:', {
     daysToProjectedEnd,
@@ -73,7 +74,7 @@ export const generateForecastPoints = (
   });
   
   // Number of days per point - using smaller increments for smoother curve
-  const daysPerPoint = 3;
+  const daysPerPoint = 2; // Reduced from 3 to 2 for more data points and smoother curve
   
   // Generate points every few days for a smoother curve with more data points
   for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
@@ -94,8 +95,19 @@ export const generateForecastPoints = (
       currentWeight -= adjustedDailyRate * daysPerPoint; // Apply weight change
       // Stop if we've reached or passed the target
       if (currentWeight <= targetWeight) {
+        // Add a point at 95% of the way to target if we're jumping too close to target
+        if (currentWeight < targetWeight * 0.95) {
+          const intermediateWeight = targetWeight + (currentWeight - targetWeight) * 0.5;
+          forecastPoints.push({
+            date: new Date(currentDate),
+            weight: intermediateWeight,
+            isForecast: true
+          });
+        }
+        
+        // Add the target point
         forecastPoints.push({
-          date: new Date(currentDate),
+          date: new Date(projectedEndDate),
           weight: targetWeight,
           isForecast: true
         });
@@ -105,8 +117,19 @@ export const generateForecastPoints = (
       currentWeight += adjustedDailyRate * daysPerPoint; // Apply weight change
       // Stop if we've reached or passed the target
       if (currentWeight >= targetWeight) {
+        // Add a point at 95% of the way to target if we're jumping too close to target
+        if (currentWeight > targetWeight * 1.05) {
+          const intermediateWeight = targetWeight + (currentWeight - targetWeight) * 0.5;
+          forecastPoints.push({
+            date: new Date(currentDate),
+            weight: intermediateWeight,
+            isForecast: true
+          });
+        }
+        
+        // Add the target point
         forecastPoints.push({
-          date: new Date(currentDate),
+          date: new Date(projectedEndDate),
           weight: targetWeight,
           isForecast: true
         });
@@ -121,13 +144,24 @@ export const generateForecastPoints = (
     });
   }
   
-  // Check if we need to add a final target point
-  // Only add it if we haven't reached the target yet and we have at least one forecast point
+  // If we haven't reached the target yet, add a final approach point and then the target
   if (forecastPoints.length > 0 && 
       Math.abs(forecastPoints[forecastPoints.length - 1].weight - targetWeight) > 0.1) {
     
+    // Calculate a point 95% of the way to the target for a smooth approach
+    const lastPointWeight = forecastPoints[forecastPoints.length - 1].weight;
+    const remainingChange = targetWeight - lastPointWeight;
+    const intermediateWeight = lastPointWeight + (remainingChange * 0.8);
+    
+    // Add an intermediate point at 90% of the projection time
+    const intermediateDate = new Date(lastWeighIn.date.getTime() + daysToProjectedEnd * 0.9 * 24 * 60 * 60 * 1000);
+    forecastPoints.push({
+      date: new Date(intermediateDate),
+      weight: intermediateWeight,
+      isForecast: true
+    });
+    
     // Add the final target point at the projected end date
-    // This ensures a smooth approach to the target
     forecastPoints.push({
       date: new Date(projectedEndDate),
       weight: targetWeight,
