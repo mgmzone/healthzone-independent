@@ -14,7 +14,7 @@ const Admin = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 pt-24 pb-48">
+      <div className="container mx-auto p-6 pt-24 pb-32">
         <div className="flex items-center mb-8">
           <ShieldCheck className="h-6 w-6 mr-2 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -42,7 +42,7 @@ const Admin = () => {
                   Welcome to the admin control panel. Here you can manage users and view system analytics.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pb-16">
+              <CardContent className="pb-10">
                 <p>This is a protected admin area. Only users with admin privileges can access this page.</p>
                 
                 <SystemStatsCards stats={stats} isLoading={isLoading} />
@@ -74,7 +74,7 @@ const Admin = () => {
                   View system usage analytics and statistics.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pb-16">
+              <CardContent className="pb-10">
                 <ActivityStatsChart stats={stats} isLoading={isLoading} />
               </CardContent>
             </Card>
