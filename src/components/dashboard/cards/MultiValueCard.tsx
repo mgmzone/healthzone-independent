@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from 'lucide-react';
 
@@ -8,9 +8,16 @@ interface MultiValueCardProps {
   values: { label: string; value: string }[];
   icon: LucideIcon;
   color: string;
+  footer?: ReactNode;
 }
 
-const MultiValueCard: React.FC<MultiValueCardProps> = ({ title, values, icon: Icon, color }) => {
+const MultiValueCard: React.FC<MultiValueCardProps> = ({ 
+  title, 
+  values, 
+  icon: Icon, 
+  color,
+  footer 
+}) => {
   return (
     <Card className="border-t-4" style={{ borderTopColor: color }}>
       <CardContent className="pt-6">
@@ -29,6 +36,7 @@ const MultiValueCard: React.FC<MultiValueCardProps> = ({ title, values, icon: Ic
               </div>
             ))}
           </div>
+          {footer && <div>{footer}</div>}
         </div>
       </CardContent>
     </Card>

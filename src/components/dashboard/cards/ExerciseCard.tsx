@@ -1,27 +1,23 @@
+
 import React, { useEffect, useState } from 'react';
 import { Dumbbell } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
 import ProgressCircle from '@/components/ProgressCircle';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/lib/auth';
 import { 
   calculateCurrentWeekExercise,
   calculateExerciseGoalPercentage,
 } from '../utils/exerciseCalculations';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ExerciseCardProps {
   exerciseLogs: ExerciseLog[];
   showProgressCircle?: boolean;
-  cardClassName?: string;
-  cardStyle?: React.CSSProperties;
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({ 
   exerciseLogs,
-  showProgressCircle = false,
-  cardClassName = "",
-  cardStyle = {}
+  showProgressCircle = false
 }) => {
   const { profile } = useAuth();
   const [currentWeekMinutes, setCurrentWeekMinutes] = useState(0);
@@ -60,20 +56,23 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
   if (showProgressCircle) {
     return (
-      <Card className={cardClassName} style={cardStyle}>
-        <CardHeader>
-          <CardTitle className="text-lg font-medium">Weekly Exercise Goal</CardTitle>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <ProgressCircle 
-            value={goalPercentage} 
-            showPercentage={true}
-            valueLabel={`${currentWeekMinutes}/${weeklyExerciseGoal} min`}
-            size={140}
-            strokeWidth={12}
-          />
-        </CardContent>
-      </Card>
+      <MultiValueCard
+        title="Exercise"
+        values={getExerciseValues()}
+        icon={Dumbbell}
+        color="#42f5ad"
+        footer={
+          <div className="mt-4 flex justify-center">
+            <ProgressCircle 
+              value={goalPercentage} 
+              showPercentage={true}
+              valueLabel={`${currentWeekMinutes}/${weeklyExerciseGoal} min`}
+              size={120}
+              strokeWidth={10}
+            />
+          </div>
+        }
+      />
     );
   }
 

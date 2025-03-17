@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
@@ -6,7 +5,6 @@ import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
 import { useFastingData } from '@/hooks/useFastingData';
 import { useExerciseData } from '@/hooks/useExerciseData';
-import PeriodMetricsCards from '@/components/periods/PeriodMetricsCards';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
@@ -17,9 +15,10 @@ import {
   getDaysRemaining,
   getWeeksInPeriod,
   getMonthsInPeriod,
-  ensureDate
 } from '@/lib/utils/dateUtils';
 import { getProgressPercentage } from '@/lib/types';
+import WeightForecastChartWrapper from '@/components/charts/WeightForecastChart';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Dashboard = () => {
   const { profile } = useAuth();
@@ -42,7 +41,6 @@ const Dashboard = () => {
   const latestWeight = getLatestWeight();
   const currentPeriod = getCurrentPeriod();
 
-  // Calculate average weight loss per week for the current period
   const calculateAverageWeightLoss = () => {
     if (!currentPeriod || weighIns.length < 2) return null;
     
@@ -139,37 +137,58 @@ const Dashboard = () => {
     <Layout>
       <div className="container mx-auto p-6 mt-16">
         <div className="w-full max-w-7xl mx-auto">
-          <SummaryCards
-            latestWeight={latestWeight}
-            weightUnit={weightUnit}
-            currentPeriod={currentPeriod}
-            exerciseLogs={exerciseLogs}
-            fastingLogs={fastingLogs}
-            getDaysRemaining={getDaysRemaining}
-          />
-
           {periods.length === 0 ? (
             <NoPeriodAlert onCreatePeriod={() => setIsPeriodModalOpen(true)} />
           ) : (
             <>
               {!currentPeriod && <NoActivePeriodAlert />}
               {currentPeriod && currentMetrics && (
-                <PeriodMetricsCards
-                  weightProgress={currentMetrics.weightProgress}
-                  timeProgress={currentMetrics.timeProgress}
-                  timeRemaining={currentMetrics.timeRemaining}
-                  daysRemaining={currentMetrics.daysRemaining}
-                  totalWeeks={currentMetrics.totalWeeks}
-                  totalMonths={currentMetrics.totalMonths}
-                  weightChange={currentMetrics.weightChange}
-                  weightDirection={currentMetrics.weightDirection}
-                  weightUnit={weightUnit}
-                  weighIns={weighIns}
-                  currentPeriod={currentPeriod}
-                  isImperial={isImperial}
-                  fastingLogs={fastingLogs}
-                  exerciseLogs={exerciseLogs}
-                />
+                <>
+                  <div className="grid grid-cols-1 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <WeightCard 
+                        latestWeight={latestWeight} 
+                        weightUnit={weightUnit} 
+                        currentPeriod={currentPeriod} 
+                        weightProgress={currentMetrics.weightProgress}
+                        weightChange={currentMetrics.weightChange}
+                        weightDirection={currentMetrics.weightDirection}
+                        showProgressCircle={true}
+                      />
+                      
+                      <PeriodCard 
+                        currentPeriod={currentPeriod} 
+                        getDaysRemaining={getDaysRemaining} 
+                        timeProgress={currentMetrics.timeProgress}
+                        daysRemaining={currentMetrics.daysRemaining}
+                        showProgressCircle={true}
+                      />
+                      
+                      <ExerciseCard 
+                        exerciseLogs={exerciseLogs} 
+                        showProgressCircle={true}
+                      />
+                      
+                      <FastingCard 
+                        fastingLogs={fastingLogs} 
+                        showProgressCircle={true}
+                      />
+                    </div>
+                  </div>
+
+                  <Card className="w-full mb-8">
+                    <CardHeader>
+                      <CardTitle>Weight Forecast</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[400px]">
+                      <WeightForecastChartWrapper 
+                        weighIns={weighIns} 
+                        currentPeriod={currentPeriod}
+                        isImperial={isImperial}
+                      />
+                    </CardContent>
+                  </Card>
+                </>
               )}
             </>
           )}
