@@ -36,15 +36,14 @@ const WeightChart: React.FC<WeightChartProps> = ({
   endDate,
   targetWeight
 }) => {
-  // Add padding to the end date to ensure labels aren't cut off
-  // Increase from 21 to 30 days after the end date for better visualization
-  const paddedEndDate = addDays(new Date(endDate), 30).getTime();
+  // Add padding to the end date to ensure labels aren't cut off (35 days after end date)
+  const paddedEndDate = addDays(new Date(endDate), 35).getTime();
   
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={displayData}
-        margin={{ top: 20, right: 80, left: 20, bottom: 30 }} // Increased right margin from 60 to 80
+        margin={{ top: 20, right: 90, left: 20, bottom: 30 }} // Increased right margin to 90
       >
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis 

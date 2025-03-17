@@ -1,4 +1,3 @@
-
 import { addDays } from 'date-fns';
 import { calculateAdjustedDailyRate } from './curveCalculator';
 
@@ -44,17 +43,17 @@ export const generateForecastPoints = (
   // Initial daily rate (will be adjusted as we progress)
   const initialDailyRate = Math.max(minRate, Math.min(dailyRate, maxRate));
   
-  // Final sustainable rate (lower than initial rate)
-  // For imperial units (lbs), around 0.3 lbs per day (2 lbs per week)
-  // For metric units (kg), around 0.14 kg per day (1 kg per week)
-  const finalSustainableRate = initialDailyRate * 0.3; // Reduced to 30% of initial rate for an even gentler approach
+  // Final sustainable rate (1 lb per week)
+  // For imperial units (lbs), 1 lb per week = 0.143 lbs per day
+  // For metric units (kg), 0.45 kg per week = 0.064 kg per day
+  const finalSustainableRate = 1.0 / 7.0; // 1 lb per week (or equivalent kg)
   
   console.log('Forecast calculation:', {
     daysToProjectedEnd,
     isWeightLoss,
     totalWeightChange,
     initialDailyRate,
-    finalSustainableRate,
+    finalSustainableRate: finalSustainableRate,
     lastWeighInDate: lastWeighIn.date.toISOString().split('T')[0],
     lastWeighInWeight: lastWeighIn.weight,
     targetWeight,
@@ -74,7 +73,7 @@ export const generateForecastPoints = (
   });
   
   // Number of days per point - using smaller increments for smoother curve
-  const daysPerPoint = 2; // Reduced from 3 to 2 for more data points and smoother curve
+  const daysPerPoint = 2; // Generate a point every 2 days
   
   // Generate points every few days for a smoother curve with more data points
   for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
@@ -95,17 +94,6 @@ export const generateForecastPoints = (
       currentWeight -= adjustedDailyRate * daysPerPoint; // Apply weight change
       // Stop if we've reached or passed the target
       if (currentWeight <= targetWeight) {
-        // Add a point at 95% of the way to target if we're jumping too close to target
-        if (currentWeight < targetWeight * 0.95) {
-          const intermediateWeight = targetWeight + (currentWeight - targetWeight) * 0.5;
-          forecastPoints.push({
-            date: new Date(currentDate),
-            weight: intermediateWeight,
-            isForecast: true
-          });
-        }
-        
-        // Add the target point
         forecastPoints.push({
           date: new Date(projectedEndDate),
           weight: targetWeight,
@@ -117,17 +105,6 @@ export const generateForecastPoints = (
       currentWeight += adjustedDailyRate * daysPerPoint; // Apply weight change
       // Stop if we've reached or passed the target
       if (currentWeight >= targetWeight) {
-        // Add a point at 95% of the way to target if we're jumping too close to target
-        if (currentWeight > targetWeight * 1.05) {
-          const intermediateWeight = targetWeight + (currentWeight - targetWeight) * 0.5;
-          forecastPoints.push({
-            date: new Date(currentDate),
-            weight: intermediateWeight,
-            isForecast: true
-          });
-        }
-        
-        // Add the target point
         forecastPoints.push({
           date: new Date(projectedEndDate),
           weight: targetWeight,
@@ -144,24 +121,11 @@ export const generateForecastPoints = (
     });
   }
   
-  // If we haven't reached the target yet, add a final approach point and then the target
+  // If we didn't reach the target in our loop, add a final target point
   if (forecastPoints.length > 0 && 
       Math.abs(forecastPoints[forecastPoints.length - 1].weight - targetWeight) > 0.1) {
     
-    // Calculate a point 95% of the way to the target for a smooth approach
-    const lastPointWeight = forecastPoints[forecastPoints.length - 1].weight;
-    const remainingChange = targetWeight - lastPointWeight;
-    const intermediateWeight = lastPointWeight + (remainingChange * 0.8);
-    
-    // Add an intermediate point at 90% of the projection time
-    const intermediateDate = new Date(lastWeighIn.date.getTime() + daysToProjectedEnd * 0.9 * 24 * 60 * 60 * 1000);
-    forecastPoints.push({
-      date: new Date(intermediateDate),
-      weight: intermediateWeight,
-      isForecast: true
-    });
-    
-    // Add the final target point at the projected end date
+    // Add the target weight point at projected end date
     forecastPoints.push({
       date: new Date(projectedEndDate),
       weight: targetWeight,
@@ -169,7 +133,7 @@ export const generateForecastPoints = (
     });
   }
   
-  // Ensure no weird fluctuations at the end by removing any points that would create
+  // Ensure no weird fluctuations by removing any points that would create
   // a change in direction near the end of the forecast
   if (forecastPoints.length >= 3) {
     // Keep only the filtered points that maintain a consistent direction
@@ -186,41 +150,28 @@ export const generateForecastPoints = (
         // For weight loss, each point should be <= the previous point
         if (currentPoint.weight <= prevPoint.weight) {
           filteredPoints.push(currentPoint);
-        } else {
-          // Skip this point as it would create an upward fluctuation
-          console.log('Skipping point that would create upward fluctuation:', currentPoint);
         }
       } else {
         // For weight gain, each point should be >= the previous point
         if (currentPoint.weight >= prevPoint.weight) {
           filteredPoints.push(currentPoint);
-        } else {
-          // Skip this point as it would create a downward fluctuation
-          console.log('Skipping point that would create downward fluctuation:', currentPoint);
         }
       }
     }
     
-    // Make sure the last point is always the target weight at the end date
-    if (filteredPoints.length > 0) {
-      // If the last point isn't already at the target weight and end date
-      const lastPoint = filteredPoints[filteredPoints.length - 1];
-      if (Math.abs(lastPoint.weight - targetWeight) > 0.1 || 
-          Math.abs(lastPoint.date.getTime() - projectedEndDate.getTime()) > 1000 * 60 * 60 * 24) {
-        
-        // Add the target weight point
-        filteredPoints.push({
-          date: new Date(projectedEndDate),
-          weight: targetWeight,
-          isForecast: true
-        });
-      }
+    // Make sure the last point is always at the target weight
+    const lastPoint = filteredPoints[filteredPoints.length - 1];
+    if (Math.abs(lastPoint.weight - targetWeight) > 0.1) {
+      filteredPoints.push({
+        date: new Date(projectedEndDate),
+        weight: targetWeight,
+        isForecast: true
+      });
     }
     
-    // Replace the original points with the filtered ones
     return filteredPoints;
   }
   
-  console.log(`Generated ${forecastPoints.length} forecast points with enhanced smoothing at end`);
+  console.log(`Generated ${forecastPoints.length} forecast points`);
   return forecastPoints;
 };
