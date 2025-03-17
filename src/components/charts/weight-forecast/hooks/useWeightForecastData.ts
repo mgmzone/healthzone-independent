@@ -2,8 +2,8 @@
 import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
-import { calculateWeightRange } from '../utils/weightRangeCalculator';
-import { generateForecastPoints } from '../utils/forecast/forecastGenerator';
+import { calculateWeightRange } from '../weightForecastUtils';
+import { generateForecastPoints } from '../utils/forecastGenerator';
 
 interface UseWeightForecastDataProps {
   weighIns: WeighIn[];
@@ -27,14 +27,14 @@ export const useWeightForecastData = ({
           weighIn.weight * 2.20462 : weighIn.weight;
         
         return {
-          date: new Date(weighIn.date).getTime(),
+          date: new Date(weighIn.date),
           weight: displayWeight,
           isActual: true,
           isForecast: false,
           formattedDate: format(new Date(weighIn.date), 'MMM d')
         };
       })
-      .sort((a, b) => a.date - b.date); // Sort by date, oldest first
+      .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date, oldest first
   }, [weighIns, isImperial]);
   
   // Get the last actual weigh-in for forecasting
@@ -62,32 +62,33 @@ export const useWeightForecastData = ({
       new Date(currentPeriod.projectedEndDate) : undefined;
     
     console.log('Generating forecast data with:', {
-      lastWeighInDate: new Date(lastWeighIn.date).toISOString(),
+      lastWeighInDate: lastWeighIn.date.toISOString(),
       lastWeighInWeight: lastWeighIn.weight,
       displayTargetWeight,
       projectedEndDate: projectedEndDate?.toISOString(),
       weightLossPerWeek: currentPeriod.weightLossPerWeek
     });
     
-    // For forecast generator, convert numeric timestamps back to Date objects
-    const lastWeighInWithDateObj = {
-      ...lastWeighIn,
-      date: new Date(lastWeighIn.date)
-    };
-    
     // Use the same forecast generator that the calculation service uses
     const forecast = generateForecastPoints(
-      lastWeighInWithDateObj,
+      lastWeighIn,
       displayTargetWeight,
       projectedEndDate,
       currentPeriod.weightLossPerWeek
     );
     
-    // Convert Date objects to timestamps for chart consumption
-    return forecast.map(point => ({
-      ...point,
-      date: point.date.getTime()
-    }));
+    // Ensure the forecast includes the target weight point at the projected end date
+    const lastPoint = forecast.length > 0 ? forecast[forecast.length - 1] : null;
+    if (lastPoint && (Math.abs(lastPoint.weight - displayTargetWeight) > 0.1 || 
+        Math.abs(lastPoint.date.getTime() - projectedEndDate.getTime()) > 24 * 60 * 60 * 1000)) {
+      forecast.push({
+        date: new Date(projectedEndDate),
+        weight: displayTargetWeight,
+        isForecast: true
+      });
+    }
+    
+    return forecast;
   }, [lastWeighIn, displayTargetWeight, currentPeriod.projectedEndDate, currentPeriod.weightLossPerWeek]);
   
   // Combine actual and forecast data for the chart
@@ -95,8 +96,12 @@ export const useWeightForecastData = ({
     // Skip first forecast point as it duplicates last actual
     // But only if the dates match
     if (forecastData.length > 0 && processedData.length > 0) {
-      const firstForecastDate = forecastData[0].date;
-      const lastActualDate = processedData[processedData.length - 1].date;
+      const firstForecastDate = forecastData[0].date instanceof Date ? 
+        forecastData[0].date.getTime() : new Date(forecastData[0].date).getTime();
+      
+      const lastActualDate = processedData[processedData.length - 1].date instanceof Date ?
+        processedData[processedData.length - 1].date.getTime() : 
+        new Date(processedData[processedData.length - 1].date).getTime();
       
       if (Math.abs(firstForecastDate - lastActualDate) < 24 * 60 * 60 * 1000) { // Within 24 hours
         return [...processedData, ...forecastData.slice(1)];
