@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Dumbbell } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
@@ -72,7 +71,6 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
             valueLabel={`${currentWeekMinutes}/${weeklyExerciseGoal} min`}
             size={140}
             strokeWidth={12}
-            animate={true}
           />
         </CardContent>
       </Card>

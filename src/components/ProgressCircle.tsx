@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ProgressCircleProps {
@@ -10,9 +10,9 @@ interface ProgressCircleProps {
   showPercentage?: boolean;
   label?: string;
   valueLabel?: string;
-  animate?: boolean;
-  allowExceedGoal?: boolean; // New prop to allow showing > 100%
-  children?: React.ReactNode; // Added children prop
+  animate?: boolean; // We'll keep this prop but not use it
+  allowExceedGoal?: boolean;
+  children?: React.ReactNode;
 }
 
 const ProgressCircle: React.FC<ProgressCircleProps> = ({
@@ -23,9 +23,9 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   showPercentage = true,
   label,
   valueLabel,
-  animate = true,
-  allowExceedGoal = true, // Default to true to allow exceeding 100%
-  children, // Add children to component props
+  animate = false, // Default to false to disable animation
+  allowExceedGoal = true,
+  children,
 }) => {
   const circleRef = useRef<SVGCircleElement>(null);
   const overflowCircleRef = useRef<SVGCircleElement>(null);
@@ -43,19 +43,6 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   const overflowDasharray = hasOverflow ? 
     `${(overflowValue / 100) * circumference} ${circumference}` : 
     "0 100%";
-
-  useEffect(() => {
-    if (circleRef.current && animate) {
-      // Use CSS transition instead of inline style to ensure consistent animation
-      circleRef.current.style.transition = 'stroke-dashoffset 1s ease-out';
-      circleRef.current.style.strokeDashoffset = dashOffset.toString();
-    }
-    
-    if (overflowCircleRef.current && animate && hasOverflow) {
-      overflowCircleRef.current.style.transition = 'stroke-dasharray 1s ease-out';
-      overflowCircleRef.current.style.strokeDasharray = overflowDasharray;
-    }
-  }, [normalizedValue, overflowValue, dashOffset, animate, hasOverflow, overflowDasharray]);
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
@@ -82,9 +69,8 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             stroke="hsl(var(--primary))"
             strokeWidth={strokeWidth}
             strokeDasharray={circumference}
-            strokeDashoffset={animate ? circumference : dashOffset}
+            strokeDashoffset={dashOffset}
             strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
           />
           
           {/* Overflow progress circle (>100%) */}
@@ -100,7 +86,6 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
               strokeDasharray={overflowDasharray}
               strokeDashoffset={0}
               strokeLinecap="round"
-              className="transition-all duration-1000 ease-out"
             />
           )}
         </svg>

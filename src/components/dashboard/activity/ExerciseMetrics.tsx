@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Activity, ActivitySquare, Timer, Footprints } from 'lucide-react';
 import ProgressCircle from '@/components/ProgressCircle';
