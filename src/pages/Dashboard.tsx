@@ -11,6 +11,7 @@ import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
+import HealthStatisticsSection from '@/components/dashboard/HealthStatisticsSection';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -41,6 +42,36 @@ const Dashboard = () => {
 
   const latestWeight = getLatestWeight();
   const currentPeriod = getCurrentPeriod();
+
+  // Calculate average weight loss per week for the current period
+  const calculateAverageWeightLoss = () => {
+    if (!currentPeriod || weighIns.length < 2) return null;
+    
+    const periodStartDate = new Date(currentPeriod.startDate);
+    const relevantWeighIns = weighIns.filter(w => new Date(w.date) >= periodStartDate);
+    
+    if (relevantWeighIns.length < 2) return null;
+    
+    // Sort by date ascending (oldest first)
+    const sortedWeighIns = [...relevantWeighIns].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    const firstWeight = sortedWeighIns[0].weight;
+    const lastWeight = sortedWeighIns[sortedWeighIns.length - 1].weight;
+    const totalLoss = firstWeight - lastWeight;
+    
+    const firstDate = new Date(sortedWeighIns[0].date);
+    const lastDate = new Date(sortedWeighIns[sortedWeighIns.length - 1].date);
+    const weeksDiff = (lastDate.getTime() - firstDate.getTime()) / (7 * 24 * 60 * 60 * 1000);
+    
+    if (weeksDiff < 0.5) return null; // Need at least half a week of data
+    
+    const avgWeeklyLoss = totalLoss / weeksDiff;
+    return isImperial ? avgWeeklyLoss * 2.20462 : avgWeeklyLoss;
+  };
+
+  const currentAvgWeightLoss = calculateAverageWeightLoss();
 
   const handleCreatePeriod = (periodData: {
     startWeight: number,
@@ -123,22 +154,32 @@ const Dashboard = () => {
           ) : (
             <>
               {!currentPeriod && <NoActivePeriodAlert />}
-              {currentPeriod && currentMetrics && (
-                <PeriodMetricsCards
-                  weightProgress={currentMetrics.weightProgress}
-                  timeProgress={currentMetrics.timeProgress}
-                  timeRemaining={currentMetrics.timeRemaining}
-                  daysRemaining={currentMetrics.daysRemaining}
-                  totalWeeks={currentMetrics.totalWeeks}
-                  totalMonths={currentMetrics.totalMonths}
-                  weightChange={currentMetrics.weightChange}
-                  weightDirection={currentMetrics.weightDirection}
-                  weightUnit={weightUnit}
-                  weighIns={weighIns}
-                  currentPeriod={currentPeriod}
-                  isImperial={isImperial}
-                  fastingLogs={fastingLogs}
-                />
+              {currentPeriod && (
+                <>
+                  <HealthStatisticsSection 
+                    profile={profile}
+                    currentPeriod={currentPeriod}
+                    currentAvgWeightLoss={currentAvgWeightLoss}
+                  />
+                  
+                  {currentMetrics && (
+                    <PeriodMetricsCards
+                      weightProgress={currentMetrics.weightProgress}
+                      timeProgress={currentMetrics.timeProgress}
+                      timeRemaining={currentMetrics.timeRemaining}
+                      daysRemaining={currentMetrics.daysRemaining}
+                      totalWeeks={currentMetrics.totalWeeks}
+                      totalMonths={currentMetrics.totalMonths}
+                      weightChange={currentMetrics.weightChange}
+                      weightDirection={currentMetrics.weightDirection}
+                      weightUnit={weightUnit}
+                      weighIns={weighIns}
+                      currentPeriod={currentPeriod}
+                      isImperial={isImperial}
+                      fastingLogs={fastingLogs}
+                    />
+                  )}
+                </>
               )}
             </>
           )}

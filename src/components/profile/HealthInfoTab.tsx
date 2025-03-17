@@ -1,6 +1,5 @@
 
 import React from 'react';
-import HealthStatistics from './health/HealthStatistics';
 
 interface HealthInfoTabProps {
   formData: {
@@ -9,15 +8,6 @@ interface HealthInfoTabProps {
     targetWeight?: number;
     measurementUnit?: string;
   };
-  currentPeriod?: {
-    id: string;
-    startDate: string;
-    endDate?: string;
-    targetWeight: number;
-    weightLossPerWeek: number;
-    startWeight: number;
-  };
-  currentAvgWeightLoss?: number;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
   handleNumberChange: (name: string, value: string) => void;
@@ -25,16 +15,17 @@ interface HealthInfoTabProps {
 
 const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   formData,
-  currentPeriod,
-  currentAvgWeightLoss
+  handleInputChange,
+  handleSelectChange,
+  handleNumberChange
 }) => {
   return (
     <div className="space-y-6">
-      <HealthStatistics 
-        formData={formData}
-        currentPeriod={currentPeriod}
-        currentAvgWeightLoss={currentAvgWeightLoss}
-      />
+      <div className="text-center p-4 bg-muted/20 rounded-lg">
+        <p className="text-muted-foreground">
+          Health statistics are now available on the Dashboard for easier access.
+        </p>
+      </div>
     </div>
   );
 };

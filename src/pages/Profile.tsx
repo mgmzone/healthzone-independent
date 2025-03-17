@@ -28,8 +28,6 @@ const Profile = () => {
   const {
     formData,
     isLoading,
-    currentPeriod,
-    currentAvgWeightLoss,
     handleInputChange,
     handleSelectChange,
     handleDateChange,
@@ -74,6 +72,10 @@ const Profile = () => {
     navigate('/periods');
   };
 
+  const handleGoToDashboard = () => {
+    navigate('/dashboard');
+  };
+
   if (!profile) {
     return (
       <Layout>
@@ -105,7 +107,7 @@ const Profile = () => {
                 <div>
                   <h3 className="font-medium mb-1">Complete Your Profile</h3>
                   <p className="text-sm text-muted-foreground">
-                    Please complete your profile by entering your personal and health information (both tabs).
+                    Please complete your profile by entering your personal and health information.
                   </p>
                   <Button
                     variant="outline"
@@ -137,13 +139,23 @@ const Profile = () => {
                   <span className="text-green-700">
                     Your profile has been updated successfully! You've completed all required information.
                   </span>
-                  <Button 
-                    onClick={handleContinueToPeriods}
-                    className="ml-2"
-                    size="sm"
-                  >
-                    Create a Period <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={handleGoToDashboard}
+                      className="ml-2"
+                      variant="outline"
+                      size="sm"
+                    >
+                      View Dashboard
+                    </Button>
+                    <Button 
+                      onClick={handleContinueToPeriods}
+                      className="ml-2"
+                      size="sm"
+                    >
+                      Create a Period <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </div>
                 </AlertDescription>
               </Alert>
             )}
@@ -155,7 +167,7 @@ const Profile = () => {
                     Settings
                   </TabsTrigger>
                   <TabsTrigger value="health">
-                    Statistics
+                    Health Info
                   </TabsTrigger>
                 </TabsList>
                 
@@ -172,8 +184,6 @@ const Profile = () => {
                 <TabsContent value="health" className="mt-4">
                   <HealthInfoTab 
                     formData={formData}
-                    currentPeriod={currentPeriod}
-                    currentAvgWeightLoss={currentAvgWeightLoss}
                     handleInputChange={handleInputChange}
                     handleSelectChange={handleSelectChange}
                     handleNumberChange={handleNumberChange}

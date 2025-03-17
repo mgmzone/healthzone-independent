@@ -56,38 +56,36 @@ const HealthStatistics: React.FC<HealthStatisticsProps> = ({
     targetWeightKg
   );
   
-  console.log('Weight values (kg):', {
-    startingWeightKg,
-    currentWeightKg,
-    targetWeightKg,
-    totalWeightLoss,
-    progressPercentage
-  });
-  
   return (
-    <div className="mb-6 bg-muted/30 rounded-lg p-4 border">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="bg-muted/30 rounded-lg p-4 border">
+      <div className="grid grid-cols-3 gap-4">
         {/* Dates Section */}
-        <DateSection currentPeriod={currentPeriod} />
+        <div className="space-y-4">
+          <DateSection currentPeriod={currentPeriod} />
+        </div>
         
         {/* Weights Section - pass metric weights and let the component handle display */}
-        <WeightSection
-          startingWeight={startingWeightKg}
-          currentWeight={currentWeightKg}
-          targetWeight={targetWeightKg}
-          totalWeightLoss={totalWeightLoss}
-          targetLoss={targetLoss}
-          isImperial={isImperial}
-        />
+        <div className="space-y-4">
+          <WeightSection
+            startingWeight={startingWeightKg}
+            currentWeight={currentWeightKg}
+            targetWeight={targetWeightKg}
+            totalWeightLoss={totalWeightLoss}
+            targetLoss={targetLoss}
+            isImperial={isImperial}
+          />
+        </div>
         
         {/* Progress Section */}
-        <ProgressSection
-          weightLossPerWeek={currentPeriod?.weightLossPerWeek}
-          currentAvgWeightLoss={currentAvgWeightLoss}
-          progressPercentage={progressPercentage}
-          currentWeight={currentWeightKg}
-          isImperial={isImperial}
-        />
+        <div className="space-y-4">
+          <ProgressSection
+            weightLossPerWeek={currentPeriod?.weightLossPerWeek}
+            currentAvgWeightLoss={currentAvgWeightLoss}
+            progressPercentage={progressPercentage}
+            currentWeight={currentWeightKg}
+            isImperial={isImperial}
+          />
+        </div>
       </div>
     </div>
   );
