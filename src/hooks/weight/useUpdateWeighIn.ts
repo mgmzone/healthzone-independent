@@ -42,15 +42,15 @@ export function useUpdateWeighIn() {
       // Only proceed if we're actually losing weight (for weight loss periods)
       if (periodData.type === 'weightLoss' && totalWeightLoss <= 0) return null;
       
-      const weightLossPerDay = totalWeightLoss / daysDifference;
-      const weightLossPerWeek = weightLossPerDay * 7;
+      const linearWeightLossPerDay = totalWeightLoss / daysDifference;
+      const weightLossPerWeek = linearWeightLossPerDay * 7;
       
       console.log('Calculated weight change rate:', {
         oldestWeight: oldestWeighIn.weight,
         latestWeight: latestWeighIn.weight, 
         totalWeightLoss,
         daysDifference,
-        weightLossPerDay,
+        linearWeightLossPerDay,
         weightLossPerWeek,
         targetWeight: periodData.target_weight
       });
@@ -63,13 +63,17 @@ export function useUpdateWeighIn() {
       // If we've reached or surpassed the target weight, return the current date
       if (remainingWeightToLose <= 0) return new Date();
       
-      // Calculate days needed to reach target based on current rate
-      const daysNeeded = Math.ceil(remainingWeightToLose / weightLossPerDay);
-      console.log(`Based on current rate, need ${daysNeeded} more days to reach target weight`);
+      // Calculate days needed with curved model
+      const linearDaysNeeded = remainingWeightToLose / linearWeightLossPerDay;
+      
+      // Apply curve adjustment - add 30% more time to account for slowing rate
+      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.3);
+      
+      console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
       // Calculate the projected end date
       const projectedEndDate = new Date(latestDate);
-      projectedEndDate.setDate(projectedEndDate.getDate() + daysNeeded);
+      projectedEndDate.setDate(projectedEndDate.getDate() + curvedDaysNeeded);
       
       return projectedEndDate;
     } catch (error) {

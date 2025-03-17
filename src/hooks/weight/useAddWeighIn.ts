@@ -33,9 +33,12 @@ export function useAddWeighIn() {
         const weightToLose = periodData.start_weight - periodData.target_weight;
         if (weightToLose <= 0) return null;
         
-        const weeksNeeded = Math.ceil(weightToLose / periodData.weight_loss_per_week);
+        // Use curved calculation for weeks needed
+        const linearWeeksNeeded = weightToLose / periodData.weight_loss_per_week;
+        const curvedWeeksNeeded = Math.ceil(linearWeeksNeeded * 1.3); // Add 30% to account for slowdown
+        
         const startDate = new Date(periodData.start_date);
-        return new Date(startDate.setDate(startDate.getDate() + (weeksNeeded * 7)));
+        return new Date(startDate.setDate(startDate.getDate() + (curvedWeeksNeeded * 7)));
       }
       
       // Calculate based on actual data
@@ -54,14 +57,15 @@ export function useAddWeighIn() {
       // Only proceed if we're actually losing weight
       if (totalWeightLoss <= 0) return null;
       
-      const weightLossPerDay = totalWeightLoss / daysDifference;
+      // Calculate base linear rate
+      const linearWeightLossPerDay = totalWeightLoss / daysDifference;
       
       console.log('Add weigh-in projected end date calculation:', {
         startWeight: oldestWeighIn.weight,
         latestWeight,
         totalWeightLoss,
         daysDifference,
-        weightLossPerDay,
+        linearWeightLossPerDay,
         targetWeight: periodData.target_weight
       });
       
@@ -70,11 +74,17 @@ export function useAddWeighIn() {
       // If we've reached the target weight, return current date
       if (remainingWeightToLose <= 0) return new Date();
       
-      // Calculate days needed to reach target
-      const daysNeeded = Math.ceil(remainingWeightToLose / weightLossPerDay);
+      // Calculate days needed using a curved model instead of linear
+      // This adds more days to account for the slowdown as you approach your target weight
+      const linearDaysNeeded = remainingWeightToLose / linearWeightLossPerDay;
+      
+      // Apply curve adjustment - add 30% more time to account for slowing rate
+      const curvedDaysNeeded = Math.ceil(linearDaysNeeded * 1.3);
+      
+      console.log(`Projected days needed: ${curvedDaysNeeded} (curved) vs ${Math.ceil(linearDaysNeeded)} (linear)`);
       
       // Calculate projected end date
-      return addDays(new Date(), daysNeeded);
+      return addDays(new Date(), curvedDaysNeeded);
       
     } catch (error) {
       console.error("Error calculating projected end date:", error);
