@@ -1,3 +1,4 @@
+
 import { addDays } from 'date-fns';
 import { calculateAdjustedDailyRate } from './curveCalculator';
 
@@ -77,7 +78,9 @@ export const generateForecastPoints = (
   
   // Generate points every few days for a smoother curve with more data points
   for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
-    currentDate = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
+    current
+
+Date = new Date(lastWeighIn.date.getTime() + day * 24 * 60 * 60 * 1000);
     
     // Calculate progress percentage toward target (0 to 1)
     const progressPercent = day / daysToProjectedEnd;
@@ -91,8 +94,7 @@ export const generateForecastPoints = (
     
     // Apply the daily change for each day in this segment
     if (isWeightLoss) {
-      currentWeight -= adjustedDailyRate * daysPerPoint; // Apply weight change
-      // Stop if we've reached or passed the target
+      currentWeight -= adjustedDailyRate * daysPerPoint;
       if (currentWeight <= targetWeight) {
         forecastPoints.push({
           date: new Date(projectedEndDate),
@@ -102,8 +104,7 @@ export const generateForecastPoints = (
         break;
       }
     } else {
-      currentWeight += adjustedDailyRate * daysPerPoint; // Apply weight change
-      // Stop if we've reached or passed the target
+      currentWeight += adjustedDailyRate * daysPerPoint;
       if (currentWeight >= targetWeight) {
         forecastPoints.push({
           date: new Date(projectedEndDate),
@@ -121,38 +122,22 @@ export const generateForecastPoints = (
     });
   }
   
-  // If we didn't reach the target in our loop, add a final target point
-  if (forecastPoints.length > 0 && 
-      Math.abs(forecastPoints[forecastPoints.length - 1].weight - targetWeight) > 0.1) {
-    
-    // Add the target weight point at projected end date
-    forecastPoints.push({
-      date: new Date(projectedEndDate),
-      weight: targetWeight,
-      isForecast: true
-    });
-  }
-  
   // Ensure no weird fluctuations by removing any points that would create
   // a change in direction near the end of the forecast
   if (forecastPoints.length >= 3) {
-    // Keep only the filtered points that maintain a consistent direction
     const filteredPoints = [forecastPoints[0]]; // Start with the first point
     
-    const isDescending = isWeightLoss; // Direction should be consistent with goal
+    const isDescending = isWeightLoss;
     
     for (let i = 1; i < forecastPoints.length; i++) {
       const prevPoint = filteredPoints[filteredPoints.length - 1];
       const currentPoint = forecastPoints[i];
       
-      // Check if this point would maintain the correct direction
       if (isDescending) {
-        // For weight loss, each point should be <= the previous point
         if (currentPoint.weight <= prevPoint.weight) {
           filteredPoints.push(currentPoint);
         }
       } else {
-        // For weight gain, each point should be >= the previous point
         if (currentPoint.weight >= prevPoint.weight) {
           filteredPoints.push(currentPoint);
         }

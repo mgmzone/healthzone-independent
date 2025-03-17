@@ -33,6 +33,9 @@ export const calculateEndingFactor = (progressPercent: number): number => {
 
 /**
  * Calculate an adjusted daily rate based on progress and curve factors
+ * This matches the logic in usePeriodCalculations.ts:
+ * - First 80% uses the calculated rate with gentle tapering
+ * - Last 20% tapers down to the sustainable rate (1 lb per week)
  */
 export const calculateAdjustedDailyRate = (
   initialDailyRate: number,
