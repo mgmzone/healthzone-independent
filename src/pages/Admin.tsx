@@ -14,7 +14,7 @@ const Admin = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto p-6 pt-24 pb-48">
+      <div className="container mx-auto p-6 pt-24 pb-60">
         <div className="flex items-center mb-8">
           <ShieldCheck className="h-6 w-6 mr-2 text-primary" />
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -27,8 +27,8 @@ const Admin = () => {
           </div>
         )}
 
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="mb-2">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>

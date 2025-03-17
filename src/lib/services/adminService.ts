@@ -32,12 +32,15 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
-      return [];
+      throw usersError;
     }
 
     if (!users || users.length === 0) {
+      console.log('No users returned from get_all_users_for_admin');
       return [];
     }
+
+    console.log('Users data:', users);
 
     // Get user stats for each user
     const usersWithStats = await Promise.all(users.map(async (user) => {
@@ -90,7 +93,7 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
     return usersWithStats.filter(user => user !== null) as UserStats[];
   } catch (error) {
     console.error('Error in getUsersWithStats:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -105,13 +108,20 @@ export async function getSystemStats(): Promise<SystemStats> {
       throw error;
     }
 
-    const systemStats = stats && stats.length > 0 ? stats[0] : {
-      total_users: 0,
-      active_periods: 0,
-      total_weigh_ins: 0,
-      total_fasts: 0,
-      total_exercises: 0
-    };
+    if (!stats || stats.length === 0) {
+      console.log('No stats returned from get_system_stats_for_admin');
+      return {
+        totalUsers: 0,
+        activePeriods: 0,
+        totalWeighIns: 0,
+        totalFasts: 0,
+        totalExercises: 0
+      };
+    }
+
+    console.log('System stats:', stats);
+    
+    const systemStats = stats[0];
 
     return {
       totalUsers: Number(systemStats.total_users) || 0,
@@ -122,7 +132,13 @@ export async function getSystemStats(): Promise<SystemStats> {
     };
   } catch (error) {
     console.error('Error in getSystemStats:', error);
-    throw error;
+    return {
+      totalUsers: 0,
+      activePeriods: 0,
+      totalWeighIns: 0,
+      totalFasts: 0,
+      totalExercises: 0
+    };
   }
 }
 
@@ -158,6 +174,8 @@ export async function getActivityLogs(): Promise<ActivityLogItem[]> {
     if (exerciseLogsError) {
       console.error('Error fetching exercise logs:', exerciseLogsError);
     }
+
+    console.log('Activity logs data:', { weighIns, fastingLogs, exerciseLogs });
 
     // Transform data to ActivityLogItem format
     const activityLogs: ActivityLogItem[] = [
