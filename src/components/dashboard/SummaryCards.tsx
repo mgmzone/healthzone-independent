@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Activity, Scale, Timer, Calendar } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { ExerciseLog, FastingLog, Period } from '@/lib/types';
-import { isWithinInterval, startOfWeek, endOfWeek, format, subWeeks } from 'date-fns';
+import { isWithinInterval, startOfWeek, endOfWeek, format, subWeeks, isSameWeek } from 'date-fns';
 
 interface SummaryCardProps {
   title: string;
@@ -99,11 +99,10 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
     
     const now = new Date();
     const previousWeekStart = startOfWeek(subWeeks(now, 1));
-    const previousWeekEnd = endOfWeek(subWeeks(now, 1));
     
     const previousWeekLogs = exerciseLogs.filter(log => {
       const logDate = new Date(log.date);
-      return isWithinInterval(logDate, { start: previousWeekStart, end: previousWeekEnd });
+      return isSameWeek(logDate, previousWeekStart);
     });
     
     return previousWeekLogs.reduce((sum, log) => sum + log.minutes, 0);
