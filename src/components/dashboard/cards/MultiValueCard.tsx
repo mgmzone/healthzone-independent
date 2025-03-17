@@ -2,6 +2,7 @@
 import React, { ReactNode } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface MultiValueCardProps {
   title: string;
@@ -9,6 +10,8 @@ interface MultiValueCardProps {
   icon: LucideIcon;
   color: string;
   footer?: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 const MultiValueCard: React.FC<MultiValueCardProps> = ({ 
@@ -16,10 +19,12 @@ const MultiValueCard: React.FC<MultiValueCardProps> = ({
   values, 
   icon: Icon, 
   color,
-  footer 
+  footer,
+  className,
+  style
 }) => {
   return (
-    <Card className="border-t-4" style={{ borderTopColor: color }}>
+    <Card className={cn("border-t-4", className)} style={{ borderTopColor: color, ...style }}>
       <CardContent className="pt-6">
         <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-4">

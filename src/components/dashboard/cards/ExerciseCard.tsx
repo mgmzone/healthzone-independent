@@ -13,11 +13,15 @@ import {
 interface ExerciseCardProps {
   exerciseLogs: ExerciseLog[];
   showProgressCircle?: boolean;
+  cardClassName?: string;
+  cardStyle?: React.CSSProperties;
 }
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({ 
   exerciseLogs,
-  showProgressCircle = false
+  showProgressCircle = false,
+  cardClassName,
+  cardStyle
 }) => {
   const { profile } = useAuth();
   const [currentWeekMinutes, setCurrentWeekMinutes] = useState(0);
@@ -61,6 +65,8 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         values={getExerciseValues()}
         icon={Dumbbell}
         color="#42f5ad"
+        className={cardClassName}
+        style={cardStyle}
         footer={
           <div className="mt-4 flex justify-center">
             <ProgressCircle 
@@ -82,6 +88,8 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
       values={getExerciseValues()}
       icon={Dumbbell}
       color="#42f5ad"
+      className={cardClassName}
+      style={cardStyle}
     />
   );
 };

@@ -9,6 +9,10 @@ import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
+import WeightCard from '@/components/dashboard/cards/WeightCard';
+import PeriodCard from '@/components/dashboard/cards/PeriodCard';
+import ExerciseCard from '@/components/dashboard/cards/ExerciseCard';
+import FastingCard from '@/components/dashboard/cards/FastingCard';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
