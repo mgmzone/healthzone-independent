@@ -68,7 +68,7 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
         .rpc('get_current_active_period', { p_user_id: profile.id });
 
       // Find auth data for this user
-      const userData = authData?.users.find(user => user.id === profile.id);
+      const userData = authData?.users ? authData.users.find(user => user.id === profile.id) : null;
       
       // Check if profile is complete
       const isProfileComplete = !!(
