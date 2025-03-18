@@ -13,11 +13,17 @@ export const useAdminData = () => {
     queryKey: ['adminUsers'],
     queryFn: async () => {
       try {
+        console.log('Starting to fetch admin user data...');
         const usersData = await getUsersWithStats();
-        console.log('Fetched users data:', usersData);
+        console.log('Fetched users data successfully:', usersData);
         return usersData;
       } catch (error) {
         console.error('Error in useAdminData fetching users:', error);
+        // Log the detailed error information
+        if (error instanceof Error) {
+          console.error('Error details:', error.name, error.message, error.stack);
+        }
+        
         // Show an error toast
         toast.error('Failed to load user data. Please try again.');
         return []; // Return empty array instead of throwing to prevent errors in UI
@@ -33,17 +39,32 @@ export const useAdminData = () => {
     queryKey: ['adminStats'],
     queryFn: async () => {
       try {
+        console.log('Starting to fetch admin stats data...');
         const statsData = await getSystemStats();
-        console.log('Fetched system stats:', statsData);
+        console.log('Fetched system stats successfully:', statsData);
         return statsData;
       } catch (error) {
         console.error('Error in useAdminData fetching stats:', error);
+        // Log the detailed error information
+        if (error instanceof Error) {
+          console.error('Error details:', error.name, error.message, error.stack);
+        }
+        
         // Show an error toast
         toast.error('Failed to load system stats. Please try again.');
         throw error;
       }
     }
   });
+
+  useEffect(() => {
+    if (usersError) {
+      console.error('Users query error in useAdminData:', usersError);
+    }
+    if (statsError) {
+      console.error('Stats query error in useAdminData:', statsError);
+    }
+  }, [usersError, statsError]);
 
   return {
     users: users || [],

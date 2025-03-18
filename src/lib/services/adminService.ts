@@ -26,12 +26,15 @@ export interface SystemStats {
 
 export async function getUsersWithStats(): Promise<UserStats[]> {
   try {
+    console.log('Fetching users for admin dashboard...');
+    
     // Get all users using our security definer function
     const { data: users, error: usersError } = await supabase
       .rpc('get_all_users_for_admin');
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
+      console.log('SQL error details:', usersError.message, usersError.details);
       throw usersError;
     }
 
@@ -40,10 +43,12 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
       return [];
     }
 
-    console.log('Users data:', users);
+    console.log('Users data retrieved successfully:', users);
 
     // Get user stats for each user
     const usersWithStats = await Promise.all(users.map(async (user) => {
+      console.log(`Fetching stats for user: ${user.id}`);
+      
       // Get stats for this user
       const { data: stats, error: statsError } = await supabase
         .rpc('get_user_stats_for_admin', { p_user_id: user.id });
@@ -66,6 +71,10 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
         .select('first_name, current_weight, target_weight, height, birth_date')
         .eq('id', user.id)
         .single();
+
+      if (profileError) {
+        console.error(`Error fetching profile for user ${user.id}:`, profileError);
+      }
 
       const isProfileComplete = !!(
         profile?.first_name && 
@@ -90,7 +99,9 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
     }));
 
     // Filter out null values and return
-    return usersWithStats.filter(user => user !== null) as UserStats[];
+    const validUsers = usersWithStats.filter(user => user !== null) as UserStats[];
+    console.log(`Successfully processed ${validUsers.length} users with stats`);
+    return validUsers;
   } catch (error) {
     console.error('Error in getUsersWithStats:', error);
     throw error;
