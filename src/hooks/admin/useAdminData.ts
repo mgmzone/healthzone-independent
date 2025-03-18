@@ -10,7 +10,16 @@ export const useAdminData = () => {
     error: usersError 
   } = useQuery({
     queryKey: ['adminUsers'],
-    queryFn: getUsersWithStats
+    queryFn: async () => {
+      try {
+        const usersData = await getUsersWithStats();
+        console.log('Fetched users data:', usersData);
+        return usersData;
+      } catch (error) {
+        console.error('Error in useAdminData fetching users:', error);
+        throw error;
+      }
+    }
   });
 
   const { 
@@ -19,7 +28,16 @@ export const useAdminData = () => {
     error: statsError 
   } = useQuery({
     queryKey: ['adminStats'],
-    queryFn: getSystemStats
+    queryFn: async () => {
+      try {
+        const statsData = await getSystemStats();
+        console.log('Fetched system stats:', statsData);
+        return statsData;
+      } catch (error) {
+        console.error('Error in useAdminData fetching stats:', error);
+        throw error;
+      }
+    }
   });
 
   return {

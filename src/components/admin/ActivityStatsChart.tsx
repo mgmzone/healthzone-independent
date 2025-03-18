@@ -40,7 +40,7 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
     fetchActivityLogs();
   }, []);
   
-  // Generate chart data based on the selected time filter using the refactored function
+  // Generate chart data based on the selected time filter
   const chartData = getChartData(stats, activityLogs, timeFilter);
 
   if (isLoading || isLoadingLogs) {
@@ -64,7 +64,8 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
         />
       </CardHeader>
       <CardContent className="pb-6">
-        <div style={{ height: "180px", width: "100%" }}>
+        {/* Fixed height container that won't overflow */}
+        <div className="h-[180px] w-full">
           <ChartContainer config={chartConfig}>
             {timeFilter === 'all' ? (
               <SummaryBarChart data={chartData} />

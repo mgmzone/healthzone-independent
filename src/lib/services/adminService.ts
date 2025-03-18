@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ActivityLogItem } from "@/components/admin/charts/chartDataGenerator";
 import { User } from "@/lib/types";
@@ -142,7 +141,6 @@ export async function getSystemStats(): Promise<SystemStats> {
   }
 }
 
-// Function to fetch activity logs for charts
 export async function getActivityLogs(): Promise<ActivityLogItem[]> {
   try {
     // Fetch user weigh-ins
