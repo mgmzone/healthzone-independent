@@ -1,18 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer } from '@/components/ui/chart';
-import { SystemStats } from '@/lib/services/adminService';
+import { SystemStats, getActivityLogs, ActivityLogItem } from '@/lib/services/admin';
 import TimeFilterSelector, { TimeFilter } from './charts/TimeFilterSelector';
 import { 
-  ActivityLogItem,
   chartConfig,
   getChartData
 } from './charts/chartDataGenerator';
 import SummaryBarChart from './charts/SummaryBarChart';
 import StackedBarChart from './charts/StackedBarChart';
 import ChartLoadingState from './charts/ChartLoadingState';
-import { getActivityLogs } from '@/lib/services/adminService';
 
 interface ActivityStatsChartProps {
   stats: SystemStats;
@@ -40,7 +37,6 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
     fetchActivityLogs();
   }, []);
   
-  // Generate chart data based on the selected time filter
   const chartData = getChartData(stats, activityLogs, timeFilter);
 
   if (isLoading || isLoadingLogs) {
@@ -64,7 +60,6 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
         />
       </CardHeader>
       <CardContent className="pb-4">
-        {/* Extremely reduced height container - significantly smaller than before */}
         <div className="h-[50px] w-full">
           <ChartContainer config={chartConfig}>
             {timeFilter === 'all' ? (

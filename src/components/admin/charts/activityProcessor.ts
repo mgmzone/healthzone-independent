@@ -1,10 +1,10 @@
-
 import { format, isAfter, isBefore, parseISO } from 'date-fns';
-import { ActivityLogItem, TimeFilter, TimeFilteredData } from './types';
+import { ActivityLogItem } from '@/lib/services/admin';
+import { TimeFilter, TimeFilteredData } from './types';
 import { getDateRangeAndFormat, parseWeekday } from './dateUtils';
 import { getEmptyTimeFilterData } from './emptyDataGenerator';
 import { generateSummaryData } from './summaryData';
-import { SystemStats } from '@/lib/services/adminService';
+import { SystemStats } from '@/lib/services/admin';
 
 // Process activity logs into time-filtered data
 export const processActivityLogs = (

@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BarChart, Dumbbell, Clock } from 'lucide-react';
-import { SystemStats } from '@/lib/services/adminService';
+import { SystemStats } from '@/lib/services/admin';
 
 interface SystemStatsCardsProps {
   stats: SystemStats;
