@@ -323,12 +323,19 @@ export type Database = {
       get_all_users_for_admin: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
+          lastname: string
+          firstname: string
+          user_id: string
+          profile_complete: boolean
+          in_active_period: boolean
+          week_weigh_ins: number
+          total_weigh_ins: number
+          week_activities: number
+          total_activities: number
+          week_fasting_days: number
+          total_fasting_days: number
           email: string
-          first_name: string
-          last_name: string
           last_sign_in_at: string
-          created_at: string
         }[]
       }
       get_current_active_period: {
