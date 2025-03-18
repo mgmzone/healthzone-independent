@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ActivityLogItem } from "@/components/admin/charts/chartDataGenerator";
 import { User } from "@/lib/types";

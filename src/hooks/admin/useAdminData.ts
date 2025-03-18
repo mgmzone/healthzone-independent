@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getUsersWithStats, getSystemStats, UserStats, SystemStats } from '@/lib/services/adminService';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export const useAdminData = () => {
   const { 
@@ -17,7 +18,9 @@ export const useAdminData = () => {
         return usersData;
       } catch (error) {
         console.error('Error in useAdminData fetching users:', error);
-        throw error;
+        // Show an error toast
+        toast.error('Failed to load user data. Please try again.');
+        return []; // Return empty array instead of throwing to prevent errors in UI
       }
     }
   });
@@ -35,6 +38,8 @@ export const useAdminData = () => {
         return statsData;
       } catch (error) {
         console.error('Error in useAdminData fetching stats:', error);
+        // Show an error toast
+        toast.error('Failed to load system stats. Please try again.');
         throw error;
       }
     }

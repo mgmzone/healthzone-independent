@@ -64,8 +64,8 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
         />
       </CardHeader>
       <CardContent className="pb-6">
-        {/* Reduced height container */}
-        <div className="h-[150px] w-full">
+        {/* Significantly reduced height container */}
+        <div className="h-[100px] w-full">
           <ChartContainer config={chartConfig}>
             {timeFilter === 'all' ? (
               <SummaryBarChart data={chartData} />
