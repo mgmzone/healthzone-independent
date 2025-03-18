@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ActivityLogItem } from "@/components/admin/charts/chartDataGenerator";
 import { User } from "@/lib/types";
@@ -45,63 +44,26 @@ export async function getUsersWithStats(): Promise<UserStats[]> {
 
     console.log('Users data retrieved successfully:', users);
 
-    // Get user stats for each user
-    const usersWithStats = await Promise.all(users.map(async (user) => {
-      console.log(`Fetching stats for user: ${user.id}`);
-      
-      // Get stats for this user
-      const { data: stats, error: statsError } = await supabase
-        .rpc('get_user_stats_for_admin', { p_user_id: user.id });
-
-      if (statsError) {
-        console.error(`Error fetching stats for user ${user.id}:`, statsError);
-        return null;
-      }
-
-      const userStats = stats && stats.length > 0 ? stats[0] : {
-        weigh_ins_count: 0,
-        fasts_count: 0,
-        exercises_count: 0,
-        has_active_period: false
-      };
-
-      // Check if profile is complete
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('first_name, current_weight, target_weight, height, birth_date')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error(`Error fetching profile for user ${user.id}:`, profileError);
-      }
-
-      const isProfileComplete = !!(
-        profile?.first_name && 
-        profile?.current_weight && 
-        profile?.target_weight && 
-        profile?.height &&
-        profile?.birth_date
-      );
-
+    // Transform the data to match our UserStats interface
+    const usersWithStats: UserStats[] = users.map(user => {
       return {
-        id: user.id,
+        // Use user_id instead of id
+        id: user.user_id,
         email: user.email || 'Unknown',
-        firstName: user.first_name || '',
-        lastName: user.last_name || '',
+        // Use firstname/lastname instead of first_name/last_name
+        firstName: user.firstname || '',
+        lastName: user.lastname || '',
         lastLogin: user.last_sign_in_at || null,
-        isProfileComplete,
-        hasActivePeriod: userStats.has_active_period,
-        weighInsCount: Number(userStats.weigh_ins_count) || 0,
-        fastsCount: Number(userStats.fasts_count) || 0,
-        exercisesCount: Number(userStats.exercises_count) || 0
+        isProfileComplete: user.profile_complete,
+        hasActivePeriod: user.in_active_period,
+        weighInsCount: Number(user.total_weigh_ins) || 0,
+        fastsCount: Number(user.total_fasting_days) || 0,
+        exercisesCount: Number(user.total_activities) || 0
       };
-    }));
+    });
 
-    // Filter out null values and return
-    const validUsers = usersWithStats.filter(user => user !== null) as UserStats[];
-    console.log(`Successfully processed ${validUsers.length} users with stats`);
-    return validUsers;
+    console.log(`Successfully processed ${usersWithStats.length} users with stats`);
+    return usersWithStats;
   } catch (error) {
     console.error('Error in getUsersWithStats:', error);
     throw error;
