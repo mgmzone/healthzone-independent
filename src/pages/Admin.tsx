@@ -7,7 +7,6 @@ import { ShieldCheck, Users, BarChart } from 'lucide-react';
 import { useAdminData } from '@/hooks/admin/useAdminData';
 import UsersTable from '@/components/admin/UsersTable';
 import SystemStatsCards from '@/components/admin/SystemStatsCards';
-import ActivityStatsChart from '@/components/admin/ActivityStatsChart';
 
 const Admin = () => {
   const { users, stats, isLoading, error } = useAdminData();
@@ -46,8 +45,6 @@ const Admin = () => {
                 <p className="mb-6">This is a protected admin area. Only users with admin privileges can access this page.</p>
                 
                 <SystemStatsCards stats={stats} isLoading={isLoading} />
-                
-                <ActivityStatsChart stats={stats} isLoading={isLoading} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -75,7 +72,9 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-8">
-                <ActivityStatsChart stats={stats} isLoading={isLoading} />
+                <p className="text-muted-foreground">
+                  Activity chart has been temporarily removed.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
