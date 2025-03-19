@@ -105,7 +105,7 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
         const monthStart = max([startOfMonth(monthDate), sixMonthsAgo]);
         const monthEnd = min([endOfMonth(monthDate), now]);
         
-        // Calculate total hours in this month (only for months with activity)
+        // Track total hours for this month (for months with activity)
         const totalHours = Math.max(0, (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60));
         monthData.get(monthKey).totalHours = totalHours;
         
@@ -152,6 +152,14 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       console.log(`Period - Final Month ${monthKey}: fasting=${fastingHours.toFixed(2)}h, total=${data.totalHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
+  
+  // Sort months in the correct order (most recent last)
+  const monthOrder = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+  result.sort((a, b) => {
+    const indexA = monthOrder.indexOf(a.day);
+    const indexB = monthOrder.indexOf(b.day);
+    return indexA - indexB;
+  });
   
   // For debugging
   console.log('Period - Chart data:', result);

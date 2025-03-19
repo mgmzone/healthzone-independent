@@ -50,6 +50,9 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // 0 = Sunday
   const weekEnd = min([endOfWeek(now, { weekStartsOn: 0 }), now]);
 
+  // Create array with all days of the week
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
   // Track fasting seconds for each day of the week
   const fastingSecondsByDay = Array(7).fill(0);
   const totalHoursByDay = Array(7).fill(0);
@@ -74,7 +77,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
     // Future days remain at 0 hours
     
-    console.log(`Weekly - Day ${i} (index): isPastDay=${isPastDay}, isToday=${isToday}, totalHours=${totalHoursByDay[i]}`);
+    console.log(`Weekly - Day ${days[i]} (${i}): isPastDay=${isPastDay}, isToday=${isToday}, totalHours=${totalHoursByDay[i]}`);
   }
   
   // Process each fasting log
@@ -145,14 +148,13 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
-  // Create result with days that have fasting activity
+  // Create result with all days of the week
   const result = [];
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
   // Calculate fasting and eating hours for the chart display
   for (let i = 0; i < 7; i++) {
-    // Only include days with fasting activity and that have elapsed time
-    if (dayHasActivity[i] && totalHoursByDay[i] > 0) {
+    // Only include days that have elapsed time (past days or today)
+    if (totalHoursByDay[i] > 0) {
       // Convert seconds to hours
       const fastingHours = fastingSecondsByDay[i] / 3600;
       

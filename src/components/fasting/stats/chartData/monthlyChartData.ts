@@ -138,12 +138,12 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   
   // Calculate eating hours based on total elapsed time minus fasting time
   for (let i = 0; i < 5; i++) {
-    if (weekHasActivity[i] && totalHoursByWeek[i] > 0) {
+    if (totalHoursByWeek[i] > 0) {
       // Set fasting hours (capped at total hours)
       const fastingHours = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
       
       // Calculate eating hours (total - fasting, minimum 0)
-      const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHoursByWeek[i]);
+      const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHours);
       
       result.push({
         day: `Week ${i + 1}`,
@@ -155,7 +155,13 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     }
   }
   
-  // For debugging
+  // Sort weeks in chronological order (Week 1 first)
+  result.sort((a, b) => {
+    const weekA = parseInt(a.day.split(' ')[1]);
+    const weekB = parseInt(b.day.split(' ')[1]);
+    return weekA - weekB;
+  });
+  
   console.log('Monthly - Chart data:', result);
   
   return result;

@@ -48,7 +48,7 @@ export const prepareChartData = (
   // Guard against null logs
   if (!fastingLogs || !Array.isArray(fastingLogs) || fastingLogs.length === 0) {
     console.log(`No logs for ${timeFilter} chart`);
-    return []; // Return empty array instead of dummy data when no logs exist
+    return []; // Return empty array when no logs exist
   }
   
   // Normalize date objects in logs
@@ -118,6 +118,7 @@ export const prepareChartData = (
     eating: isNaN(Number(item.eating)) ? 0 : Number(item.eating)
   }));
   
+  // Log the final processed data
   console.log(`Chart data for ${timeFilter} prepared:`, JSON.stringify(sanitizedResult, null, 2));
   return sanitizedResult;
 };

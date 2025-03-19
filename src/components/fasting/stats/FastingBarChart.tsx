@@ -53,6 +53,10 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
+  // Define colors explicitly
+  const fastingColor = "hsl(var(--primary))"; // Blue
+  const eatingColor = "hsl(var(--destructive))"; // Red
+
   console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
   
   // Filter out entries where BOTH fasting and eating are 0 or undefined
@@ -62,10 +66,6 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   
   console.log('FastingBarChart - Filtered data:', JSON.stringify(filteredChartData, null, 2));
   console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
-
-  // Define colors explicitly
-  const fastingColor = "hsl(var(--primary))";
-  const eatingColor = "hsl(var(--destructive))";
 
   if (filteredChartData.length === 0) {
     return (
@@ -121,20 +121,22 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <Bar 
             dataKey="eating" 
             name="eating"
-            stackId="day"
+            fill={eatingColor}
+            stackId="a"
             radius={[4, 0, 0, 4]}
           >
-            {filteredChartData.map((_, index) => (
+            {filteredChartData.map((entry, index) => (
               <Cell key={`cell-eating-${index}`} fill={eatingColor} />
             ))}
           </Bar>
           <Bar 
             dataKey="fasting" 
             name="fasting"
-            stackId="day"
+            fill={fastingColor}
+            stackId="a" 
             radius={[0, 4, 4, 0]}
           >
-            {filteredChartData.map((_, index) => (
+            {filteredChartData.map((entry, index) => (
               <Cell key={`cell-fasting-${index}`} fill={fastingColor} />
             ))}
           </Bar>
