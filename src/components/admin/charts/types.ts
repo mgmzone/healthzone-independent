@@ -15,6 +15,7 @@ export interface ActivityLogItem {
 }
 
 // Chart configuration
+// Changed from export type to export const
 export const chartConfig = {
   weighIns: {
     label: "Weigh-ins",

@@ -1,6 +1,6 @@
 
 import { TimeFilteredData } from './types';
-import { SystemStats } from '@/lib/services/adminService';
+import { SystemStats } from '@/lib/services/admin';
 
 // Generate summary data based on actual stats
 export const generateSummaryData = (stats: SystemStats): TimeFilteredData[] => {
