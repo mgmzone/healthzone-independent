@@ -31,19 +31,56 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
   
   // Normalize logs to ensure consistent date objects
   const normalizedLogs = useMemo(() => {
-    return fastingLogs.map(log => ({
-      ...log,
-      // Ensure startTime is a Date object
-      startTime: typeof log.startTime === 'object' && log.startTime !== null && '_type' in log.startTime 
-        ? new Date(log.startTime.value.iso) 
-        : new Date(log.startTime),
-      // Ensure endTime is a Date object if it exists
-      endTime: log.endTime 
-        ? (typeof log.endTime === 'object' && log.endTime !== null && '_type' in log.endTime 
-          ? new Date(log.endTime.value.iso) 
-          : new Date(log.endTime))
-        : log.endTime
-    }));
+    return fastingLogs.map(log => {
+      let normalizedStartTime;
+      let normalizedEndTime = log.endTime;
+      
+      // Handle start time
+      if (typeof log.startTime === 'object' && log.startTime !== null) {
+        if ('_type' in log.startTime) {
+          // Handle serialized Date objects from Supabase
+          try {
+            normalizedStartTime = new Date(log.startTime.value.iso);
+          } catch (err) {
+            console.error('Error parsing startTime:', err);
+            normalizedStartTime = new Date(log.startTime);
+          }
+        } else {
+          // It's already a Date object
+          normalizedStartTime = log.startTime;
+        }
+      } else {
+        // It's a string or timestamp
+        normalizedStartTime = new Date(log.startTime);
+      }
+      
+      // Handle end time if it exists
+      if (log.endTime) {
+        if (typeof log.endTime === 'object' && log.endTime !== null) {
+          if ('_type' in log.endTime) {
+            // Handle serialized Date objects from Supabase
+            try {
+              normalizedEndTime = new Date(log.endTime.value.iso);
+            } catch (err) {
+              console.error('Error parsing endTime:', err);
+              normalizedEndTime = new Date(log.endTime);
+            }
+          } else {
+            // It's already a Date object
+            normalizedEndTime = log.endTime;
+          }
+        } else {
+          // It's a string or timestamp
+          normalizedEndTime = new Date(log.endTime);
+        }
+      }
+      
+      return {
+        ...log,
+        startTime: normalizedStartTime,
+        endTime: normalizedEndTime
+      };
+    });
   }, [fastingLogs]);
   
   // Prepare chart data

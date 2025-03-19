@@ -27,6 +27,12 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     eating: 0
   }));
   
+  // Ensure we have logs before proceeding
+  if (!fastingLogs || fastingLogs.length === 0) {
+    console.log('Weekly - No logs to process');
+    return data;
+  }
+  
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // 0 = Sunday
   const weekEnd = min([endOfWeek(now, { weekStartsOn: 0 }), now]);
@@ -43,8 +49,8 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   if (fastingLogs.length > 0) {
     console.log('Weekly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
       id: log.id,
-      start: new Date(log.startTime).toISOString(),
-      end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+      start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
+      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid'
     })));
   }
   
@@ -69,9 +75,15 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
     try {
-      const startTime = new Date(log.startTime);
+      // Ensure we have valid date objects
+      if (!(log.startTime instanceof Date)) {
+        console.error(`Weekly - Invalid startTime for log #${index}:`, log.startTime);
+        return; // Skip this log
+      }
+      
+      const startTime = log.startTime;
       // For active fast, use current time as end time
-      const endTime = log.endTime ? new Date(log.endTime) : new Date();
+      const endTime = log.endTime instanceof Date ? log.endTime : new Date();
       
       // Debug log
       console.log(`Weekly - Processing log #${index}:`, {

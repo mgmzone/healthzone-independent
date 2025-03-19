@@ -24,6 +24,12 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     eating: 0
   }));
   
+  // Ensure we have logs before proceeding
+  if (!fastingLogs || fastingLogs.length === 0) {
+    console.log('Yearly - No logs to process');
+    return data;
+  }
+  
   // Track fasting seconds for each month
   const fastingSecondsByMonth = Array(12).fill(0);
   // Track total elapsed hours for each month
@@ -35,8 +41,8 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   if (fastingLogs.length > 0) {
     console.log('Yearly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
       id: log.id,
-      start: new Date(log.startTime).toISOString(),
-      end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+      start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
+      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid'
     })));
   }
   
@@ -68,8 +74,14 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
     try {
-      const startTime = new Date(log.startTime);
-      const endTime = log.endTime ? new Date(log.endTime) : new Date();
+      // Ensure we have valid date objects
+      if (!(log.startTime instanceof Date)) {
+        console.error(`Yearly - Invalid startTime for log #${index}:`, log.startTime);
+        return; // Skip this log
+      }
+      
+      const startTime = log.startTime;
+      const endTime = log.endTime instanceof Date ? log.endTime : new Date();
       
       // Debug log
       console.log(`Yearly - Processing log #${index}:`, {

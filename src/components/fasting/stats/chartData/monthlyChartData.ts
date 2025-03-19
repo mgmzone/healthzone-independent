@@ -24,6 +24,12 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     eating: 0
   }));
   
+  // Ensure we have logs before proceeding
+  if (!fastingLogs || fastingLogs.length === 0) {
+    console.log('Monthly - No logs to process');
+    return data;
+  }
+  
   // Set up time frame - past month
   const now = new Date();
   const monthAgo = subMonths(now, 1);
@@ -39,8 +45,8 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   if (fastingLogs.length > 0) {
     console.log('Monthly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
       id: log.id,
-      start: new Date(log.startTime).toISOString(),
-      end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+      start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
+      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid'
     })));
   }
   
@@ -65,8 +71,15 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
     try {
-      const startTime = new Date(log.startTime);
-      const endTime = log.endTime ? new Date(log.endTime) : new Date();
+      // Ensure we have valid date objects
+      if (!(log.startTime instanceof Date)) {
+        console.error(`Monthly - Invalid startTime for log #${index}:`, log.startTime);
+        return; // Skip this log
+      }
+      
+      const startTime = log.startTime;
+      // For active fast, use current time as end time
+      const endTime = log.endTime instanceof Date ? log.endTime : new Date();
       
       // Debug log
       console.log(`Monthly - Processing log #${index}:`, {

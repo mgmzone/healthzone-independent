@@ -55,7 +55,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
 
   // Filter out entries with no data (both fasting and eating are 0)
   const filteredChartData = chartData.filter(item => 
-    Math.abs(item.fasting) > 0 || Math.abs(item.eating) > 0
+    item && (Math.abs(item.fasting || 0) > 0 || Math.abs(item.eating || 0) > 0)
   );
 
   // Check if we have any data to display
