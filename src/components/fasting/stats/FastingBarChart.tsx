@@ -99,8 +99,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           data={processedData}
           margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
           layout="vertical" // Set layout to vertical for horizontal bars
-          barGap={0}
-          barCategoryGap={8}
+          barCategoryGap={20} // Increase gap between day groups
+          barSize={20} // Control bar thickness
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
           <XAxis 
@@ -135,6 +135,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             name="eating"
             fill="hsl(var(--destructive))" 
             radius={[4, 0, 0, 4]}
+            stackId="day" // Stack both bars for each day
           >
             {processedData.map((entry, index) => (
               <Cell key={`cell-eating-${index}`} fill="hsl(var(--destructive))" />
@@ -145,6 +146,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             name="fasting"
             fill="hsl(var(--primary))" 
             radius={[0, 4, 4, 0]}
+            stackId="day" // Stack both bars for each day
           >
             {processedData.map((entry, index) => (
               <Cell key={`cell-fasting-${index}`} fill="hsl(var(--primary))" />
