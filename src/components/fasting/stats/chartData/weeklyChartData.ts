@@ -1,3 +1,4 @@
+
 import { FastingLog } from '@/lib/types';
 import { 
   differenceInSeconds, 
@@ -28,8 +29,8 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   const weekStart = startOfWeek(now);
   const weekEnd = endOfWeek(now);
 
-  // Initialize dayTotalTracking to keep track of hours accounted for each day
-  const dayTotalTracking = Array(7).fill(0);
+  // Track fasting seconds for each day of the week
+  const fastingSecondsByDay = Array(7).fill(0);
   
   // Process each fast and distribute its hours to the appropriate days
   fastingLogs.forEach(log => {
@@ -57,14 +58,12 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       const fastStartForDay = max([dayStart, effectiveStartTime]);
       const fastEndForDay = min([dayEnd, effectiveEndTime]);
       
-      // Calculate hours of fasting for this day (only if there's overlap)
+      // Calculate seconds of fasting for this day (only if there's overlap)
       if (isBefore(fastStartForDay, fastEndForDay)) {
         const fastingSecondsForDay = differenceInSeconds(fastEndForDay, fastStartForDay);
-        const fastingHoursForDay = fastingSecondsForDay / 3600;
         
         const dayIndex = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        data[dayIndex].fasting += fastingHoursForDay;
-        dayTotalTracking[dayIndex] += fastingHoursForDay;
+        fastingSecondsByDay[dayIndex] += fastingSecondsForDay;
       }
       
       // Move to the next day
@@ -73,14 +72,43 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
-  // Calculate eating hours based on the 24-hour cycle minus fasting hours
+  // Calculate fasting and eating hours
   for (let i = 0; i < 7; i++) {
-    // Only calculate eating time for days within the week that have some data
-    if (dayTotalTracking[i] > 0) {
+    // Convert seconds to hours
+    const fastingHours = fastingSecondsByDay[i] / 3600;
+    
+    // Only calculate eating time for past days or today (up to current time)
+    const now = new Date();
+    const today = now.getDay();
+    const isToday = i === today;
+    const isPastDay = i < today;
+    
+    // For current day, calculate available hours based on elapsed time
+    if (isToday) {
+      const startOfToday = startOfDay(now);
+      const elapsedSecondsToday = differenceInSeconds(now, startOfToday);
+      const elapsedHoursToday = elapsedSecondsToday / 3600;
+      
+      // Set fasting hours (already calculated)
+      data[i].fasting = fastingHours;
+      
+      // Calculate eating hours as elapsed hours minus fasting hours
+      const eatingHours = Math.max(elapsedHoursToday - fastingHours, 0);
+      data[i].eating = -eatingHours; // Negative for display below the x-axis
+    }
+    // For past days, fasting + eating should equal 24 hours
+    else if (isPastDay) {
+      // Set fasting hours (already calculated)
+      data[i].fasting = fastingHours;
+      
       // Eating hours = 24 - fasting hours (with a minimum of 0)
-      const eatingHours = Math.max(24 - dayTotalTracking[i], 0);
-      // For the horizontal layout, we make eating negative so it appears below the x-axis
-      data[i].eating = -eatingHours;
+      const eatingHours = Math.max(24 - fastingHours, 0);
+      data[i].eating = -eatingHours; // Negative for display below the x-axis
+    }
+    // For future days, just show 0 for both
+    else {
+      data[i].fasting = 0;
+      data[i].eating = 0;
     }
   }
   

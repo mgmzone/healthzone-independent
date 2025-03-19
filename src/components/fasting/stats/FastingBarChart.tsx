@@ -19,24 +19,33 @@ interface FastingBarChartProps {
 }
 
 const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
+  // Helper to format hours and minutes
+  const formatHoursMinutes = (hours: number) => {
+    const absHours = Math.abs(hours);
+    const wholeHours = Math.floor(absHours);
+    const minutes = Math.round((absHours - wholeHours) * 60);
+    return `${wholeHours}h ${minutes}m`;
+  };
+
   // Customize tooltip display
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const fastingValue = Math.abs(payload[0].value);
-      const eatingValue = Math.abs(payload[1].value);
+      // Get values for fasting and eating (use absolute values for calculations)
+      const fastingValue = Math.abs(payload[0].value) || 0;
+      const eatingValue = Math.abs(payload[1].value) || 0;
       const total = fastingValue + eatingValue;
       
       return (
         <div className="bg-card border border-border p-3 rounded-md shadow-md">
           <p className="text-sm font-medium">{label}</p>
-          <div className="text-primary text-sm">
-            Fasting: {Math.round(fastingValue)} hours ({Math.round(fastingValue / total * 100)}%)
-          </div>
           <div className="text-destructive text-sm">
-            Eating: {Math.round(eatingValue)} hours ({Math.round(eatingValue / total * 100)}%)
+            Eating: {formatHoursMinutes(eatingValue)} ({total > 0 ? Math.round(eatingValue / total * 100) : 0}%)
+          </div>
+          <div className="text-primary text-sm">
+            Fasting: {formatHoursMinutes(fastingValue)} ({total > 0 ? Math.round(fastingValue / total * 100) : 0}%)
           </div>
           <div className="text-muted-foreground text-xs mt-1">
-            Total: {Math.round(total)} hours
+            Total: {formatHoursMinutes(total)}
           </div>
         </div>
       );
@@ -85,23 +94,12 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             verticalAlign="top" 
             height={36}
             formatter={(value) => (
-              <span className={value === 'fasting' ? 'text-primary' : 'text-destructive'}>
-                {value === 'fasting' ? 'Fasting Time' : 'Eating Time'}
+              <span className={value === 'eating' ? 'text-destructive' : 'text-primary'}>
+                {value === 'eating' ? 'Eating Time' : 'Fasting Time'}
               </span>
             )}
           />
           <ReferenceLine x={0} stroke="#666" />
-          <Bar 
-            dataKey="fasting" 
-            name="fasting"
-            fill="hsl(var(--primary))" 
-            stackId="stack"
-            radius={[4, 4, 0, 0]}
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
-            ))}
-          </Bar>
           <Bar 
             dataKey="eating" 
             name="eating"
@@ -111,6 +109,17 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill="hsl(var(--destructive))" />
+            ))}
+          </Bar>
+          <Bar 
+            dataKey="fasting" 
+            name="fasting"
+            fill="hsl(var(--primary))" 
+            stackId="stack"
+            radius={[4, 4, 0, 0]}
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
             ))}
           </Bar>
         </BarChart>

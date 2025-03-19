@@ -3,8 +3,8 @@ import { FastingLog } from '@/lib/types';
 import {
   differenceInSeconds,
   subMonths,
-  startOfWeek,
-  endOfWeek,
+  startOfDay,
+  endOfDay,
   isWithinInterval,
   isBefore,
   isAfter,
@@ -29,13 +29,15 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     eating: 0
   }));
   
-  // Track fasting hours and days with data for each week
-  const totalFastingHoursByWeek = Array(5).fill(0);
-  const daysWithDataByWeek = Array(5).fill(0);
+  // Track fasting seconds for each week
+  const fastingSecondsByWeek = Array(5).fill(0);
+  // Track total hours accounted for in each week (for accurate eating window calculation)
+  const totalHoursByWeek = Array(5).fill(0);
   
   // Process each fasting log
   fastingLogs.forEach(log => {
-    if (!log.endTime && log !== fastingLogs[0]) return; // Skip non-completed fasts except the current one
+    // Include current active fast, skip other non-completed fasts
+    if (!log.endTime && log !== fastingLogs[0]) return;
     
     const startTime = new Date(log.startTime);
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
@@ -61,29 +63,39 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       const fastStartForWeek = max([weekStart, effectiveStartTime]);
       const fastEndForWeek = min([weekEnd, endTime]);
       
-      // Calculate fasting hours for this week (only if there's overlap)
+      // Calculate fasting seconds for this week (only if there's overlap)
       if (fastStartForWeek <= fastEndForWeek) {
         const fastingSecondsForWeek = differenceInSeconds(fastEndForWeek, fastStartForWeek);
-        const fastingHoursForWeek = fastingSecondsForWeek / 3600;
+        fastingSecondsByWeek[weekIndex] += fastingSecondsForWeek;
         
-        totalFastingHoursByWeek[weekIndex] += fastingHoursForWeek;
-        // Count this as a day with data for this week
-        daysWithDataByWeek[weekIndex]++;
+        // For the first/current week, track total elapsed hours
+        if (weekIndex === 0) {
+          const today = new Date();
+          const weekElapsedSeconds = differenceInSeconds(
+            min([today, weekEnd]), 
+            weekStart
+          );
+          totalHoursByWeek[weekIndex] = weekElapsedSeconds / 3600;
+        }
+        // For past weeks, total is 24*7 hours
+        else {
+          totalHoursByWeek[weekIndex] = 24 * 7; // 168 hours in a week
+        }
       }
     }
   });
   
-  // Calculate eating hours based on daily 24-hour cycles
+  // Calculate eating hours based on weekly total hours
   for (let i = 0; i < 5; i++) {
-    if (daysWithDataByWeek[i] > 0) {
+    if (totalHoursByWeek[i] > 0) {
+      // Convert fasting seconds to hours
+      const fastingHours = fastingSecondsByWeek[i] / 3600;
+      
       // Update fasting hours
-      data[i].fasting = totalFastingHoursByWeek[i];
+      data[i].fasting = fastingHours;
       
-      // Calculate total possible hours for days with data
-      const totalPossibleHours = daysWithDataByWeek[i] * 24;
-      
-      // Calculate eating hours (total possible - fasting)
-      const eatingHours = Math.max(totalPossibleHours - totalFastingHoursByWeek[i], 0);
+      // Calculate eating hours (total - fasting)
+      const eatingHours = Math.max(totalHoursByWeek[i] - fastingHours, 0);
       
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
