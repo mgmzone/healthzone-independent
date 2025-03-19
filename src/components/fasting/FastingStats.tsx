@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { FastingLog } from '@/lib/types';
 import FastingBarChart from './stats/FastingBarChart';
-import { prepareChartData } from './stats/chartData';
+import { prepareChartData } from './stats/fastingStatsUtils';
 
 interface FastingStatsProps {
   fastingLogs: FastingLog[];

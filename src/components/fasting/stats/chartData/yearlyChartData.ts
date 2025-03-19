@@ -32,10 +32,6 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const now = new Date();
   const yearAgo = subYears(now, 1);
   
-  // For debugging
-  console.log('Processing yearly chart data with', fastingLogs.length, 'logs');
-  console.log('Year range:', yearAgo, 'to', now);
-  
   // Calculate total elapsed hours for each month in the past year
   for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
     // Get current month and year
@@ -51,23 +47,18 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     // Calculate total hours in this month up to now
     const totalHours = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60);
     totalHoursByMonth[monthIndex] = totalHours;
-    
-    console.log('Month', months[monthIndex], 'from', monthStart, 'to', monthEnd, 'elapsed hours:', totalHours);
   }
   
   // Process each fast and distribute hours to appropriate months
   fastingLogs.forEach(log => {
-    // Process both completed and active fasts
+    // Include current active fast, skip other non-completed fasts
+    if (!log.endTime && log !== fastingLogs[0]) return;
+    
     const startTime = new Date(log.startTime);
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
     // Skip logs outside the past year
-    if (endTime < yearAgo) {
-      console.log('Skipping log outside year window:', log.id, startTime, endTime);
-      return;
-    }
-    
-    console.log('Processing log within year:', log.id, startTime, endTime);
+    if (endTime < yearAgo) return;
     
     // Adjust start time if it's before our window
     const effectiveStartTime = startTime < yearAgo ? yearAgo : startTime;
@@ -89,8 +80,6 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       if (fastStartForMonth <= fastEndForMonth) {
         const fastingSecondsForMonth = differenceInSeconds(fastEndForMonth, fastStartForMonth);
         fastingSecondsByMonth[monthIndex] += fastingSecondsForMonth;
-        
-        console.log('Month', months[monthIndex], 'adding', fastingSecondsForMonth / 3600, 'hours');
       }
       
       // Move to the next month
@@ -112,8 +101,6 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
-      
-      console.log('Month', months[i], 'fasting:', fastingHours, 'eating:', -eatingHours, 'total:', totalHoursByMonth[i]);
     }
   }
   
