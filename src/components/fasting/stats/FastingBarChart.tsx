@@ -58,6 +58,13 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     Math.abs(item.fasting) > 0 || Math.abs(item.eating) > 0
   );
 
+  // Check if we have any data to display
+  const hasData = filteredChartData.length > 0;
+  
+  // For debugging
+  console.log('FastingBarChart - Has data:', hasData);
+  console.log('FastingBarChart - Filtered data:', filteredChartData);
+
   // Determine domain limits based on data
   // We want to show a balanced view with equal space for fasting and eating
   const maxFasting = Math.max(...chartData.map(d => d.fasting || 0));
@@ -65,11 +72,24 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   const domainMax = Math.max(24, maxFasting); // At least 24 hours, or more if needed
   const domainMin = -Math.max(24, maxEating); // At least -24 hours for eating
   
+  if (!hasData) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="text-center p-6">
+          <h3 className="text-lg font-medium mb-2">No Fasting Data</h3>
+          <p className="text-muted-foreground">
+            No fasting data available for the selected time period.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={filteredChartData.length > 0 ? filteredChartData : chartData}
+          data={filteredChartData}
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
           stackOffset="sign"
           layout="vertical"
@@ -113,8 +133,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             stackId="stack"
             radius={[0, 0, 4, 4]}
           >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill="hsl(var(--destructive))" />
+            {filteredChartData.map((entry, index) => (
+              <Cell key={`cell-eating-${index}`} fill="hsl(var(--destructive))" />
             ))}
           </Bar>
           <Bar 
@@ -124,8 +144,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             stackId="stack"
             radius={[4, 4, 0, 0]}
           >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
+            {filteredChartData.map((entry, index) => (
+              <Cell key={`cell-fasting-${index}`} fill="hsl(var(--primary))" />
             ))}
           </Bar>
         </BarChart>

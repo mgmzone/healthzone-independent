@@ -28,9 +28,13 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   // Track total elapsed hours for each month
   const totalHoursByMonth = Array(12).fill(0);
   
+  console.log('Yearly - Processing logs count:', fastingLogs.length);
+  
   // Get the dates for the past year
   const now = new Date();
   const yearAgo = subYears(now, 1);
+  
+  console.log('Yearly - Time frame:', yearAgo.toISOString(), 'to', now.toISOString());
   
   // Calculate total elapsed hours for each month in the past year
   for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
@@ -47,18 +51,27 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     // Calculate total hours in this month up to now
     const totalHours = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60);
     totalHoursByMonth[monthIndex] = totalHours;
+    
+    console.log(`Yearly - Month ${months[monthIndex]} from ${monthStart.toISOString()} to ${monthEnd.toISOString()}, elapsed: ${totalHours}h`);
   }
   
   // Process each fast and distribute hours to appropriate months
-  fastingLogs.forEach(log => {
-    // Include current active fast, skip other non-completed fasts
-    if (!log.endTime && log !== fastingLogs[0]) return;
-    
+  fastingLogs.forEach((log, index) => {
     const startTime = new Date(log.startTime);
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
+    // Debug log
+    console.log(`Yearly - Log #${index}:`, {
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      isInYear: (endTime >= yearAgo)
+    });
+    
     // Skip logs outside the past year
-    if (endTime < yearAgo) return;
+    if (endTime < yearAgo) {
+      console.log(`Yearly - Log #${index} outside year window, skipping`);
+      return;
+    }
     
     // Adjust start time if it's before our window
     const effectiveStartTime = startTime < yearAgo ? yearAgo : startTime;
@@ -80,6 +93,8 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       if (fastStartForMonth <= fastEndForMonth) {
         const fastingSecondsForMonth = differenceInSeconds(fastEndForMonth, fastStartForMonth);
         fastingSecondsByMonth[monthIndex] += fastingSecondsForMonth;
+        
+        console.log(`Yearly - Adding ${fastingSecondsForMonth / 3600}h to ${months[monthIndex]}`);
       }
       
       // Move to the next month

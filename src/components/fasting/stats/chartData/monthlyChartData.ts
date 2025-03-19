@@ -33,6 +33,9 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   const fastingHoursByWeek = Array(5).fill(0);
   const totalHoursByWeek = Array(5).fill(0);
   
+  console.log('Monthly - Processing logs count:', fastingLogs.length);
+  console.log('Monthly - Time frame:', monthAgo.toISOString(), 'to', now.toISOString());
+  
   // For each week in the month, determine the start/end and elapsed hours
   for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
     // Calculate this week's start (from month ago)
@@ -47,18 +50,27 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     // Calculate total elapsed hours for this week (up to current time)
     const weekElapsedHours = differenceInHours(weekEnd, weekStart);
     totalHoursByWeek[weekIndex] = weekElapsedHours;
+    
+    console.log(`Monthly - Week ${weekIndex + 1} from ${weekStart.toISOString()} to ${weekEnd.toISOString()}, elapsed: ${weekElapsedHours}h`);
   }
   
   // Process each fasting log
-  fastingLogs.forEach(log => {
-    // Include current active fast but skip other incomplete fasts
-    if (!log.endTime && log !== fastingLogs[0]) return;
-    
+  fastingLogs.forEach((log, index) => {
     const startTime = new Date(log.startTime);
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
+    // Debug log
+    console.log(`Monthly - Log #${index}:`, {
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      isInMonth: (endTime >= monthAgo)
+    });
+    
     // Skip logs completely outside our month window
-    if (endTime < monthAgo) return;
+    if (endTime < monthAgo) {
+      console.log(`Monthly - Log #${index} outside month window, skipping`);
+      return;
+    }
     
     // Adjust start time if it's before our window
     const effectiveStartTime = startTime < monthAgo ? monthAgo : startTime;
@@ -82,7 +94,10 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       // Calculate fasting hours that fall within this week
       if (fastStartInWeek <= fastEndInWeek) {
         const fastingSecondsInWeek = differenceInSeconds(fastEndInWeek, fastStartInWeek);
-        fastingHoursByWeek[weekIndex] += fastingSecondsInWeek / 3600; // Convert to hours
+        const fastingHoursInWeek = fastingSecondsInWeek / 3600;
+        fastingHoursByWeek[weekIndex] += fastingHoursInWeek;
+        
+        console.log(`Monthly - Adding ${fastingHoursInWeek}h to Week ${weekIndex + 1}`);
       }
     }
   });

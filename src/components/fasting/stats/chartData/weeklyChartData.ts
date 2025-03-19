@@ -32,14 +32,26 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   // Track fasting seconds for each day of the week
   const fastingSecondsByDay = Array(7).fill(0);
   
+  console.log('Weekly - Processing logs count:', fastingLogs.length);
+  
   // Process each fast and distribute its hours to the appropriate days
-  fastingLogs.forEach(log => {
+  fastingLogs.forEach((log, index) => {
     const startTime = new Date(log.startTime);
     // For active fast, use current time as end time
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
+    // Debug log
+    console.log(`Weekly - Log #${index}:`, {
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      isInWeek: (endTime >= weekStart && startTime <= weekEnd)
+    });
+    
     // Only include logs that overlap with the current week
-    if (endTime < weekStart || startTime > weekEnd) return;
+    if (endTime < weekStart || startTime > weekEnd) {
+      console.log(`Weekly - Log #${index} outside current week, skipping`);
+      return;
+    }
     
     // If the fast starts before the week, adjust it to the week start
     const effectiveStartTime = startTime < weekStart ? weekStart : startTime;
@@ -64,6 +76,8 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
         
         const dayIndex = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
         fastingSecondsByDay[dayIndex] += fastingSecondsForDay;
+        
+        console.log(`Weekly - Adding ${fastingSecondsForDay / 3600}h to day ${days[dayIndex]}`);
       }
       
       // Move to the next day
@@ -111,6 +125,9 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       data[i].eating = 0;
     }
   }
+  
+  console.log('Weekly chart data:', data);
+  console.log('Weekly fasting hours by day:', fastingSecondsByDay.map(s => s / 3600));
   
   return data;
 };
