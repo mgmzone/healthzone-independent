@@ -50,7 +50,9 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     console.log('Weekly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
       id: log.id,
       start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
-      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid'
+      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid',
+      startType: typeof log.startTime,
+      endType: typeof log.endTime
     })));
   }
   
