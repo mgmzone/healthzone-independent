@@ -84,30 +84,30 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
   switch (type) {
     case "profile_completion":
       return {
-        subject: "Complete Your HealthTrack Profile",
+        subject: "Complete Your HealthZone Profile",
         html: `
           <h1>Hello ${name},</h1>
-          <p>Your HealthTrack profile is not complete yet. Taking a few minutes to complete it will help us provide you with better insights.</p>
+          <p>Your HealthZone profile is not complete yet. Taking a few minutes to complete it will help us provide you with better insights.</p>
           <p><a href="${placeholders.appUrl}/profile" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Complete Profile</a></p>
-          <p>Thank you,<br>The HealthTrack Team</p>
+          <p>Thank you,<br>The HealthZone Team</p>
         `,
       };
     case "inactivity_reminder":
       return {
-        subject: "We Miss You at HealthTrack",
+        subject: "We Miss You at HealthZone",
         html: `
           <h1>Hello ${name},</h1>
-          <p>We noticed you haven't logged any activities on HealthTrack recently. Regular tracking helps you stay on top of your health goals.</p>
+          <p>We noticed you haven't logged any activities on HealthZone recently. Regular tracking helps you stay on top of your health goals.</p>
           <p><a href="${placeholders.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Visit Dashboard</a></p>
-          <p>Thank you,<br>The HealthTrack Team</p>
+          <p>Thank you,<br>The HealthZone Team</p>
         `,
       };
     case "weekly_summary":
       return {
-        subject: "Your Weekly HealthTrack Summary",
+        subject: "Your Weekly HealthZone Summary",
         html: `
           <h1>Hello ${name},</h1>
-          <p>Here's your weekly summary from HealthTrack:</p>
+          <p>Here's your weekly summary from HealthZone:</p>
           
           <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <h2 style="margin-top: 0;">Your Activity This Week</h2>
@@ -117,16 +117,16 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
           </div>
           
           <p><a href="${placeholders.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">View Full Report</a></p>
-          <p>Thank you for using HealthTrack,<br>The HealthTrack Team</p>
+          <p>Thank you for using HealthZone,<br>The HealthZone Team</p>
         `,
       };
     default:
       return {
-        subject: "HealthTrack Notification",
+        subject: "HealthZone Notification",
         html: `
           <h1>Hello ${name},</h1>
-          <p>Thank you for using HealthTrack.</p>
-          <p>The HealthTrack Team</p>
+          <p>Thank you for using HealthZone.</p>
+          <p>The HealthZone Team</p>
         `,
       };
   }
@@ -149,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send the email
     const emailResponse = await resend.emails.send({
-      from: "HealthTrack <onboarding@resend.dev>", // Update with your verified domain
+      from: "HealthZone <onboarding@resend.dev>", // Update with your verified domain
       to: [email],
       subject: emailContent.subject,
       html: emailContent.html,

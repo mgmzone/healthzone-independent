@@ -78,10 +78,10 @@ async function generateWeeklySummaryEmail(name: string, data: {
   
   // Fallback template if database template is not available
   return {
-    subject: "Your Weekly HealthTrack Summary",
+    subject: "Your Weekly HealthZone Summary",
     html: `
       <h1>Hello ${name},</h1>
-      <p>Here's your weekly summary from HealthTrack:</p>
+      <p>Here's your weekly summary from HealthZone:</p>
       
       <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
         <h2 style="margin-top: 0;">Your Activity This Week</h2>
@@ -91,7 +91,7 @@ async function generateWeeklySummaryEmail(name: string, data: {
       </div>
       
       <p><a href="${data.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">View Full Report</a></p>
-      <p>Thank you for using HealthTrack,<br>The HealthTrack Team</p>
+      <p>Thank you for using HealthZone,<br>The HealthZone Team</p>
     `,
   };
 }
@@ -206,7 +206,7 @@ const handler = async (_req: Request): Promise<Response> => {
         });
         
         const emailResponse = await resend.emails.send({
-          from: "HealthTrack <onboarding@resend.dev>", // Update with your verified domain
+          from: "HealthZone <onboarding@resend.dev>", // Update with your verified domain
           to: [summary.email],
           subject: emailContent.subject,
           html: emailContent.html,
