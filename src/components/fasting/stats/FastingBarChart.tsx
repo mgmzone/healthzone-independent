@@ -9,7 +9,8 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
-  ReferenceLine
+  ReferenceLine,
+  Cell
 } from 'recharts';
 import { ChartDataItem } from './chartData';
 
@@ -21,17 +22,21 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   // Customize tooltip display
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const fastingValue = Math.abs(payload[0].value);
+      const eatingValue = Math.abs(payload[1].value);
+      const total = fastingValue + eatingValue;
+      
       return (
         <div className="bg-card border border-border p-3 rounded-md shadow-md">
           <p className="text-sm font-medium">{label}</p>
           <div className="text-primary text-sm">
-            Fasting: {Math.round(payload[0].value)} hours
+            Fasting: {Math.round(fastingValue)} hours ({Math.round(fastingValue / total * 100)}%)
           </div>
           <div className="text-destructive text-sm">
-            Eating: {Math.round(payload[1].value)} hours
+            Eating: {Math.round(eatingValue)} hours ({Math.round(eatingValue / total * 100)}%)
           </div>
           <div className="text-muted-foreground text-xs mt-1">
-            Total: 24 hours
+            Total: {Math.round(total)} hours
           </div>
         </div>
       );
@@ -39,6 +44,13 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
+  // Determine domain limits based on data
+  // We want to show a balanced view with equal space for fasting and eating
+  const maxFasting = Math.max(...chartData.map(d => d.fasting || 0));
+  const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)));
+  const domainMax = Math.max(24, maxFasting); // At least 24 hours, or more if needed
+  const domainMin = -Math.max(24, maxEating); // At least -24 hours for eating
+  
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -47,14 +59,16 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
           stackOffset="sign"
           layout="vertical"
+          barGap={0}
+          barCategoryGap={8}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
           <XAxis 
             type="number"
-            domain={[-12, 24]}
+            domain={[domainMin, domainMax]}
             tickLine={false}
             axisLine={true}
-            ticks={[-12, -6, 0, 6, 12, 18, 24]}
+            ticks={[-24, -18, -12, -6, 0, 6, 12, 18, 24]}
             tickFormatter={(value) => `${Math.abs(value)}h`}
             fontSize={12}
           />
@@ -83,14 +97,22 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             fill="hsl(var(--primary))" 
             stackId="stack"
             radius={[4, 4, 0, 0]}
-          />
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill="hsl(var(--primary))" />
+            ))}
+          </Bar>
           <Bar 
             dataKey="eating" 
             name="eating"
             fill="hsl(var(--destructive))" 
             stackId="stack"
             radius={[0, 0, 4, 4]}
-          />
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill="hsl(var(--destructive))" />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

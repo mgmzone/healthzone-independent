@@ -1,6 +1,17 @@
-
 import { FastingLog } from '@/lib/types';
-import { differenceInSeconds, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { 
+  differenceInSeconds, 
+  startOfWeek, 
+  endOfWeek, 
+  isWithinInterval, 
+  startOfDay, 
+  endOfDay,
+  isSameDay,
+  isBefore,
+  isAfter,
+  min,
+  max
+} from 'date-fns';
 
 /**
  * Prepare weekly chart data
@@ -16,28 +27,62 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   const now = new Date();
   const weekStart = startOfWeek(now);
   const weekEnd = endOfWeek(now);
+
+  // Initialize dayTotalTracking to keep track of hours accounted for each day
+  const dayTotalTracking = Array(7).fill(0);
   
-  // Fill in actual hours from logs
+  // Process each fast and distribute its hours to the appropriate days
   fastingLogs.forEach(log => {
-    if (!log.endTime && log !== fastingLogs[0]) return; // Skip non-completed fasts except the current one
-    
     const startTime = new Date(log.startTime);
     // For active fast, use current time as end time
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
-    // Only include logs from the current week
-    if (!isWithinInterval(startTime, { start: weekStart, end: weekEnd })) return;
+    // Only include logs that overlap with the current week
+    if (endTime < weekStart || startTime > weekEnd) return;
     
-    const dayIndex = startTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
-    const cappedFastingHours = Math.min(fastDurationInHours, 24);
-    data[dayIndex].fasting = cappedFastingHours;
+    // If the fast starts before the week, adjust it to the week start
+    const effectiveStartTime = startTime < weekStart ? weekStart : startTime;
+    // If the fast ends after the week, adjust it to the week end
+    const effectiveEndTime = endTime > weekEnd ? weekEnd : endTime;
     
-    // For the horizontal layout, we make eating negative so it appears below the x-axis
-    if (log.endTime) {
-      data[dayIndex].eating = -Math.max(24 - cappedFastingHours, 0);
+    // Handle fasts that span multiple days by splitting hours for each day
+    let currentDay = new Date(effectiveStartTime);
+    
+    while (currentDay <= effectiveEndTime) {
+      // Calculate start and end times for this day's portion of the fast
+      const dayStart = startOfDay(currentDay);
+      const dayEnd = endOfDay(currentDay);
+      
+      // Calculate the intersection of the fast with this day
+      const fastStartForDay = max([dayStart, effectiveStartTime]);
+      const fastEndForDay = min([dayEnd, effectiveEndTime]);
+      
+      // Calculate hours of fasting for this day (only if there's overlap)
+      if (isBefore(fastStartForDay, fastEndForDay)) {
+        const fastingSecondsForDay = differenceInSeconds(fastEndForDay, fastStartForDay);
+        const fastingHoursForDay = fastingSecondsForDay / 3600;
+        
+        const dayIndex = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        data[dayIndex].fasting += fastingHoursForDay;
+        dayTotalTracking[dayIndex] += fastingHoursForDay;
+      }
+      
+      // Move to the next day
+      currentDay = new Date(dayStart);
+      currentDay.setDate(currentDay.getDate() + 1);
     }
   });
+  
+  // Calculate eating hours based on the 24-hour cycle minus fasting hours
+  for (let i = 0; i < 7; i++) {
+    // Only calculate eating time for days within the week that have some data
+    if (dayTotalTracking[i] > 0) {
+      // Eating hours = 24 - fasting hours (with a minimum of 0)
+      const eatingHours = Math.max(24 - dayTotalTracking[i], 0);
+      // For the horizontal layout, we make eating negative so it appears below the x-axis
+      data[i].eating = -eatingHours;
+    }
+  }
   
   return data;
 };
