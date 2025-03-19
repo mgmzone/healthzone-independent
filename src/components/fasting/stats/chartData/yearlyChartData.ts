@@ -9,7 +9,8 @@ import {
   isWithinInterval,
   min,
   max,
-  getDaysInMonth
+  getDaysInMonth,
+  format
 } from 'date-fns';
 
 /**
@@ -29,6 +30,11 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const totalHoursByMonth = Array(12).fill(0);
   
   console.log('Yearly - Processing logs count:', fastingLogs.length);
+  console.log('Yearly - Logs:', fastingLogs.map(log => ({
+    id: log.id,
+    start: new Date(log.startTime).toISOString(),
+    end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+  })));
   
   // Get the dates for the past year
   const now = new Date();
@@ -45,7 +51,7 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     // Skip future months or months before past year
     if (currentMonthDate > now || currentMonthDate < yearAgo) continue;
     
-    const monthStart = startOfMonth(currentMonthDate);
+    const monthStart = max([startOfMonth(currentMonthDate), yearAgo]);
     const monthEnd = min([endOfMonth(currentMonthDate), now]);
     
     // Calculate total hours in this month up to now
@@ -62,8 +68,10 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     
     // Debug log
     console.log(`Yearly - Log #${index}:`, {
+      id: log.id,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
+      duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
       isInYear: (endTime >= yearAgo)
     });
     
@@ -77,28 +85,47 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     const effectiveStartTime = startTime < yearAgo ? yearAgo : startTime;
     
     // Handle fasts that span multiple months
-    let currentMonth = new Date(effectiveStartTime);
-    currentMonth.setDate(1); // Set to first day of month for iteration
+    let currentDate = new Date(effectiveStartTime);
+    const monthEnd = endOfMonth(currentDate);
     
-    while (currentMonth <= endTime) {
-      const monthIndex = currentMonth.getMonth();
-      const monthStart = startOfMonth(currentMonth);
-      const monthEnd = endOfMonth(currentMonth);
+    // If the fast ends in the same month it started
+    if (endTime <= monthEnd) {
+      const monthIndex = currentDate.getMonth();
+      const fastingSeconds = differenceInSeconds(endTime, effectiveStartTime);
+      fastingSecondsByMonth[monthIndex] += fastingSeconds;
+      console.log(`Yearly - Single month fast: Adding ${(fastingSeconds / 3600).toFixed(2)}h to ${months[monthIndex]}`);
+    } else {
+      // Handle fast spanning multiple months
       
-      // Calculate the intersection of the fast with this month
-      const fastStartForMonth = max([monthStart, effectiveStartTime]);
-      const fastEndForMonth = min([monthEnd, endTime]);
+      // First partial month
+      let monthIndex = currentDate.getMonth();
+      let fastingSeconds = differenceInSeconds(monthEnd, effectiveStartTime);
+      fastingSecondsByMonth[monthIndex] += fastingSeconds;
+      console.log(`Yearly - First month: Adding ${(fastingSeconds / 3600).toFixed(2)}h to ${months[monthIndex]}`);
       
-      // Calculate fasting seconds for this month (only if there's overlap)
-      if (fastStartForMonth <= fastEndForMonth) {
-        const fastingSecondsForMonth = differenceInSeconds(fastEndForMonth, fastStartForMonth);
-        fastingSecondsByMonth[monthIndex] += fastingSecondsForMonth;
+      // Full months in between
+      let currentMonth = new Date(monthEnd);
+      currentMonth.setDate(1);
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
+      
+      while (endOfMonth(currentMonth) < endTime) {
+        monthIndex = currentMonth.getMonth();
+        const monthStart = startOfMonth(currentMonth);
+        const thisMonthEnd = endOfMonth(currentMonth);
+        fastingSeconds = differenceInSeconds(thisMonthEnd, monthStart);
+        fastingSecondsByMonth[monthIndex] += fastingSeconds;
+        console.log(`Yearly - Full month: Adding ${(fastingSeconds / 3600).toFixed(2)}h to ${months[monthIndex]}`);
         
-        console.log(`Yearly - Adding ${fastingSecondsForMonth / 3600}h to ${months[monthIndex]}`);
+        // Move to next month
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
       }
       
-      // Move to the next month
-      currentMonth.setMonth(currentMonth.getMonth() + 1);
+      // Last partial month
+      monthIndex = currentMonth.getMonth();
+      const lastMonthStart = startOfMonth(currentMonth);
+      fastingSeconds = differenceInSeconds(endTime, lastMonthStart);
+      fastingSecondsByMonth[monthIndex] += fastingSeconds;
+      console.log(`Yearly - Last month: Adding ${(fastingSeconds / 3600).toFixed(2)}h to ${months[monthIndex]}`);
     }
   });
   
@@ -116,13 +143,15 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
+      
+      console.log(`Yearly - Month ${months[i]}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByMonth[i]}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
   // For debugging
   console.log('Yearly chart data:', data);
   console.log('Total hours by month:', totalHoursByMonth);
-  console.log('Fasting hours by month:', fastingSecondsByMonth.map(s => s / 3600));
+  console.log('Fasting hours by month:', fastingSecondsByMonth.map(s => (s / 3600).toFixed(2)));
   
   return data;
 };

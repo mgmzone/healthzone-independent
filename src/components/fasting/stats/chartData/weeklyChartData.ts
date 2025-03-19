@@ -4,14 +4,12 @@ import {
   differenceInSeconds, 
   startOfWeek, 
   endOfWeek, 
-  isWithinInterval, 
   startOfDay, 
   endOfDay,
-  isSameDay,
   isBefore,
-  isAfter,
   min,
-  max
+  max,
+  format
 } from 'date-fns';
 
 /**
@@ -27,12 +25,19 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   
   const now = new Date();
   const weekStart = startOfWeek(now);
-  const weekEnd = endOfWeek(now);
+  const weekEnd = min([endOfWeek(now), now]);
 
   // Track fasting seconds for each day of the week
   const fastingSecondsByDay = Array(7).fill(0);
   
+  console.log('Weekly - Current date:', now.toISOString());
+  console.log('Weekly - Week range:', weekStart.toISOString(), 'to', weekEnd.toISOString());
   console.log('Weekly - Processing logs count:', fastingLogs.length);
+  console.log('Weekly - Logs:', fastingLogs.map(log => ({
+    id: log.id,
+    start: new Date(log.startTime).toISOString(),
+    end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+  })));
   
   // Process each fast and distribute its hours to the appropriate days
   fastingLogs.forEach((log, index) => {
@@ -42,8 +47,10 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     
     // Debug log
     console.log(`Weekly - Log #${index}:`, {
+      id: log.id,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
+      duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
       isInWeek: (endTime >= weekStart && startTime <= weekEnd)
     });
     
@@ -58,8 +65,12 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     // If the fast ends after the week, adjust it to the week end
     const effectiveEndTime = endTime > weekEnd ? weekEnd : endTime;
     
+    console.log(`Weekly - Effective time range for log #${index}:`, 
+      effectiveStartTime.toISOString(), 'to', effectiveEndTime.toISOString());
+    
     // Handle fasts that span multiple days by splitting hours for each day
     let currentDay = new Date(effectiveStartTime);
+    currentDay.setHours(0, 0, 0, 0); // Start at beginning of the day
     
     while (currentDay <= effectiveEndTime) {
       // Calculate start and end times for this day's portion of the fast
@@ -77,11 +88,10 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
         const dayIndex = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
         fastingSecondsByDay[dayIndex] += fastingSecondsForDay;
         
-        console.log(`Weekly - Adding ${fastingSecondsForDay / 3600}h to day ${days[dayIndex]}`);
+        console.log(`Weekly - Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to day ${days[dayIndex]} (${format(currentDay, 'yyyy-MM-dd')})`);
       }
       
       // Move to the next day
-      currentDay = new Date(dayStart);
       currentDay.setDate(currentDay.getDate() + 1);
     }
   });
@@ -95,7 +105,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     const now = new Date();
     const today = now.getDay();
     const isToday = i === today;
-    const isPastDay = i < today;
+    const isPastDay = i < today || (i > today && fastingHours > 0); // Consider days with data as "past" even if weekend before weekday
     
     // For current day, calculate available hours based on elapsed time
     if (isToday) {
@@ -109,6 +119,8 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       // Calculate eating hours as elapsed hours minus fasting hours
       const eatingHours = Math.max(elapsedHoursToday - fastingHours, 0);
       data[i].eating = -eatingHours; // Negative for display below the x-axis
+      
+      console.log(`Weekly - Today (${days[i]}): fasting=${fastingHours.toFixed(2)}h, elapsed=${elapsedHoursToday.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
     // For past days, fasting + eating should equal 24 hours
     else if (isPastDay) {
@@ -118,6 +130,8 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       // Eating hours = 24 - fasting hours (with a minimum of 0)
       const eatingHours = Math.max(24 - fastingHours, 0);
       data[i].eating = -eatingHours; // Negative for display below the x-axis
+      
+      console.log(`Weekly - Past day (${days[i]}): fasting=${fastingHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
     // For future days, just show 0 for both
     else {
@@ -127,7 +141,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   }
   
   console.log('Weekly chart data:', data);
-  console.log('Weekly fasting hours by day:', fastingSecondsByDay.map(s => s / 3600));
+  console.log('Weekly fasting hours by day:', fastingSecondsByDay.map(s => (s / 3600).toFixed(2)));
   
   return data;
 };

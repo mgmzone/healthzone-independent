@@ -11,7 +11,9 @@ import {
   endOfWeek,
   differenceInHours,
   addDays,
-  isWithinInterval
+  isWithinInterval,
+  format,
+  getWeekOfMonth
 } from 'date-fns';
 
 /**
@@ -35,6 +37,11 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   
   console.log('Monthly - Processing logs count:', fastingLogs.length);
   console.log('Monthly - Time frame:', monthAgo.toISOString(), 'to', now.toISOString());
+  console.log('Monthly - Logs:', fastingLogs.map(log => ({
+    id: log.id,
+    start: new Date(log.startTime).toISOString(),
+    end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+  })));
   
   // For each week in the month, determine the start/end and elapsed hours
   for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
@@ -61,8 +68,10 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     
     // Debug log
     console.log(`Monthly - Log #${index}:`, {
+      id: log.id,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
+      duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
       isInMonth: (endTime >= monthAgo)
     });
     
@@ -97,7 +106,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
         const fastingHoursInWeek = fastingSecondsInWeek / 3600;
         fastingHoursByWeek[weekIndex] += fastingHoursInWeek;
         
-        console.log(`Monthly - Adding ${fastingHoursInWeek}h to Week ${weekIndex + 1}`);
+        console.log(`Monthly - Adding ${fastingHoursInWeek.toFixed(2)}h to Week ${weekIndex + 1}`);
       }
     }
   });
@@ -113,6 +122,8 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
+      
+      console.log(`Monthly - Week ${i + 1}: fasting=${fastingHoursByWeek[i].toFixed(2)}h, total=${totalHoursByWeek[i]}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   

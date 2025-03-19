@@ -31,8 +31,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       // Get values for fasting and eating (use absolute values for calculations)
-      const fastingValue = Math.abs(payload[1]?.value) || 0; // Now index 1 for fasting
-      const eatingValue = Math.abs(payload[0]?.value) || 0;  // Now index 0 for eating
+      const fastingValue = payload.find(p => p.dataKey === 'fasting')?.value || 0;
+      const eatingValue = Math.abs(payload.find(p => p.dataKey === 'eating')?.value || 0);
       const total = fastingValue + eatingValue;
       
       return (
@@ -62,13 +62,14 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   const hasData = filteredChartData.length > 0;
   
   // For debugging
-  console.log('FastingBarChart - Has data:', hasData);
+  console.log('FastingBarChart - Chart data:', chartData);
   console.log('FastingBarChart - Filtered data:', filteredChartData);
+  console.log('FastingBarChart - Has data:', hasData);
 
   // Determine domain limits based on data
   // We want to show a balanced view with equal space for fasting and eating
-  const maxFasting = Math.max(...chartData.map(d => d.fasting || 0));
-  const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)));
+  const maxFasting = Math.max(...chartData.map(d => d.fasting || 0), 1); // At least 1 hour
+  const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)), 1); // At least 1 hour
   const domainMax = Math.max(24, maxFasting); // At least 24 hours, or more if needed
   const domainMin = -Math.max(24, maxEating); // At least -24 hours for eating
   
@@ -125,7 +126,6 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             )}
           />
           <ReferenceLine x={0} stroke="#666" />
-          {/* Eating time first, then Fasting time */}
           <Bar 
             dataKey="eating" 
             name="eating"
