@@ -1,5 +1,8 @@
 
+// Export functions
 export * from './userStatsService';
 export * from './systemStatsService';
 export * from './activityLogsService';
-export * from './types';
+
+// Export types
+export type * from './types';
