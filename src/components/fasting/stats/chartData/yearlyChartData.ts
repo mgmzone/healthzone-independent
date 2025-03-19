@@ -14,6 +14,27 @@ import {
 } from 'date-fns';
 
 /**
+ * Ensure date is a proper Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  
+  try {
+    // Handle serialized Supabase dates
+    if (date && typeof date === 'object' && '_type' in date) {
+      if (date._type === 'Date' && date.value && date.value.iso) {
+        return new Date(date.value.iso);
+      }
+    }
+    // Try to create date from whatever we received
+    return new Date(date);
+  } catch (error) {
+    console.error('Failed to parse date:', date, error);
+    return new Date(); // Fallback to current date
+  }
+};
+
+/**
  * Prepare yearly chart data
  */
 export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
@@ -36,15 +57,6 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const totalHoursByMonth = Array(12).fill(0);
   
   console.log('Yearly - Processing logs count:', fastingLogs.length);
-  
-  // Log the first few logs for debugging
-  if (fastingLogs.length > 0) {
-    console.log('Yearly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
-      id: log.id,
-      start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
-      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid'
-    })));
-  }
   
   // Get the dates for the past year
   const now = new Date();
@@ -74,14 +86,15 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
     try {
-      // Ensure we have valid date objects
-      if (!(log.startTime instanceof Date)) {
-        console.error(`Yearly - Invalid startTime for log #${index}:`, log.startTime);
-        return; // Skip this log
-      }
+      // Normalize date objects
+      const startTime = ensureDate(log.startTime);
+      // For active fast, use current time as end time
+      const endTime = log.endTime ? ensureDate(log.endTime) : new Date();
       
-      const startTime = log.startTime;
-      const endTime = log.endTime instanceof Date ? log.endTime : new Date();
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        console.error(`Yearly - Invalid date for log #${index}:`, log);
+        return;
+      }
       
       // Debug log
       console.log(`Yearly - Processing log #${index}:`, {

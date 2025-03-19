@@ -10,6 +10,27 @@ interface FastingStatsProps {
   timeFilter: 'week' | 'month' | 'year';
 }
 
+/**
+ * Ensure date is a proper Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  
+  try {
+    // Handle serialized Supabase dates
+    if (date && typeof date === 'object' && '_type' in date) {
+      if (date._type === 'Date' && date.value && date.value.iso) {
+        return new Date(date.value.iso);
+      }
+    }
+    // Try to create date from whatever we received
+    return new Date(date);
+  } catch (error) {
+    console.error('Failed to parse date:', date, error);
+    return new Date(); // Fallback to current date
+  }
+};
+
 const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) => {
   const { toast } = useToast();
   
@@ -36,74 +57,11 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       const normalizedLog = { ...log };
       
       // Convert startTime to Date object if needed
-      if (!(normalizedLog.startTime instanceof Date)) {
-        try {
-          // Handle potential serialized objects from Supabase
-          if (typeof normalizedLog.startTime === 'object' && normalizedLog.startTime !== null) {
-            // Check for serialized Date from Supabase (has _type property)
-            if ('_type' in normalizedLog.startTime) {
-              let dateStr;
-              try {
-                // Access the actual date string safely
-                const anyStart = normalizedLog.startTime as any;
-                if (anyStart.value && anyStart.value.iso) {
-                  dateStr = anyStart.value.iso;
-                } else {
-                  dateStr = String(normalizedLog.startTime);
-                }
-              } catch (e) {
-                dateStr = String(normalizedLog.startTime);
-              }
-              normalizedLog.startTime = new Date(dateStr);
-            } else {
-              normalizedLog.startTime = new Date(normalizedLog.startTime as any);
-            }
-          } else {
-            // Handle string dates
-            normalizedLog.startTime = new Date(normalizedLog.startTime as string);
-          }
-        } catch (err) {
-          console.error('Error converting startTime to Date:', err, normalizedLog.startTime);
-          normalizedLog.startTime = new Date(); // Fallback
-        }
-      }
+      normalizedLog.startTime = ensureDate(normalizedLog.startTime);
       
-      // Convert endTime to Date object if it exists and isn't already a Date
-      if (normalizedLog.endTime && !(normalizedLog.endTime instanceof Date)) {
-        try {
-          // Handle potential serialized objects from Supabase
-          if (typeof normalizedLog.endTime === 'object' && normalizedLog.endTime !== null) {
-            // Check for serialized Date from Supabase (has _type property)
-            if ('_type' in normalizedLog.endTime) {
-              let dateStr;
-              try {
-                // Access the actual date string safely
-                const anyEnd = normalizedLog.endTime as any;
-                if (anyEnd.value && anyEnd.value.iso) {
-                  dateStr = anyEnd.value.iso;
-                } else {
-                  dateStr = String(normalizedLog.endTime);
-                }
-              } catch (e) {
-                dateStr = String(normalizedLog.endTime);
-              }
-              normalizedLog.endTime = new Date(dateStr);
-            } else {
-              normalizedLog.endTime = new Date(normalizedLog.endTime as any);
-            }
-          } else {
-            // Handle string dates
-            normalizedLog.endTime = new Date(normalizedLog.endTime as string);
-          }
-        } catch (err) {
-          console.error('Error converting endTime to Date:', err, normalizedLog.endTime);
-          if (normalizedLog.startTime instanceof Date) {
-            // Use a reasonable fallback - a few hours after start
-            normalizedLog.endTime = new Date(normalizedLog.startTime.getTime() + (18 * 60 * 60 * 1000));
-          } else {
-            normalizedLog.endTime = new Date(); // Last resort fallback
-          }
-        }
+      // Convert endTime to Date object if it exists
+      if (normalizedLog.endTime) {
+        normalizedLog.endTime = ensureDate(normalizedLog.endTime);
       }
       
       return normalizedLog as FastingLog;
