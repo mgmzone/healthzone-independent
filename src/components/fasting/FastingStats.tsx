@@ -32,100 +32,81 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
   // Normalize logs to ensure consistent date objects
   const normalizedLogs = useMemo(() => {
     return fastingLogs.map(log => {
-      let normalizedStartTime;
-      let normalizedEndTime = log.endTime;
+      // Create new objects to avoid mutating the original logs
+      const normalizedLog = { ...log };
       
-      // Handle start time
-      if (typeof log.startTime === 'object' && log.startTime !== null) {
-        if ('_type' in log.startTime) {
-          // Handle serialized Date objects from Supabase
-          try {
-            // Fix: use type checking and safe access patterns
-            let isoString = '';
-            
-            // Check if it has a 'value' property that's an object with an 'iso' property
-            if (typeof log.startTime === 'object' && 
-                log.startTime !== null && 
-                '_type' in log.startTime && 
-                log.startTime.hasOwnProperty('value')) {
-              
-              // Now we need to cast to any to access the nested properties
-              const valueObj = (log.startTime as any).value;
-              
-              if (typeof valueObj === 'object' && 
-                  valueObj !== null && 
-                  valueObj.hasOwnProperty('iso')) {
-                isoString = valueObj.iso;
-              } else {
-                isoString = log.startTime.toString();
-              }
-            } else {
-              isoString = log.startTime.toString();
-            }
-            
-            normalizedStartTime = new Date(isoString);
-          } catch (err) {
-            console.error('Error parsing startTime:', err);
-            normalizedStartTime = new Date(log.startTime);
-          }
-        } else {
-          // It's already a Date object
-          normalizedStartTime = log.startTime;
-        }
-      } else {
-        // It's a string or timestamp
-        normalizedStartTime = new Date(log.startTime);
-      }
-      
-      // Handle end time if it exists
-      if (log.endTime) {
-        if (typeof log.endTime === 'object' && log.endTime !== null) {
-          if ('_type' in log.endTime) {
-            // Handle serialized Date objects from Supabase
-            try {
-              // Fix: use type checking and safe access patterns
-              let isoString = '';
-              
-              // Check if it has a 'value' property that's an object with an 'iso' property
-              if (typeof log.endTime === 'object' && 
-                  log.endTime !== null && 
-                  '_type' in log.endTime && 
-                  log.endTime.hasOwnProperty('value')) {
-                
-                // Now we need to cast to any to access the nested properties
-                const valueObj = (log.endTime as any).value;
-                
-                if (typeof valueObj === 'object' && 
-                    valueObj !== null && 
-                    valueObj.hasOwnProperty('iso')) {
-                  isoString = valueObj.iso;
+      // Convert startTime to Date object if needed
+      if (!(normalizedLog.startTime instanceof Date)) {
+        try {
+          // Handle potential serialized objects from Supabase
+          if (typeof normalizedLog.startTime === 'object' && normalizedLog.startTime !== null) {
+            // Check for serialized Date from Supabase (has _type property)
+            if ('_type' in normalizedLog.startTime) {
+              let dateStr;
+              try {
+                // Access the actual date string safely
+                const anyStart = normalizedLog.startTime as any;
+                if (anyStart.value && anyStart.value.iso) {
+                  dateStr = anyStart.value.iso;
                 } else {
-                  isoString = log.endTime.toString();
+                  dateStr = String(normalizedLog.startTime);
                 }
-              } else {
-                isoString = log.endTime.toString();
+              } catch (e) {
+                dateStr = String(normalizedLog.startTime);
               }
-              
-              normalizedEndTime = new Date(isoString);
-            } catch (err) {
-              console.error('Error parsing endTime:', err);
-              normalizedEndTime = new Date(log.endTime);
+              normalizedLog.startTime = new Date(dateStr);
+            } else {
+              normalizedLog.startTime = new Date(normalizedLog.startTime as any);
             }
           } else {
-            // It's already a Date object
-            normalizedEndTime = log.endTime;
+            // Handle string dates
+            normalizedLog.startTime = new Date(normalizedLog.startTime as string);
           }
-        } else {
-          // It's a string or timestamp
-          normalizedEndTime = new Date(log.endTime);
+        } catch (err) {
+          console.error('Error converting startTime to Date:', err, normalizedLog.startTime);
+          normalizedLog.startTime = new Date(); // Fallback
         }
       }
       
-      return {
-        ...log,
-        startTime: normalizedStartTime,
-        endTime: normalizedEndTime
-      };
+      // Convert endTime to Date object if it exists and isn't already a Date
+      if (normalizedLog.endTime && !(normalizedLog.endTime instanceof Date)) {
+        try {
+          // Handle potential serialized objects from Supabase
+          if (typeof normalizedLog.endTime === 'object' && normalizedLog.endTime !== null) {
+            // Check for serialized Date from Supabase (has _type property)
+            if ('_type' in normalizedLog.endTime) {
+              let dateStr;
+              try {
+                // Access the actual date string safely
+                const anyEnd = normalizedLog.endTime as any;
+                if (anyEnd.value && anyEnd.value.iso) {
+                  dateStr = anyEnd.value.iso;
+                } else {
+                  dateStr = String(normalizedLog.endTime);
+                }
+              } catch (e) {
+                dateStr = String(normalizedLog.endTime);
+              }
+              normalizedLog.endTime = new Date(dateStr);
+            } else {
+              normalizedLog.endTime = new Date(normalizedLog.endTime as any);
+            }
+          } else {
+            // Handle string dates
+            normalizedLog.endTime = new Date(normalizedLog.endTime as string);
+          }
+        } catch (err) {
+          console.error('Error converting endTime to Date:', err, normalizedLog.endTime);
+          if (normalizedLog.startTime instanceof Date) {
+            // Use a reasonable fallback - a few hours after start
+            normalizedLog.endTime = new Date(normalizedLog.startTime.getTime() + (18 * 60 * 60 * 1000));
+          } else {
+            normalizedLog.endTime = new Date(); // Last resort fallback
+          }
+        }
+      }
+      
+      return normalizedLog as FastingLog;
     });
   }, [fastingLogs]);
   
@@ -139,7 +120,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       console.log(`FastingStats ${timeFilter} chart data:`, data);
       
       // Check if we have meaningful data
-      const hasData = data.some(item => Math.abs(item.fasting) > 0 || Math.abs(item.eating) > 0);
+      const hasData = data.some(item => Math.abs(item.fasting || 0) > 0 || Math.abs(item.eating || 0) > 0);
       if (!hasData) {
         console.log(`No meaningful data for ${timeFilter} chart`);
       }
