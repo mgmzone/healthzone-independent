@@ -32,6 +32,23 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const now = new Date();
   const yearAgo = subYears(now, 1);
   
+  // Calculate total elapsed hours for each month in the past year
+  for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+    // Get current month and year
+    const currentMonthDate = new Date(now);
+    currentMonthDate.setMonth(now.getMonth() - (11 - monthIndex));
+    
+    // Skip future months or months before past year
+    if (currentMonthDate > now || currentMonthDate < yearAgo) continue;
+    
+    const monthStart = startOfMonth(currentMonthDate);
+    const monthEnd = min([endOfMonth(currentMonthDate), now]);
+    
+    // Calculate total hours in this month up to now
+    const totalHours = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60);
+    totalHoursByMonth[monthIndex] = totalHours;
+  }
+  
   // Process each fast and distribute hours to appropriate months
   fastingLogs.forEach(log => {
     // Include current active fast, skip other non-completed fasts
@@ -63,21 +80,6 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       if (fastStartForMonth <= fastEndForMonth) {
         const fastingSecondsForMonth = differenceInSeconds(fastEndForMonth, fastStartForMonth);
         fastingSecondsByMonth[monthIndex] += fastingSecondsForMonth;
-        
-        // For the current month, calculate elapsed hours up to now
-        const isCurrentMonth = monthIndex === now.getMonth();
-        if (isCurrentMonth) {
-          const monthElapsedSeconds = differenceInSeconds(
-            now, 
-            monthStart
-          );
-          totalHoursByMonth[monthIndex] = monthElapsedSeconds / 3600;
-        }
-        // For past months, use total hours in the month
-        else if (monthEnd < now) {
-          const daysInMonth = getDaysInMonth(monthStart);
-          totalHoursByMonth[monthIndex] = daysInMonth * 24;
-        }
       }
       
       // Move to the next month
@@ -95,12 +97,17 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       data[i].fasting = fastingHours;
       
       // Calculate eating hours (total elapsed - fasting)
-      const eatingHours = Math.max(totalHoursByMonth[i] - fastingHours, 0);
+      const eatingHours = Math.max(0, totalHoursByMonth[i] - fastingHours);
       
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
     }
   }
+  
+  // For debugging
+  console.log('Yearly chart data:', data);
+  console.log('Total hours by month:', totalHoursByMonth);
+  console.log('Fasting hours by month:', fastingSecondsByMonth.map(s => s / 3600));
   
   return data;
 };

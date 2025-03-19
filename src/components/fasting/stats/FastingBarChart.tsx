@@ -31,8 +31,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       // Get values for fasting and eating (use absolute values for calculations)
-      const fastingValue = Math.abs(payload[0].value) || 0;
-      const eatingValue = Math.abs(payload[1].value) || 0;
+      const fastingValue = Math.abs(payload[1]?.value) || 0; // Now index 1 for fasting
+      const eatingValue = Math.abs(payload[0]?.value) || 0;  // Now index 0 for eating
       const total = fastingValue + eatingValue;
       
       return (
@@ -100,6 +100,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             )}
           />
           <ReferenceLine x={0} stroke="#666" />
+          {/* Swap the order - Eating time first, then Fasting time */}
           <Bar 
             dataKey="eating" 
             name="eating"
