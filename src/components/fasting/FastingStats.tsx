@@ -40,7 +40,11 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         if ('_type' in log.startTime) {
           // Handle serialized Date objects from Supabase
           try {
-            normalizedStartTime = new Date(log.startTime.value.iso);
+            // Fix here: access the ISO string directly from the _type object structure
+            const isoString = log.startTime.hasOwnProperty('value') && typeof log.startTime.value === 'object' && log.startTime.value.hasOwnProperty('iso')
+              ? log.startTime.value.iso
+              : log.startTime.toString();
+            normalizedStartTime = new Date(isoString);
           } catch (err) {
             console.error('Error parsing startTime:', err);
             normalizedStartTime = new Date(log.startTime);
@@ -60,7 +64,11 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
           if ('_type' in log.endTime) {
             // Handle serialized Date objects from Supabase
             try {
-              normalizedEndTime = new Date(log.endTime.value.iso);
+              // Fix here: access the ISO string directly from the _type object structure
+              const isoString = log.endTime.hasOwnProperty('value') && typeof log.endTime.value === 'object' && log.endTime.value.hasOwnProperty('iso')
+                ? log.endTime.value.iso
+                : log.endTime.toString();
+              normalizedEndTime = new Date(isoString);
             } catch (err) {
               console.error('Error parsing endTime:', err);
               normalizedEndTime = new Date(log.endTime);
