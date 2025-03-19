@@ -40,10 +40,29 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         if ('_type' in log.startTime) {
           // Handle serialized Date objects from Supabase
           try {
-            // Fix here: access the ISO string directly from the _type object structure
-            const isoString = log.startTime.hasOwnProperty('value') && typeof log.startTime.value === 'object' && log.startTime.value.hasOwnProperty('iso')
-              ? log.startTime.value.iso
-              : log.startTime.toString();
+            // Fix: use type checking and safe access patterns
+            let isoString = '';
+            
+            // Check if it has a 'value' property that's an object with an 'iso' property
+            if (typeof log.startTime === 'object' && 
+                log.startTime !== null && 
+                '_type' in log.startTime && 
+                log.startTime.hasOwnProperty('value')) {
+              
+              // Now we need to cast to any to access the nested properties
+              const valueObj = (log.startTime as any).value;
+              
+              if (typeof valueObj === 'object' && 
+                  valueObj !== null && 
+                  valueObj.hasOwnProperty('iso')) {
+                isoString = valueObj.iso;
+              } else {
+                isoString = log.startTime.toString();
+              }
+            } else {
+              isoString = log.startTime.toString();
+            }
+            
             normalizedStartTime = new Date(isoString);
           } catch (err) {
             console.error('Error parsing startTime:', err);
@@ -64,10 +83,29 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
           if ('_type' in log.endTime) {
             // Handle serialized Date objects from Supabase
             try {
-              // Fix here: access the ISO string directly from the _type object structure
-              const isoString = log.endTime.hasOwnProperty('value') && typeof log.endTime.value === 'object' && log.endTime.value.hasOwnProperty('iso')
-                ? log.endTime.value.iso
-                : log.endTime.toString();
+              // Fix: use type checking and safe access patterns
+              let isoString = '';
+              
+              // Check if it has a 'value' property that's an object with an 'iso' property
+              if (typeof log.endTime === 'object' && 
+                  log.endTime !== null && 
+                  '_type' in log.endTime && 
+                  log.endTime.hasOwnProperty('value')) {
+                
+                // Now we need to cast to any to access the nested properties
+                const valueObj = (log.endTime as any).value;
+                
+                if (typeof valueObj === 'object' && 
+                    valueObj !== null && 
+                    valueObj.hasOwnProperty('iso')) {
+                  isoString = valueObj.iso;
+                } else {
+                  isoString = log.endTime.toString();
+                }
+              } else {
+                isoString = log.endTime.toString();
+              }
+              
               normalizedEndTime = new Date(isoString);
             } catch (err) {
               console.error('Error parsing endTime:', err);
