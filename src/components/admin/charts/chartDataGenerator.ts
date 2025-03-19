@@ -9,7 +9,10 @@ export * from './emptyDataGenerator';
 export * from './activityProcessor';
 
 // Re-export types with proper 'export type' syntax
-export type * from './types';
+export type { TimeFilter, TimeFilteredData } from './types';
+
+// Re-export values
+export { chartConfig } from './types';
 
 // Re-export ActivityLogItem type from our admin service for backward compatibility
 export type { ActivityLogItem } from '@/lib/services/admin';

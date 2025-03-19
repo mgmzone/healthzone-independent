@@ -4,9 +4,9 @@ import { ChartContainer } from '@/components/ui/chart';
 import { SystemStats, getActivityLogs, ActivityLogItem } from '@/lib/services/admin';
 import TimeFilterSelector, { TimeFilter } from './charts/TimeFilterSelector';
 import { 
-  chartConfig,
   getChartData
 } from './charts/chartDataGenerator';
+import { chartConfig } from './charts/types';
 import SummaryBarChart from './charts/SummaryBarChart';
 import StackedBarChart from './charts/StackedBarChart';
 import ChartLoadingState from './charts/ChartLoadingState';
