@@ -53,7 +53,6 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
-  // Debug data coming into chart
   console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
   
   // Filter out entries where BOTH fasting and eating are 0 or undefined
@@ -64,18 +63,21 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   console.log('FastingBarChart - Filtered data:', JSON.stringify(filteredChartData, null, 2));
   console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 
-  // Force positive values for rendering (we'll handle negatives in the visualization)
+  // For horizontal display: Eating will be negative (left side) and fasting positive (right side)
   const processedData = filteredChartData.map(item => ({
     day: item.day,
     fasting: Math.abs(item.fasting || 0),
-    eating: Math.abs(item.eating || 0)
+    eating: -(Math.abs(item.eating || 0)) // Make eating negative for left-side display
   }));
 
   // Determine domain limits based on data
-  const maxVal = Math.max(
-    ...processedData.map(d => Math.max(d.fasting || 0, d.eating || 0, 1))
-  );
-  const domainMax = Math.ceil(Math.max(24, maxVal)); 
+  const maxVal = Math.max(...processedData.map(d => Math.abs(d.fasting || 0)));
+  const minVal = Math.min(...processedData.map(d => d.eating || 0));
+  
+  // Ensure domain is balanced and large enough
+  const maxDomain = Math.max(maxVal, Math.abs(minVal), 12);
+  const domainMax = Math.ceil(maxDomain);
+  const domainMin = -Math.ceil(maxDomain);
 
   if (filteredChartData.length === 0) {
     return (
@@ -95,24 +97,27 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={processedData}
-          margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+          margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
+          layout="vertical" // Set layout to vertical for horizontal bars
           barGap={0}
           barCategoryGap={8}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
           <XAxis 
-            dataKey="day"
+            type="number"
+            domain={[domainMin, domainMax]}
+            tickFormatter={(value) => `${Math.abs(value)}h`}
             tickLine={false}
             axisLine={true}
             fontSize={12}
           />
           <YAxis 
-            type="number"
+            type="category"
+            dataKey="day"
             tickLine={false}
-            axisLine={false}
+            axisLine={true}
             fontSize={12}
-            domain={[0, domainMax]}
-            tickFormatter={(value) => `${value}h`}
+            width={40}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
@@ -124,11 +129,12 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
               </span>
             )}
           />
+          <ReferenceLine x={0} stroke="#666" />
           <Bar 
             dataKey="eating" 
             name="eating"
             fill="hsl(var(--destructive))" 
-            radius={[4, 4, 0, 0]}
+            radius={[4, 0, 0, 4]}
           >
             {processedData.map((entry, index) => (
               <Cell key={`cell-eating-${index}`} fill="hsl(var(--destructive))" />
@@ -138,7 +144,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             dataKey="fasting" 
             name="fasting"
             fill="hsl(var(--primary))" 
-            radius={[4, 4, 0, 0]}
+            radius={[0, 4, 4, 0]}
           >
             {processedData.map((entry, index) => (
               <Cell key={`cell-fasting-${index}`} fill="hsl(var(--primary))" />
