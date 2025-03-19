@@ -10,7 +10,7 @@ interface ProgressCircleProps {
   showPercentage?: boolean;
   label?: string;
   valueLabel?: string;
-  animate?: boolean; // We'll keep this prop but not use it
+  animate?: boolean;
   allowExceedGoal?: boolean;
   children?: React.ReactNode;
 }
@@ -23,7 +23,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   showPercentage = true,
   label,
   valueLabel,
-  animate = false, // Default to false to disable animation
+  animate = false,
   allowExceedGoal = true,
   children,
 }) => {
@@ -32,17 +32,16 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
-  // Calculate the dashOffset based on the value
-  // For values <= 100%, we'll use this calculation
+  // Handle values over 100% if allowExceedGoal is true
   const hasOverflow = allowExceedGoal && value > 100;
+  
+  // For the main circle, fill to 100% if exceeded
   const normalizedValue = hasOverflow ? 100 : Math.min(Math.max(value, 0), 100);
   const dashOffset = circumference - (normalizedValue / 100) * circumference;
-
-  // For values > 100%, we'll show the overflow with a different color
+  
+  // For values > 100%, calculate the overflow part separately
   const overflowValue = hasOverflow ? value - 100 : 0;
-  const overflowDasharray = hasOverflow ? 
-    `${(overflowValue / 100) * circumference} ${circumference}` : 
-    "0 100%";
+  const overflowDashOffset = circumference - (overflowValue / 100) * circumference;
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
@@ -73,8 +72,8 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             strokeLinecap="round"
           />
           
-          {/* Overflow progress circle (>100%) */}
-          {allowExceedGoal && hasOverflow && (
+          {/* Overflow progress circle (>100%) only drawn when there's overflow */}
+          {hasOverflow && (
             <circle
               ref={overflowCircleRef}
               cx={size / 2}
@@ -83,8 +82,8 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
               fill="none"
               stroke="hsl(var(--accent))"
               strokeWidth={strokeWidth}
-              strokeDasharray={overflowDasharray}
-              strokeDashoffset={0}
+              strokeDasharray={circumference}
+              strokeDashoffset={overflowDashOffset}
               strokeLinecap="round"
             />
           )}
