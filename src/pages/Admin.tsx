@@ -31,7 +31,6 @@ const Admin = () => {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="emails">Email Templates</TabsTrigger>
           </TabsList>
@@ -50,9 +49,7 @@ const Admin = () => {
                 <SystemStatsCards stats={stats} isLoading={isLoading} />
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>User Management</CardTitle>
