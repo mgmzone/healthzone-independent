@@ -148,7 +148,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       result.push({
         day: `Week ${i + 1}`,
         fasting: fastingHours,
-        eating: -eatingHours
+        eating: -eatingHours // Negative for display to the left of the y-axis
       });
       
       console.log(`Monthly - Final Week ${i + 1}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);

@@ -64,24 +64,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 
   // Define colors explicitly
-  const eatingColor = "hsl(var(--destructive))";
   const fastingColor = "hsl(var(--primary))";
-
-  // For horizontal display: Eating will be negative (left side) and fasting positive (right side)
-  const processedData = filteredChartData.map(item => ({
-    day: item.day,
-    fasting: Math.abs(item.fasting || 0),
-    eating: -(Math.abs(item.eating || 0)) // Make eating negative for left-side display
-  }));
-
-  // Determine domain limits based on data
-  const maxVal = Math.max(...processedData.map(d => Math.abs(d.fasting || 0)));
-  const minVal = Math.min(...processedData.map(d => d.eating || 0));
-  
-  // Ensure domain is balanced and large enough
-  const maxDomain = Math.max(maxVal, Math.abs(minVal), 12);
-  const domainMax = Math.ceil(maxDomain);
-  const domainMin = -Math.ceil(maxDomain);
+  const eatingColor = "hsl(var(--destructive))";
 
   if (filteredChartData.length === 0) {
     return (
@@ -100,7 +84,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={processedData}
+          data={filteredChartData}
           margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
           layout="vertical" // Set layout to vertical for horizontal bars
           barCategoryGap={20} // Increase gap between day groups
@@ -109,7 +93,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
           <XAxis 
             type="number"
-            domain={[domainMin, domainMax]}
+            domain={['dataMin', 'dataMax']}
             tickFormatter={(value) => `${Math.abs(value)}h`}
             tickLine={false}
             axisLine={true}
@@ -140,7 +124,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             stackId="day"
             radius={[4, 0, 0, 4]}
           >
-            {processedData.map((_, index) => (
+            {filteredChartData.map((_, index) => (
               <Cell key={`cell-eating-${index}`} fill={eatingColor} />
             ))}
           </Bar>
@@ -150,7 +134,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             stackId="day"
             radius={[0, 4, 4, 0]}
           >
-            {processedData.map((_, index) => (
+            {filteredChartData.map((_, index) => (
               <Cell key={`cell-fasting-${index}`} fill={fastingColor} />
             ))}
           </Bar>

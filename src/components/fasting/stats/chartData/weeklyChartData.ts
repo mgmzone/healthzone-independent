@@ -145,7 +145,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
-  // Only include days with actual fasting activity
+  // Create result with days that have fasting activity
   const result = [];
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
@@ -156,7 +156,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       // Convert seconds to hours
       const fastingHours = fastingSecondsByDay[i] / 3600;
       
-      // Set fasting hours (cap at the total available hours)
+      // Fasting hours (cap at the total available hours)
       const cappedFastingHours = Math.min(fastingHours, totalHoursByDay[i]);
       
       // Eating hours = total elapsed hours - fasting hours (with a minimum of 0)
@@ -165,7 +165,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       result.push({
         day: days[i],
         fasting: cappedFastingHours,
-        eating: -eatingHours // Negative for display below the x-axis
+        eating: -eatingHours // Negative for display to the left of the y-axis
       });
       
       console.log(`Weekly - Final day (${days[i]}): fasting=${cappedFastingHours.toFixed(2)}h, eating=${Math.abs(eatingHours).toFixed(2)}h, total=${totalHoursByDay[i].toFixed(2)}h`);

@@ -35,12 +35,12 @@ const ensureDate = (date: any): Date => {
 };
 
 /**
- * Prepare yearly chart data
+ * Prepare period chart data (last 6 months)
  */
 export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
-    console.log('Yearly - No logs to process');
+    console.log('Period - No logs to process');
     return [];
   }
   
@@ -48,7 +48,7 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const now = new Date();
   const sixMonthsAgo = subMonths(now, 6);
   
-  console.log('Yearly - Time frame:', sixMonthsAgo.toISOString(), 'to', now.toISOString());
+  console.log('Period - Time frame:', sixMonthsAgo.toISOString(), 'to', now.toISOString());
   
   // Create a map to track data for each month
   const monthData = new Map();
@@ -75,12 +75,12 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       const endTime = log.endTime ? ensureDate(log.endTime) : new Date();
       
       if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        console.error(`Yearly - Invalid date for log #${index}:`, log);
+        console.error(`Period - Invalid date for log #${index}:`, log);
         return;
       }
       
       // Debug log
-      console.log(`Yearly - Processing log #${index}:`, {
+      console.log(`Period - Processing log #${index}:`, {
         id: log.id,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
@@ -90,7 +90,7 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       
       // Skip logs outside the period
       if (endTime < sixMonthsAgo) {
-        console.log(`Yearly - Log #${index} outside period window, skipping`);
+        console.log(`Period - Log #${index} outside period window, skipping`);
         return;
       }
       
@@ -123,10 +123,10 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
         // Mark this month as having activity
         monthHasActivity.set(monthKey, true);
         
-        console.log(`Yearly - Adding ${(fastingSecondsInMonth / 3600).toFixed(2)}h to ${monthKey}`);
+        console.log(`Period - Adding ${(fastingSecondsInMonth / 3600).toFixed(2)}h to ${monthKey}`);
       }
     } catch (error) {
-      console.error(`Yearly - Error processing log #${index}:`, error);
+      console.error(`Period - Error processing log #${index}:`, error);
     }
   });
   
@@ -149,12 +149,12 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
         eating: -eatingHours // Make eating hours negative for the chart
       });
       
-      console.log(`Yearly - Final Month ${monthKey}: fasting=${fastingHours.toFixed(2)}h, total=${data.totalHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      console.log(`Period - Final Month ${monthKey}: fasting=${fastingHours.toFixed(2)}h, total=${data.totalHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
   // For debugging
-  console.log('Yearly - Chart data:', result);
+  console.log('Period - Chart data:', result);
   
   return result;
 };
