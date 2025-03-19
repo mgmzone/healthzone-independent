@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface ProgressCircleProps {
@@ -27,18 +27,18 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   allowExceedGoal = true,
   children,
 }) => {
-  const circleRef = useRef<SVGCircleElement>(null);
-  const overflowCircleRef = useRef<SVGCircleElement>(null);
+  const circleRef = React.useRef<SVGCircleElement>(null);
+  const overflowCircleRef = React.useRef<SVGCircleElement>(null);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
   // Calculate the dashOffset based on the value
   // For values <= 100%, we'll use this calculation
-  const normalizedValue = Math.min(value, 100);
+  const hasOverflow = allowExceedGoal && value > 100;
+  const normalizedValue = hasOverflow ? 100 : Math.min(Math.max(value, 0), 100);
   const dashOffset = circumference - (normalizedValue / 100) * circumference;
 
   // For values > 100%, we'll show the overflow with a different color
-  const hasOverflow = value > 100;
   const overflowValue = hasOverflow ? value - 100 : 0;
   const overflowDasharray = hasOverflow ? 
     `${(overflowValue / 100) * circumference} ${circumference}` : 

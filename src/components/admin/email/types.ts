@@ -18,4 +18,4 @@ export interface TemplateFormValues {
 
 // Import EmailType directly instead of re-exporting it
 import { EmailType } from '@/lib/services/emailService';
-export { EmailType };
+export type { EmailType };

@@ -78,5 +78,6 @@ export const calculateAverageWeeklyExercise = (exerciseLogs: ExerciseLog[]): num
 export const calculateExerciseGoalPercentage = (exerciseLogs: ExerciseLog[], weeklyGoal: number = 150): number => {
   const currentWeekMinutes = calculateCurrentWeekExercise(exerciseLogs);
   const percentage = (currentWeekMinutes / weeklyGoal) * 100;
-  return Math.min(Math.round(percentage), 100);
+  // Allow percentages over 100% without capping
+  return Math.round(percentage);
 };

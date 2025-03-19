@@ -11,6 +11,7 @@ interface ProgressCircleProps {
   label?: string;
   valueLabel?: string;
   animate?: boolean;
+  allowExceedGoal?: boolean;
 }
 
 const ProgressCircle: React.FC<ProgressCircleProps> = ({
@@ -22,21 +23,36 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
   label,
   valueLabel,
   animate = true,
+  allowExceedGoal = true, // Default to allowing exceeding goals
 }) => {
   const circleRef = useRef<SVGCircleElement>(null);
+  const overflowCircleRef = useRef<SVGCircleElement>(null);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
-  // Ensure percentage is between 0 and 100
-  const normalizedPercentage = Math.min(Math.max(percentage, 0), 100);
+  // Handle values over 100% if allowExceedGoal is true
+  const hasOverflow = allowExceedGoal && percentage > 100;
+  
+  // Cap at 100% for main circle to create the correct visual
+  const normalizedPercentage = hasOverflow ? 100 : Math.min(Math.max(percentage, 0), 100);
   const dashOffset = circumference - (normalizedPercentage / 100) * circumference;
+  
+  // For values > 100%, calculate the overflow part
+  const overflowValue = hasOverflow ? percentage - 100 : 0;
+  const overflowDashArray = hasOverflow ? 
+    `${(overflowValue / 100) * circumference} ${circumference}` : 
+    "0 100%";
 
   useEffect(() => {
     if (circleRef.current && animate) {
       circleRef.current.style.setProperty('--progress', normalizedPercentage.toString());
       circleRef.current.style.strokeDashoffset = dashOffset.toString();
+      
+      if (overflowCircleRef.current && hasOverflow) {
+        overflowCircleRef.current.style.strokeDasharray = overflowDashArray;
+      }
     }
-  }, [normalizedPercentage, dashOffset, animate]);
+  }, [normalizedPercentage, dashOffset, animate, hasOverflow, overflowDashArray]);
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
@@ -65,10 +81,27 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
             className={animate ? "animate-progress-circular progress-circle" : ""}
             style={!animate ? { strokeDashoffset: dashOffset } : {}}
           />
+          
+          {/* Overflow circle (>100%) with different color */}
+          {hasOverflow && (
+            <circle
+              ref={overflowCircleRef}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="hsl(var(--accent))"
+              strokeWidth={strokeWidth}
+              strokeDasharray={overflowDashArray}
+              strokeDashoffset={0}
+              strokeLinecap="round"
+              style={{ transition: "stroke-dasharray 0.5s ease" }}
+            />
+          )}
         </svg>
         {showPercentage && (
           <div className="absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-bold">{Math.round(normalizedPercentage)}%</span>
+            <span className="text-2xl font-bold">{Math.round(percentage)}%</span>
             {valueLabel && <span className="text-xs text-muted-foreground">{valueLabel}</span>}
           </div>
         )}
