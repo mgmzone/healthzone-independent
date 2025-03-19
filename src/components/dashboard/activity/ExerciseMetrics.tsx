@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Activity, ActivitySquare, Timer, Footprints } from 'lucide-react';
-import ProgressCircle from '@/components/ProgressCircle';
+import ProgressCircle from '@/components/ProgressCircle'; // Changed to correct import
 import { ExerciseLog } from '@/lib/types';
 import { isWithinInterval, startOfWeek, endOfWeek } from 'date-fns';
 import ActivityCard from './ActivityCard';

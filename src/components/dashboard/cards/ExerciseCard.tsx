@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Dumbbell } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
-import ProgressCircle from '@/components/ui/ProgressCircle';
+import ProgressCircle from '@/components/ProgressCircle'; // Change import to use the correct component
 import { useAuth } from '@/lib/auth';
 import { 
   calculateCurrentWeekExercise,
@@ -71,7 +71,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         footer={
           <div className="mt-4 flex justify-center">
             <ProgressCircle 
-              percentage={goalPercentage} 
+              value={goalPercentage} // Use value prop instead of percentage
               showPercentage={true}
               valueLabel={`${currentWeekMinutes}/${weeklyExerciseGoal} min`}
               size={120}

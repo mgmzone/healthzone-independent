@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ProgressCircle from '@/components/ProgressCircle';
+import ProgressCircle from '@/components/ProgressCircle'; // Changed import to use the correct component
 import { Period, WeighIn, FastingLog, ExerciseLog } from '@/lib/types';
 import { calculateAverageDailyFasting } from '@/components/dashboard/utils/fastingCalculations';
 import ExerciseCard from '@/components/dashboard/cards/ExerciseCard';
