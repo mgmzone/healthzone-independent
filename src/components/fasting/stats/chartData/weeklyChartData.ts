@@ -9,7 +9,11 @@ import {
   isBefore,
   min,
   max,
-  format
+  format,
+  isSameDay,
+  addDays,
+  isWithinInterval,
+  subDays
 } from 'date-fns';
 
 /**
@@ -24,11 +28,12 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   }));
   
   const now = new Date();
-  const weekStart = startOfWeek(now);
-  const weekEnd = min([endOfWeek(now), now]);
+  const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // 0 = Sunday
+  const weekEnd = min([endOfWeek(now, { weekStartsOn: 0 }), now]);
 
   // Track fasting seconds for each day of the week
   const fastingSecondsByDay = Array(7).fill(0);
+  const totalHoursByDay = Array(7).fill(0);
   
   console.log('Weekly - Current date:', now.toISOString());
   console.log('Weekly - Week range:', weekStart.toISOString(), 'to', weekEnd.toISOString());
@@ -39,7 +44,23 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
   })));
   
-  // Process each fast and distribute its hours to the appropriate days
+  // Calculate total elapsed hours for each day in the week (up to current time)
+  for (let i = 0; i < 7; i++) {
+    const dayDate = addDays(weekStart, i);
+    const isToday = isSameDay(dayDate, now);
+    const isPastDay = isBefore(dayDate, startOfDay(now));
+    
+    if (isPastDay) {
+      totalHoursByDay[i] = 24; // Full day
+    } else if (isToday) {
+      // For today, calculate elapsed hours
+      const elapsedSeconds = differenceInSeconds(now, startOfDay(now));
+      totalHoursByDay[i] = elapsedSeconds / 3600;
+    }
+    // Future days remain at 0 hours
+  }
+  
+  // Process each fasting log
   fastingLogs.forEach((log, index) => {
     const startTime = new Date(log.startTime);
     // For active fast, use current time as end time
@@ -96,47 +117,27 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
-  // Calculate fasting and eating hours
+  // Calculate fasting and eating hours for the chart display
   for (let i = 0; i < 7; i++) {
     // Convert seconds to hours
     const fastingHours = fastingSecondsByDay[i] / 3600;
     
-    // Only calculate eating time for past days or today (up to current time)
-    const now = new Date();
-    const today = now.getDay();
-    const isToday = i === today;
-    const isPastDay = i < today || (i > today && fastingHours > 0); // Consider days with data as "past" even if weekend before weekday
-    
-    // For current day, calculate available hours based on elapsed time
-    if (isToday) {
-      const startOfToday = startOfDay(now);
-      const elapsedSecondsToday = differenceInSeconds(now, startOfToday);
-      const elapsedHoursToday = elapsedSecondsToday / 3600;
-      
-      // Set fasting hours (already calculated)
+    // Only display data for days that have elapsed (past days or today)
+    if (totalHoursByDay[i] > 0) {
+      // Set fasting hours
       data[i].fasting = fastingHours;
       
-      // Calculate eating hours as elapsed hours minus fasting hours
-      const eatingHours = Math.max(elapsedHoursToday - fastingHours, 0);
+      // Eating hours = total elapsed hours - fasting hours (with a minimum of 0)
+      const eatingHours = Math.max(0, totalHoursByDay[i] - fastingHours);
       data[i].eating = -eatingHours; // Negative for display below the x-axis
       
-      console.log(`Weekly - Today (${days[i]}): fasting=${fastingHours.toFixed(2)}h, elapsed=${elapsedHoursToday.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
-    }
-    // For past days, fasting + eating should equal 24 hours
-    else if (isPastDay) {
-      // Set fasting hours (already calculated)
-      data[i].fasting = fastingHours;
-      
-      // Eating hours = 24 - fasting hours (with a minimum of 0)
-      const eatingHours = Math.max(24 - fastingHours, 0);
-      data[i].eating = -eatingHours; // Negative for display below the x-axis
-      
-      console.log(`Weekly - Past day (${days[i]}): fasting=${fastingHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
-    }
-    // For future days, just show 0 for both
-    else {
-      data[i].fasting = 0;
-      data[i].eating = 0;
+      if (i < now.getDay()) {
+        // For past days
+        console.log(`Weekly - Past day (${days[i]}): fasting=${fastingHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      } else if (i === now.getDay()) {
+        // For today
+        console.log(`Weekly - Today (${days[i]}): fasting=${fastingHours.toFixed(2)}h, elapsed=${totalHoursByDay[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      }
     }
   }
   

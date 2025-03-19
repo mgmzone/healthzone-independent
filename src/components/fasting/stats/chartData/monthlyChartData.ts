@@ -7,13 +7,10 @@ import {
   endOfDay,
   min,
   max,
-  startOfWeek,
-  endOfWeek,
-  differenceInHours,
   addDays,
-  isWithinInterval,
   format,
-  getWeekOfMonth
+  getWeekOfMonth,
+  isWithinInterval
 } from 'date-fns';
 
 /**
@@ -55,7 +52,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     if (weekStart > now) continue;
     
     // Calculate total elapsed hours for this week (up to current time)
-    const weekElapsedHours = differenceInHours(weekEnd, weekStart);
+    const weekElapsedHours = Math.max(0, (weekEnd.getTime() - weekStart.getTime()) / (1000 * 60 * 60));
     totalHoursByWeek[weekIndex] = weekElapsedHours;
     
     console.log(`Monthly - Week ${weekIndex + 1} from ${weekStart.toISOString()} to ${weekEnd.toISOString()}, elapsed: ${weekElapsedHours}h`);
@@ -115,7 +112,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   for (let i = 0; i < 5; i++) {
     if (totalHoursByWeek[i] > 0) {
       // Set fasting hours
-      data[i].fasting = fastingHoursByWeek[i];
+      data[i].fasting = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
       
       // Calculate eating hours (total - fasting, minimum 0)
       const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHoursByWeek[i]);
@@ -123,7 +120,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
       
-      console.log(`Monthly - Week ${i + 1}: fasting=${fastingHoursByWeek[i].toFixed(2)}h, total=${totalHoursByWeek[i]}h, eating=${eatingHours.toFixed(2)}h`);
+      console.log(`Monthly - Week ${i + 1}: fasting=${fastingHoursByWeek[i].toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   

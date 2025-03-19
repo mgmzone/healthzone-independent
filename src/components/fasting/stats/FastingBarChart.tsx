@@ -67,7 +67,6 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   console.log('FastingBarChart - Has data:', hasData);
 
   // Determine domain limits based on data
-  // We want to show a balanced view with equal space for fasting and eating
   const maxFasting = Math.max(...chartData.map(d => d.fasting || 0), 1); // At least 1 hour
   const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)), 1); // At least 1 hour
   const domainMax = Math.max(24, maxFasting); // At least 24 hours, or more if needed
