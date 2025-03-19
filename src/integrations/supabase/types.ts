@@ -209,8 +209,10 @@ export type Database = {
           last_name: string | null
           measurement_unit: string | null
           starting_weight: number | null
+          system_notification_emails: boolean | null
           target_weight: number | null
           updated_at: string
+          weekly_summary_emails: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -228,8 +230,10 @@ export type Database = {
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
+          system_notification_emails?: boolean | null
           target_weight?: number | null
           updated_at?: string
+          weekly_summary_emails?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -247,8 +251,10 @@ export type Database = {
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
+          system_notification_emails?: boolean | null
           target_weight?: number | null
           updated_at?: string
+          weekly_summary_emails?: boolean | null
         }
         Relationships: []
       }

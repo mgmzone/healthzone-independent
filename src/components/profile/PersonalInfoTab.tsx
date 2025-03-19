@@ -1,4 +1,3 @@
-
 import React from 'react';
 import NameInputs from './inputs/NameInputs';
 import EmailInput from './inputs/EmailInput';
@@ -10,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import EmailPreferencesSection from './EmailPreferencesSection';
 import {
   handleYearChangeHelper,
   handleMonthChangeHelper,
@@ -35,14 +35,13 @@ interface PersonalInfoTabProps {
   handleNumberChange: (name: string, value: string) => void;
 }
 
-const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
+const PersonalInfoTab = ({ 
   formData,
   handleInputChange,
   handleSelectChange,
   handleDateChange,
   handleNumberChange
-}) => {
-  // Handle year change
+}: PersonalInfoTabProps) => {
   const handleYearChange = (value: string) => {
     const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
     const birthMonth = isValidDate ? formData.birthDate!.getUTCMonth() : undefined;
@@ -51,7 +50,6 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     handleYearChangeHelper(value, birthMonth, birthDay, handleDateChange);
   };
   
-  // Handle month change
   const handleMonthChange = (value: string) => {
     const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
     const birthYear = isValidDate ? formData.birthDate!.getUTCFullYear() : undefined;
@@ -60,7 +58,6 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     handleMonthChangeHelper(value, birthYear, birthDay, handleDateChange);
   };
   
-  // Handle day change
   const handleDayChange = (value: string) => {
     const isValidDate = formData.birthDate instanceof Date && !isNaN(formData.birthDate.getTime());
     const birthYear = isValidDate ? formData.birthDate!.getUTCFullYear() : undefined;
@@ -69,17 +66,14 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
     handleDayChangeHelper(value, birthYear, birthMonth, handleDateChange);
   };
   
-  // Handle gender value changes
   const onGenderChange = (value: string) => {
     handleSelectChange('gender', value);
   };
   
-  // Handle measurement unit value changes
   const onMeasurementUnitChange = (value: string) => {
     handleSelectChange('measurementUnit', value);
   };
   
-  // Handle fitness level changes
   const onFitnessLevelChange = (value: string) => {
     console.log("Fitness level changed to:", value);
     handleSelectChange('fitnessLevel', value);
@@ -89,15 +83,13 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
   const isImperial = unit === 'imperial';
   
   return (
-    <div className="space-y-6">
-      {/* Name inputs */}
+    <div className="grid gap-6">
       <NameInputs 
         firstName={formData.firstName}
         lastName={formData.lastName}
         handleInputChange={handleInputChange}
       />
       
-      {/* Email and Birth Date on the same line */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <EmailInput 
           email={formData.email}
@@ -122,7 +114,6 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
         />
       </div>
       
-      {/* Health-related fields moved from HealthForm */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <WeightInputField
           id="height"
@@ -177,6 +168,10 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({
           placeholder="Describe your health goals..."
           rows={4}
         />
+      </div>
+      
+      <div className="border-t pt-6 mt-2">
+        <EmailPreferencesSection />
       </div>
     </div>
   );
