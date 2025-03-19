@@ -21,13 +21,62 @@ interface UserActivitySummary {
   exercises: number;
 }
 
+// Replace placeholders in a string with actual values
+function replacePlaceholders(template: string, data: Record<string, any>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return data[key] !== undefined ? String(data[key]) : match;
+  });
+}
+
+// Get email template from the database
+async function getEmailTemplate(type: string): Promise<{ subject: string; html: string } | null> {
+  const { data, error } = await supabase
+    .from('email_templates')
+    .select('subject, html_content')
+    .eq('type', type)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    console.error('Error fetching email template:', error);
+    return null;
+  }
+
+  return {
+    subject: data.subject,
+    html: data.html_content
+  };
+}
+
 // Generate HTML for the weekly summary email
-function generateWeeklySummaryEmail(name: string, data: {
+async function generateWeeklySummaryEmail(name: string, data: {
   weighIns: number;
   fastingDays: number;
   exercises: number;
   appUrl: string;
 }) {
+  // Prepare the placeholder data
+  const placeholders = {
+    name,
+    appUrl: data.appUrl,
+    weighIns: data.weighIns,
+    fastingDays: data.fastingDays,
+    exercises: data.exercises
+  };
+  
+  // Try to get template from database
+  const template = await getEmailTemplate("weekly_summary");
+  
+  if (template) {
+    return {
+      subject: replacePlaceholders(template.subject, placeholders),
+      html: replacePlaceholders(template.html, placeholders),
+    };
+  }
+  
+  // Fallback template if database template is not available
   return {
     subject: "Your Weekly HealthTrack Summary",
     html: `
@@ -149,7 +198,7 @@ const handler = async (_req: Request): Promise<Response> => {
         }
         
         // Generate and send email
-        const emailContent = generateWeeklySummaryEmail(summary.name, {
+        const emailContent = await generateWeeklySummaryEmail(summary.name, {
           weighIns: summary.weighIns,
           fastingDays: summary.fastingDays,
           exercises: summary.exercises,

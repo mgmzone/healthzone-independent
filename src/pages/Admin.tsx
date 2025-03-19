@@ -3,11 +3,12 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShieldCheck, Users, BarChart } from 'lucide-react';
+import { ShieldCheck, Users, BarChart, Mail } from 'lucide-react';
 import { useAdminData } from '@/hooks/admin/useAdminData';
 import UsersTable from '@/components/admin/UsersTable';
 import SystemStatsCards from '@/components/admin/SystemStatsCards';
 import ActivityStatsChart from '@/components/admin/ActivityStatsChart';
+import EmailTemplatesManager from '@/components/admin/EmailTemplatesManager';
 
 const Admin = () => {
   const { users, stats, isLoading, error } = useAdminData();
@@ -32,6 +33,7 @@ const Admin = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="emails">Email Templates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -74,6 +76,20 @@ const Admin = () => {
               </CardHeader>
               <CardContent className="pb-8">
                 <ActivityStatsChart stats={stats} isLoading={isLoading} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="emails" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Email Templates</CardTitle>
+                <CardDescription>
+                  Customize email templates sent to users.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-8">
+                <EmailTemplatesManager />
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,9 +1,15 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { Resend } from "npm:resend@2.0.0";
 
 // Initialize Resend with API key from environment variables
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+// Initialize Supabase client with admin privileges for the edge function
+const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -26,8 +32,55 @@ interface EmailRequest {
   data?: Record<string, any>;
 }
 
+// Replace placeholders in a string with actual values
+function replacePlaceholders(template: string, data: Record<string, any>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return data[key] !== undefined ? String(data[key]) : match;
+  });
+}
+
+// Get email template from the database
+async function getEmailTemplate(type: EmailType): Promise<{ subject: string; html: string } | null> {
+  const { data, error } = await supabase
+    .from('email_templates')
+    .select('subject, html_content')
+    .eq('type', type)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    console.error('Error fetching email template:', error);
+    return null;
+  }
+
+  return {
+    subject: data.subject,
+    html: data.html_content
+  };
+}
+
 // Generate HTML content based on email type
-function generateEmailContent(type: EmailType, name: string, data?: Record<string, any>) {
+async function generateEmailContent(type: EmailType, name: string, data?: Record<string, any>) {
+  // Default values
+  const placeholders = {
+    name,
+    appUrl: data?.appUrl || 'https://your-app-url.com',
+    ...data
+  };
+  
+  // Try to get template from database
+  const template = await getEmailTemplate(type);
+  
+  if (template) {
+    return {
+      subject: replacePlaceholders(template.subject, placeholders),
+      html: replacePlaceholders(template.html, placeholders),
+    };
+  }
+  
+  // Fallback templates if database template is not available
   switch (type) {
     case "profile_completion":
       return {
@@ -35,7 +88,7 @@ function generateEmailContent(type: EmailType, name: string, data?: Record<strin
         html: `
           <h1>Hello ${name},</h1>
           <p>Your HealthTrack profile is not complete yet. Taking a few minutes to complete it will help us provide you with better insights.</p>
-          <p><a href="${data?.appUrl || 'https://your-app-url.com'}/profile" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Complete Profile</a></p>
+          <p><a href="${placeholders.appUrl}/profile" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Complete Profile</a></p>
           <p>Thank you,<br>The HealthTrack Team</p>
         `,
       };
@@ -45,13 +98,11 @@ function generateEmailContent(type: EmailType, name: string, data?: Record<strin
         html: `
           <h1>Hello ${name},</h1>
           <p>We noticed you haven't logged any activities on HealthTrack recently. Regular tracking helps you stay on top of your health goals.</p>
-          <p><a href="${data?.appUrl || 'https://your-app-url.com'}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Visit Dashboard</a></p>
+          <p><a href="${placeholders.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Visit Dashboard</a></p>
           <p>Thank you,<br>The HealthTrack Team</p>
         `,
       };
     case "weekly_summary":
-      const { weighIns, fastingDays, exercises } = data || { weighIns: [], fastingDays: 0, exercises: [] };
-      
       return {
         subject: "Your Weekly HealthTrack Summary",
         html: `
@@ -60,12 +111,12 @@ function generateEmailContent(type: EmailType, name: string, data?: Record<strin
           
           <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <h2 style="margin-top: 0;">Your Activity This Week</h2>
-            <p>Weight tracking: ${weighIns?.length || 0} entries</p>
-            <p>Fasting days: ${fastingDays || 0} days</p>
-            <p>Exercise sessions: ${exercises?.length || 0} sessions</p>
+            <p>Weight tracking: ${placeholders.weighIns || 0} entries</p>
+            <p>Fasting days: ${placeholders.fastingDays || 0} days</p>
+            <p>Exercise sessions: ${placeholders.exercises || 0} sessions</p>
           </div>
           
-          <p><a href="${data?.appUrl || 'https://your-app-url.com'}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">View Full Report</a></p>
+          <p><a href="${placeholders.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">View Full Report</a></p>
           <p>Thank you for using HealthTrack,<br>The HealthTrack Team</p>
         `,
       };
@@ -94,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Processing email request of type: ${type} for ${email}`);
 
     // Generate the email content based on the type
-    const emailContent = generateEmailContent(type, name, data);
+    const emailContent = await generateEmailContent(type, name, data);
 
     // Send the email
     const emailResponse = await resend.emails.send({
