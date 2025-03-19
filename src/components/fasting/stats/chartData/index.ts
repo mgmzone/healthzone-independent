@@ -19,24 +19,45 @@ export const prepareChartData = (
 ): ChartDataItem[] => {
   console.log(`prepareChartData called for ${timeFilter} with ${fastingLogs.length} logs`);
   
-  // Log a sample of the logs to verify format
+  // Log details about input logs
   if (fastingLogs.length > 0) {
+    const sampleLog = fastingLogs[0];
     console.log('ChartData Sample log:', {
-      first: fastingLogs[0],
-      startTimeIsDate: fastingLogs[0].startTime instanceof Date,
-      endTimeIsDate: fastingLogs[0].endTime instanceof Date
+      id: sampleLog.id,
+      startTime: sampleLog.startTime,
+      startTimeIsDate: sampleLog.startTime instanceof Date,
+      startTimeType: typeof sampleLog.startTime,
+      endTime: sampleLog.endTime,
+      endTimeIsDate: sampleLog.endTime instanceof Date,
+      endTimeType: typeof sampleLog.endTime
     });
   }
   
+  // Force logs array to be non-null
+  const safeLogsArray = Array.isArray(fastingLogs) ? fastingLogs : [];
+  
   let result;
   if (timeFilter === 'week') {
-    result = prepareWeeklyChartData(fastingLogs);
+    result = prepareWeeklyChartData(safeLogsArray);
   } else if (timeFilter === 'month') {
-    result = prepareMonthlyChartData(fastingLogs);
+    result = prepareMonthlyChartData(safeLogsArray);
   } else {
-    result = prepareYearlyChartData(fastingLogs);
+    result = prepareYearlyChartData(safeLogsArray);
   }
   
-  console.log(`ChartData result for ${timeFilter}:`, result);
-  return result;
+  // Validate result
+  if (!Array.isArray(result)) {
+    console.error(`Invalid result from prepare${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)}ChartData:`, result);
+    return [];
+  }
+  
+  // Ensure all numeric values are proper numbers, not NaN
+  const sanitizedResult = result.map(item => ({
+    day: item.day,
+    fasting: isNaN(Number(item.fasting)) ? 0 : Number(item.fasting),
+    eating: isNaN(Number(item.eating)) ? 0 : Number(item.eating)
+  }));
+  
+  console.log(`ChartData result for ${timeFilter}:`, sanitizedResult);
+  return sanitizedResult;
 };

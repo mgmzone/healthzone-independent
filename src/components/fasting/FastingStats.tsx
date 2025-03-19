@@ -17,14 +17,10 @@ const ensureDate = (date: any): Date => {
   if (date instanceof Date) return date;
   
   try {
-    // Log the input for debugging
-    console.log('FastingStats ensureDate input:', JSON.stringify(date));
-    
     // Handle serialized Supabase dates
     if (date && typeof date === 'object' && '_type' in date) {
       if (date._type === 'Date') {
         if (date.value && typeof date.value === 'object' && 'iso' in date.value) {
-          console.log('Parsing from iso string:', date.value.iso);
           return new Date(date.value.iso);
         }
       }
@@ -32,18 +28,10 @@ const ensureDate = (date: any): Date => {
     
     // If it's a string, directly parse it
     if (typeof date === 'string') {
-      console.log('Parsing from string:', date);
       return new Date(date);
     }
     
-    // If it's a number (timestamp), create from that
-    if (typeof date === 'number') {
-      console.log('Parsing from timestamp:', date);
-      return new Date(date);
-    }
-    
-    // Last resort, try to create date from whatever we received
-    console.log('Trying generic date parsing for:', date);
+    // Create date from whatever we received
     return new Date(date);
   } catch (error) {
     console.error('Failed to parse date:', date, error);
@@ -56,8 +44,8 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
   
   // Debug logs for fastingLogs input
   useEffect(() => {
-    console.log(`FastingStats received ${fastingLogs.length} logs for ${timeFilter} view`);
-    if (fastingLogs.length > 0) {
+    console.log(`FastingStats received ${fastingLogs?.length || 0} logs for ${timeFilter} view`);
+    if (fastingLogs?.length > 0) {
       // Log first few logs details to help debugging
       console.log('Sample logs (first 3):', fastingLogs.slice(0, 3).map(log => ({
         id: log.id,
@@ -71,23 +59,40 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
     }
   }, [fastingLogs, timeFilter]);
   
-  // Normalize logs to ensure consistent date objects
+  // Create a normalized array of logs
   const normalizedLogs = useMemo(() => {
     console.log('FastingStats normalizing logs...');
+    
+    // Guard against null/undefined logs
+    if (!fastingLogs || !Array.isArray(fastingLogs)) {
+      console.warn('FastingStats received invalid logs:', fastingLogs);
+      return [];
+    }
+    
+    // Process each log to normalize dates
     return fastingLogs.map(log => {
-      // Create new objects to avoid mutating the original logs
-      const normalizedLog = { ...log };
-      
-      // Convert startTime to Date object if needed
-      normalizedLog.startTime = ensureDate(normalizedLog.startTime);
-      
-      // Convert endTime to Date object if it exists
-      if (normalizedLog.endTime) {
-        normalizedLog.endTime = ensureDate(normalizedLog.endTime);
+      try {
+        // Create new objects to avoid mutating the original logs
+        const normalizedLog = { ...log };
+        
+        // Convert startTime to Date object if needed
+        normalizedLog.startTime = ensureDate(normalizedLog.startTime);
+        
+        // Convert endTime to Date object if it exists
+        if (normalizedLog.endTime) {
+          normalizedLog.endTime = ensureDate(normalizedLog.endTime);
+        }
+        
+        return normalizedLog as FastingLog;
+      } catch (error) {
+        console.error('Error normalizing log:', log, error);
+        return log; // Return original log if normalization fails
       }
-      
-      return normalizedLog as FastingLog;
-    });
+    }).filter(log => 
+      // Filter out logs with invalid dates
+      log.startTime instanceof Date && !isNaN(log.startTime.getTime()) &&
+      (!log.endTime || (log.endTime instanceof Date && !isNaN(log.endTime.getTime())))
+    );
   }, [fastingLogs]);
   
   // Debug log for normalized logs
@@ -98,6 +103,8 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
         startTime: log.startTime instanceof Date ? log.startTime.toISOString() : 'not a date',
         endTime: log.endTime instanceof Date ? log.endTime.toISOString() : 'not a date/not present'
       })));
+    } else {
+      console.log('No normalized logs available');
     }
   }, [normalizedLogs]);
   
@@ -110,7 +117,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       console.log(`FastingStats ${timeFilter} chart data:`, data);
       
       // Check if we have meaningful data
-      const hasData = data.some(item => Math.abs(item.fasting || 0) > 0 || Math.abs(item.eating || 0) > 0);
+      const hasData = data.some(item => Math.abs(item.fasting || 0) > 0.01 || Math.abs(item.eating || 0) > 0.01);
       console.log(`FastingStats ${timeFilter} chart has data:`, hasData);
       
       if (!hasData) {

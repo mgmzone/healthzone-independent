@@ -53,26 +53,23 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
-  // Filter out entries with no data (both fasting and eating are 0)
+  // Only filter out entries where BOTH fasting and eating are 0 or undefined
   const filteredChartData = chartData.filter(item => 
-    item && (Math.abs(item.fasting || 0) > 0 || Math.abs(item.eating || 0) > 0)
+    item && (Math.abs(item.fasting || 0) > 0.01 || Math.abs(item.eating || 0) > 0.01)
   );
 
-  // Check if we have any data to display
-  const hasData = filteredChartData.length > 0;
-  
-  // For debugging
-  console.log('FastingBarChart - Chart data:', chartData);
+  // Log what's happening with the data
+  console.log('FastingBarChart - Raw data:', chartData);
   console.log('FastingBarChart - Filtered data:', filteredChartData);
-  console.log('FastingBarChart - Has data:', hasData);
+  console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 
   // Determine domain limits based on data
-  const maxFasting = Math.max(...chartData.map(d => d.fasting || 0), 1); // At least 1 hour
-  const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)), 1); // At least 1 hour
+  const maxFasting = Math.max(...chartData.map(d => d.fasting || 0), 4); // At least 4 hours
+  const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)), 4); // At least 4 hours
   const domainMax = Math.ceil(Math.max(24, maxFasting)); // At least 24 hours, or more if needed
   const domainMin = -Math.ceil(Math.max(24, maxEating)); // At least -24 hours for eating
   
-  if (!hasData) {
+  if (filteredChartData.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <div className="text-center p-6">
