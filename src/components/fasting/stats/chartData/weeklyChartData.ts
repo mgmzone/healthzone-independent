@@ -36,6 +36,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   fastingLogs.forEach(log => {
     const startTime = new Date(log.startTime);
     // For active fast, use current time as end time
+    // For completed fasts, use the actual end time
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
     // Only include logs that overlap with the current week

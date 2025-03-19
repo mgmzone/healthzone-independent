@@ -51,9 +51,7 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   
   // Process each fast and distribute hours to appropriate months
   fastingLogs.forEach(log => {
-    // Include current active fast, skip other non-completed fasts
-    if (!log.endTime && log !== fastingLogs[0]) return;
-    
+    // Process both completed and active fasts
     const startTime = new Date(log.startTime);
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
