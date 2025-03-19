@@ -10,7 +10,8 @@ import {
   startOfWeek,
   endOfWeek,
   differenceInHours,
-  addDays
+  addDays,
+  isWithinInterval
 } from 'date-fns';
 
 /**

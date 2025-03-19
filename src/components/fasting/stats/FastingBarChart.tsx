@@ -53,6 +53,11 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
+  // Filter out entries with no data (both fasting and eating are 0)
+  const filteredChartData = chartData.filter(item => 
+    Math.abs(item.fasting) > 0 || Math.abs(item.eating) > 0
+  );
+
   // Determine domain limits based on data
   // We want to show a balanced view with equal space for fasting and eating
   const maxFasting = Math.max(...chartData.map(d => d.fasting || 0));
@@ -64,7 +69,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={chartData}
+          data={filteredChartData.length > 0 ? filteredChartData : chartData}
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
           stackOffset="sign"
           layout="vertical"
@@ -100,7 +105,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             )}
           />
           <ReferenceLine x={0} stroke="#666" />
-          {/* Swap the order - Eating time first, then Fasting time */}
+          {/* Eating time first, then Fasting time */}
           <Bar 
             dataKey="eating" 
             name="eating"
