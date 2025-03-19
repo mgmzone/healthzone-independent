@@ -53,22 +53,30 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
-  // Only filter out entries where BOTH fasting and eating are 0 or undefined
+  // Debug data coming into chart
+  console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
+  
+  // Filter out entries where BOTH fasting and eating are 0 or undefined
   const filteredChartData = chartData.filter(item => 
     item && (Math.abs(item.fasting || 0) > 0.01 || Math.abs(item.eating || 0) > 0.01)
   );
-
-  // Log what's happening with the data
-  console.log('FastingBarChart - Raw data:', chartData);
-  console.log('FastingBarChart - Filtered data:', filteredChartData);
+  
+  console.log('FastingBarChart - Filtered data:', JSON.stringify(filteredChartData, null, 2));
   console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 
+  // Force positive values for rendering (we'll handle negatives in the visualization)
+  const processedData = filteredChartData.map(item => ({
+    day: item.day,
+    fasting: Math.abs(item.fasting || 0),
+    eating: Math.abs(item.eating || 0)
+  }));
+
   // Determine domain limits based on data
-  const maxFasting = Math.max(...chartData.map(d => d.fasting || 0), 4); // At least 4 hours
-  const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)), 4); // At least 4 hours
-  const domainMax = Math.ceil(Math.max(24, maxFasting)); // At least 24 hours, or more if needed
-  const domainMin = -Math.ceil(Math.max(24, maxEating)); // At least -24 hours for eating
-  
+  const maxVal = Math.max(
+    ...processedData.map(d => Math.max(d.fasting || 0, d.eating || 0, 1))
+  );
+  const domainMax = Math.ceil(Math.max(24, maxVal)); 
+
   if (filteredChartData.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center">
@@ -86,30 +94,25 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={filteredChartData}
+          data={processedData}
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-          stackOffset="sign"
-          layout="vertical"
           barGap={0}
           barCategoryGap={8}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
-            type="number"
-            domain={[domainMin, domainMax]}
+            dataKey="day"
             tickLine={false}
             axisLine={true}
-            ticks={[-24, -18, -12, -6, 0, 6, 12, 18, 24]}
-            tickFormatter={(value) => `${Math.abs(value)}h`}
             fontSize={12}
           />
           <YAxis 
-            dataKey="day" 
-            type="category"
+            type="number"
             tickLine={false}
             axisLine={false}
             fontSize={12}
-            width={40}
+            domain={[0, domainMax]}
+            tickFormatter={(value) => `${value}h`}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
@@ -121,15 +124,13 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
               </span>
             )}
           />
-          <ReferenceLine x={0} stroke="#666" />
           <Bar 
             dataKey="eating" 
             name="eating"
             fill="hsl(var(--destructive))" 
-            stackId="stack"
-            radius={[0, 0, 4, 4]}
+            radius={[4, 4, 0, 0]}
           >
-            {filteredChartData.map((entry, index) => (
+            {processedData.map((entry, index) => (
               <Cell key={`cell-eating-${index}`} fill="hsl(var(--destructive))" />
             ))}
           </Bar>
@@ -137,10 +138,9 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             dataKey="fasting" 
             name="fasting"
             fill="hsl(var(--primary))" 
-            stackId="stack"
             radius={[4, 4, 0, 0]}
           >
-            {filteredChartData.map((entry, index) => (
+            {processedData.map((entry, index) => (
               <Cell key={`cell-fasting-${index}`} fill="hsl(var(--primary))" />
             ))}
           </Bar>

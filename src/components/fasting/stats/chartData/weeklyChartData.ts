@@ -12,8 +12,7 @@ import {
   format,
   isSameDay,
   addDays,
-  isWithinInterval,
-  subDays
+  isWithinInterval
 } from 'date-fns';
 
 /**
@@ -26,6 +25,8 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     fasting: 0,
     eating: 0
   }));
+  
+  console.log('Weekly - Starting preparation with', fastingLogs.length, 'logs');
   
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
@@ -43,18 +44,6 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   
   console.log('Weekly - Current date:', now.toISOString());
   console.log('Weekly - Week range:', weekStart.toISOString(), 'to', weekEnd.toISOString());
-  console.log('Weekly - Processing logs count:', fastingLogs.length);
-  
-  // Log the first few logs for debugging
-  if (fastingLogs.length > 0) {
-    console.log('Weekly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
-      id: log.id,
-      start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
-      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid',
-      startType: typeof log.startTime,
-      endType: typeof log.endTime
-    })));
-  }
   
   // Calculate total elapsed hours for each day in the week (up to current time)
   for (let i = 0; i < 7; i++) {
@@ -71,7 +60,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
     // Future days remain at 0 hours
     
-    console.log(`Weekly - Day ${days[i]} (${i}): isPastDay=${isPastDay}, isToday=${isToday}, totalHours=${totalHoursByDay[i]}`);
+    console.log(`Weekly - Day ${days[i]}: total hours = ${totalHoursByDay[i].toFixed(2)}`);
   }
   
   // Process each fasting log
@@ -79,43 +68,35 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     try {
       // Ensure we have valid date objects
       if (!(log.startTime instanceof Date)) {
-        console.error(`Weekly - Invalid startTime for log #${index}:`, log.startTime);
+        console.error(`Invalid startTime for log #${index}:`, log.startTime);
         return; // Skip this log
       }
       
       const startTime = log.startTime;
-      // For active fast, use current time as end time
       const endTime = log.endTime instanceof Date ? log.endTime : new Date();
       
       // Debug log
-      console.log(`Weekly - Processing log #${index}:`, {
-        id: log.id,
+      console.log(`Processing log #${log.id}:`, {
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
-        isInWeek: (endTime >= weekStart && startTime <= weekEnd)
+        duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h'
       });
       
       // Only include logs that overlap with the current week
       if (endTime < weekStart || startTime > weekEnd) {
-        console.log(`Weekly - Log #${index} outside current week, skipping`);
+        console.log(`Log #${log.id} outside current week, skipping`);
         return;
       }
       
-      // If the fast starts before the week, adjust it to the week start
+      // Adjust start/end times to be within the week
       const effectiveStartTime = startTime < weekStart ? weekStart : startTime;
-      // If the fast ends after the week, adjust it to the week end
       const effectiveEndTime = endTime > weekEnd ? weekEnd : endTime;
-      
-      console.log(`Weekly - Effective time range for log #${index}:`, 
-        effectiveStartTime.toISOString(), 'to', effectiveEndTime.toISOString());
       
       // Handle fasts that span multiple days by splitting hours for each day
       let currentDay = new Date(effectiveStartTime);
       currentDay.setHours(0, 0, 0, 0); // Start at beginning of the day
       
       while (currentDay <= effectiveEndTime) {
-        // Calculate start and end times for this day's portion of the fast
         const dayStart = startOfDay(currentDay);
         const dayEnd = endOfDay(currentDay);
         
@@ -130,24 +111,24 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
           const dayIndex = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
           fastingSecondsByDay[dayIndex] += fastingSecondsForDay;
           
-          console.log(`Weekly - Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to day ${days[dayIndex]} (${format(currentDay, 'yyyy-MM-dd')})`);
+          console.log(`Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to ${days[dayIndex]}`);
         }
         
         // Move to the next day
         currentDay.setDate(currentDay.getDate() + 1);
       }
     } catch (error) {
-      console.error(`Weekly - Error processing log #${index}:`, error);
+      console.error(`Error processing log:`, error);
     }
   });
   
   // Calculate fasting and eating hours for the chart display
   for (let i = 0; i < 7; i++) {
-    // Convert seconds to hours
-    const fastingHours = fastingSecondsByDay[i] / 3600;
-    
     // Only display data for days that have elapsed (past days or today)
     if (totalHoursByDay[i] > 0) {
+      // Convert seconds to hours
+      const fastingHours = fastingSecondsByDay[i] / 3600;
+      
       // Set fasting hours (cap at the total available hours)
       data[i].fasting = Math.min(fastingHours, totalHoursByDay[i]);
       
@@ -155,11 +136,10 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       const eatingHours = Math.max(0, totalHoursByDay[i] - fastingHours);
       data[i].eating = -eatingHours; // Negative for display below the x-axis
       
-      console.log(`Weekly - Final day (${days[i]}): fasting=${data[i].fasting.toFixed(2)}h, eating=${Math.abs(data[i].eating).toFixed(2)}h, total=${totalHoursByDay[i].toFixed(2)}h`);
+      console.log(`Final day ${days[i]}: fasting=${data[i].fasting.toFixed(2)}h, eating=${Math.abs(data[i].eating).toFixed(2)}h`);
     }
   }
   
-  console.log('Weekly - Chart data:', data);
-  
+  console.log('Weekly chart data prepared:', data);
   return data;
 };
