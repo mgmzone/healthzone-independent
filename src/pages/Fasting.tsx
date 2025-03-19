@@ -65,7 +65,7 @@ const Fasting = () => {
                 <TabsList className="grid w-full grid-cols-3 mb-4">
                   <TabsTrigger value="week" onClick={() => setTimeFilter('week')}>Week</TabsTrigger>
                   <TabsTrigger value="month" onClick={() => setTimeFilter('month')}>Month</TabsTrigger>
-                  <TabsTrigger value="year" onClick={() => setTimeFilter('year')}>Year</TabsTrigger>
+                  <TabsTrigger value="year" onClick={() => setTimeFilter('year')}>Period</TabsTrigger>
                 </TabsList>
                 <div className="flex-1 flex flex-col">
                   <TabsContent value="week" className="mt-0 flex-1">

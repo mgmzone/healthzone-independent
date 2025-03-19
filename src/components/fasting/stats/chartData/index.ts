@@ -118,11 +118,6 @@ export const prepareChartData = (
     eating: isNaN(Number(item.eating)) ? 0 : Number(item.eating)
   }));
   
-  // Filter out any periods with no fasting activity
-  const filteredResult = sanitizedResult.filter(item => 
-    item.fasting > 0 || item.eating < 0
-  );
-  
-  console.log(`Chart data for ${timeFilter} prepared:`, JSON.stringify(filteredResult, null, 2));
-  return filteredResult;
+  console.log(`Chart data for ${timeFilter} prepared:`, JSON.stringify(sanitizedResult, null, 2));
+  return sanitizedResult;
 };

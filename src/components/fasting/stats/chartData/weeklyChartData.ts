@@ -12,8 +12,7 @@ import {
   format,
   isSameDay,
   addDays,
-  isWithinInterval,
-  subDays
+  isWithinInterval
 } from 'date-fns';
 
 /**
@@ -41,8 +40,6 @@ const ensureDate = (date: any): Date => {
  * Prepare weekly chart data
  */
 export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
     console.log('Weekly - No logs to process');
@@ -77,7 +74,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
     // Future days remain at 0 hours
     
-    console.log(`Weekly - Day ${days[i]} (${i}): isPastDay=${isPastDay}, isToday=${isToday}, totalHours=${totalHoursByDay[i]}`);
+    console.log(`Weekly - Day ${i} (index): isPastDay=${isPastDay}, isToday=${isToday}, totalHours=${totalHoursByDay[i]}`);
   }
   
   // Process each fasting log
@@ -137,7 +134,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
           fastingSecondsByDay[dayIndex] += fastingSecondsForDay;
           dayHasActivity[dayIndex] = true;
           
-          console.log(`Weekly - Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to day ${days[dayIndex]} (${format(currentDay, 'yyyy-MM-dd')})`);
+          console.log(`Weekly - Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to day index ${dayIndex} (${format(currentDay, 'yyyy-MM-dd')})`);
         }
         
         // Move to the next day
@@ -150,6 +147,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   
   // Only include days with actual fasting activity
   const result = [];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
   // Calculate fasting and eating hours for the chart display
   for (let i = 0; i < 7; i++) {

@@ -63,6 +63,10 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   console.log('FastingBarChart - Filtered data:', JSON.stringify(filteredChartData, null, 2));
   console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 
+  // Define colors explicitly
+  const eatingColor = "hsl(var(--destructive))";
+  const fastingColor = "hsl(var(--primary))";
+
   // For horizontal display: Eating will be negative (left side) and fasting positive (right side)
   const processedData = filteredChartData.map(item => ({
     day: item.day,
@@ -78,10 +82,6 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   const maxDomain = Math.max(maxVal, Math.abs(minVal), 12);
   const domainMax = Math.ceil(maxDomain);
   const domainMin = -Math.ceil(maxDomain);
-
-  // Define colors
-  const eatingColor = "hsl(var(--destructive))";
-  const fastingColor = "hsl(var(--primary))";
 
   if (filteredChartData.length === 0) {
     return (

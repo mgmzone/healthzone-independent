@@ -3,14 +3,11 @@ import { FastingLog } from '@/lib/types';
 import {
   differenceInSeconds,
   subMonths,
-  startOfDay,
-  endOfDay,
   min,
   max,
   addDays,
   format,
-  getWeekOfMonth,
-  isWithinInterval
+  isBefore
 } from 'date-fns';
 
 /**
@@ -103,7 +100,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       }
       
       // Adjust start time if it's before our window
-      const effectiveStartTime = startTime < monthAgo ? monthAgo : startTime;
+      const effectiveStartTime = isBefore(startTime, monthAgo) ? monthAgo : startTime;
       
       // For each week, check if this fast falls within it
       for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
