@@ -59,7 +59,8 @@ export const useAdminData = () => {
         toast.error('Failed to load user data. Please try again.');
         return []; // Return empty array instead of throwing to prevent errors in UI
       }
-    }
+    },
+    retry: 1
   });
 
   const { 
@@ -102,9 +103,18 @@ export const useAdminData = () => {
         
         // Show an error toast
         toast.error('Failed to load system stats. Please try again.');
-        throw error;
+        
+        // Return default values instead of throwing
+        return {
+          totalUsers: 0,
+          activePeriods: 0,
+          totalWeighIns: 0,
+          totalFasts: 0,
+          totalExercises: 0
+        };
       }
-    }
+    },
+    retry: 1
   });
 
   return {

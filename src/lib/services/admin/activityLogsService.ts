@@ -1,65 +1,67 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ActivityLogItem } from "./types";
+import { ActivityLogItem } from './types';
 
-export async function getActivityLogs(userId?: string): Promise<ActivityLogItem[]> {
+export async function getActivityLogs(): Promise<ActivityLogItem[]> {
   try {
-    // If no userId provided or called from admin page, get all activity logs
-    // This is a simplified implementation - in a real app, 
-    // you would check admin permissions first
-    const isAdmin = !userId;
+    console.log('Fetching activity logs for admin dashboard...');
     
-    let logs: ActivityLogItem[] = [];
-    
-    // Fetch weigh-ins 
-    const { data: weighIns, error: weighInsError } = await supabase
+    // Fetch weigh-in logs
+    const { data: weighInLogs, error: weighInError } = await supabase
       .from('weigh_ins')
       .select('date, user_id')
-      .eq(userId ? 'user_id' : 'user_id', userId || 'user_id')
       .order('date', { ascending: false });
-      
-    if (weighInsError) {
-      console.error('Error fetching weigh-ins:', weighInsError);
-    } else if (weighIns) {
-      logs = logs.concat(weighIns.map(wi => ({ 
-        date: wi.date,
-        type: 'weighIn' as const
-      })));
-    }
     
-    // Fetch fasting logs 
+    if (weighInError) {
+      console.error('Error fetching weigh-in logs:', weighInError);
+      throw weighInError;
+    }
+
+    // Fetch fasting logs
     const { data: fastingLogs, error: fastingError } = await supabase
       .from('fasting_logs')
-      .select('end_time, user_id')
-      .eq(userId ? 'user_id' : 'user_id', userId || 'user_id')
-      .order('end_time', { ascending: false });
-      
+      .select('start_time')
+      .order('start_time', { ascending: false });
+    
     if (fastingError) {
       console.error('Error fetching fasting logs:', fastingError);
-    } else if (fastingLogs) {
-      logs = logs.concat(fastingLogs.map(fl => ({ 
-        date: fl.end_time,
-        type: 'fast' as const
-      })));
+      throw fastingError;
     }
-    
-    // Fetch exercise logs 
+
+    // Fetch exercise logs
     const { data: exerciseLogs, error: exerciseError } = await supabase
       .from('exercise_logs')
-      .select('date, user_id')
-      .eq(userId ? 'user_id' : 'user_id', userId || 'user_id')
+      .select('date')
       .order('date', { ascending: false });
-      
+    
     if (exerciseError) {
       console.error('Error fetching exercise logs:', exerciseError);
-    } else if (exerciseLogs) {
-      logs = logs.concat(exerciseLogs.map(el => ({ 
-        date: el.date,
-        type: 'exercise' as const
-      })));
+      throw exerciseError;
     }
-    
-    return logs;
+
+    // Convert DB data to ActivityLogItem format
+    const activities: ActivityLogItem[] = [
+      // Weigh-in logs
+      ...(weighInLogs?.map(log => ({
+        date: log.date,
+        type: 'weighIn' as const
+      })) || []),
+      
+      // Fasting logs
+      ...(fastingLogs?.map(log => ({
+        date: log.start_time,
+        type: 'fast' as const
+      })) || []),
+      
+      // Exercise logs
+      ...(exerciseLogs?.map(log => ({
+        date: log.date,
+        type: 'exercise' as const
+      })) || [])
+    ];
+
+    console.log(`Successfully retrieved ${activities.length} activity logs`);
+    return activities;
   } catch (error) {
     console.error('Error in getActivityLogs:', error);
     return [];

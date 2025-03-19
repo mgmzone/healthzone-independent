@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer } from '@/components/ui/chart';
@@ -26,6 +27,7 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
       setIsLoadingLogs(true);
       try {
         const logs = await getActivityLogs();
+        console.log('Activity logs fetched:', logs.length);
         setActivityLogs(logs);
       } catch (error) {
         console.error('Error fetching activity logs:', error);
@@ -60,7 +62,7 @@ const ActivityStatsChart: React.FC<ActivityStatsChartProps> = ({ stats, isLoadin
         />
       </CardHeader>
       <CardContent className="pb-4">
-        <div className="h-[50px] w-full">
+        <div className="h-[300px] w-full">
           <ChartContainer config={chartConfig}>
             {timeFilter === 'all' ? (
               <SummaryBarChart data={chartData} />
