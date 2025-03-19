@@ -79,6 +79,10 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   const domainMax = Math.ceil(maxDomain);
   const domainMin = -Math.ceil(maxDomain);
 
+  // Define colors
+  const eatingColor = "hsl(var(--destructive))";
+  const fastingColor = "hsl(var(--primary))";
+
   if (filteredChartData.length === 0) {
     return (
       <div className="h-full w-full flex items-center justify-center">
@@ -133,23 +137,21 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <Bar 
             dataKey="eating" 
             name="eating"
-            fill="hsl(var(--destructive))" 
-            radius={[4, 0, 0, 4]}
             stackId="day" // Stack both bars for each day
+            radius={[4, 0, 0, 4]}
           >
-            {processedData.map((entry, index) => (
-              <Cell key={`cell-eating-${index}`} fill="hsl(var(--destructive))" />
+            {processedData.map((_, index) => (
+              <Cell key={`cell-eating-${index}`} fill={eatingColor} />
             ))}
           </Bar>
           <Bar 
             dataKey="fasting" 
             name="fasting"
-            fill="hsl(var(--primary))" 
-            radius={[0, 4, 4, 0]}
             stackId="day" // Stack both bars for each day
+            radius={[0, 4, 4, 0]}
           >
-            {processedData.map((entry, index) => (
-              <Cell key={`cell-fasting-${index}`} fill="hsl(var(--primary))" />
+            {processedData.map((_, index) => (
+              <Cell key={`cell-fasting-${index}`} fill={fastingColor} />
             ))}
           </Bar>
         </BarChart>
