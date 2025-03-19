@@ -33,6 +33,10 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   const fastingHoursByWeek = Array(5).fill(0);
   const totalHoursByWeek = Array(5).fill(0);
   
+  // For debugging
+  console.log('Processing monthly chart data with', fastingLogs.length, 'logs');
+  console.log('Month range:', monthAgo, 'to', now);
+  
   // For each week in the month, determine the start/end and elapsed hours
   for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
     // Calculate this week's start (from month ago)
@@ -42,11 +46,16 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     const weekEnd = min([addDays(weekStart, 6), now]);
     
     // If this week hasn't started yet, skip it
-    if (weekStart > now) continue;
+    if (weekStart > now) {
+      console.log('Week', weekIndex + 1, 'is in the future, skipping');
+      continue;
+    }
     
     // Calculate total elapsed hours for this week (up to current time)
     const weekElapsedHours = differenceInHours(weekEnd, weekStart);
     totalHoursByWeek[weekIndex] = weekElapsedHours;
+    
+    console.log('Week', weekIndex + 1, 'from', weekStart, 'to', weekEnd, 'elapsed hours:', weekElapsedHours);
   }
   
   // Process each fasting log
@@ -56,7 +65,12 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     const endTime = log.endTime ? new Date(log.endTime) : new Date();
     
     // Skip logs completely outside our month window
-    if (endTime < monthAgo) return;
+    if (endTime < monthAgo) {
+      console.log('Skipping log outside month window:', log.id, startTime, endTime);
+      return;
+    }
+    
+    console.log('Processing log within month:', log.id, startTime, endTime);
     
     // Adjust start time if it's before our window
     const effectiveStartTime = startTime < monthAgo ? monthAgo : startTime;
@@ -81,6 +95,8 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       if (fastStartInWeek <= fastEndInWeek) {
         const fastingSecondsInWeek = differenceInSeconds(fastEndInWeek, fastStartInWeek);
         fastingHoursByWeek[weekIndex] += fastingSecondsInWeek / 3600; // Convert to hours
+        
+        console.log('Week', weekIndex + 1, 'adding', fastingSecondsInWeek / 3600, 'hours');
       }
     }
   });
@@ -96,6 +112,8 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
+      
+      console.log('Week', i + 1, 'fasting:', fastingHoursByWeek[i], 'eating:', -eatingHours, 'total:', totalHoursByWeek[i]);
     }
   }
   
