@@ -16,19 +16,43 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
   // Debug logs for fastingLogs input
   useEffect(() => {
     console.log(`FastingStats received ${fastingLogs.length} logs for ${timeFilter} view`);
-    console.log('First 3 logs:', fastingLogs.slice(0, 3));
+    if (fastingLogs.length > 0) {
+      // Check if logs have proper date objects or if they need conversion
+      const firstLog = fastingLogs[0];
+      console.log('First log format check:', {
+        id: firstLog.id,
+        startTime: typeof firstLog.startTime,
+        startTimeValue: firstLog.startTime,
+        endTime: typeof firstLog.endTime,
+        endTimeValue: firstLog.endTime
+      });
+    }
   }, [fastingLogs, timeFilter]);
+  
+  // Normalize logs to ensure consistent date objects
+  const normalizedLogs = useMemo(() => {
+    return fastingLogs.map(log => ({
+      ...log,
+      // Ensure startTime is a Date object
+      startTime: typeof log.startTime === 'object' && log.startTime !== null && '_type' in log.startTime 
+        ? new Date(log.startTime.value.iso) 
+        : new Date(log.startTime),
+      // Ensure endTime is a Date object if it exists
+      endTime: log.endTime 
+        ? (typeof log.endTime === 'object' && log.endTime !== null && '_type' in log.endTime 
+          ? new Date(log.endTime.value.iso) 
+          : new Date(log.endTime))
+        : log.endTime
+    }));
+  }, [fastingLogs]);
   
   // Prepare chart data
   const chartData = useMemo(() => {
     // Log for debugging
-    console.log('FastingStats preparing chart data with logs:', fastingLogs.length);
-    
-    // Clone logs to avoid reference issues
-    const logsToProcess = [...fastingLogs];
+    console.log('FastingStats preparing chart data with normalized logs:', normalizedLogs.length);
     
     try {
-      const data = prepareChartData(logsToProcess, timeFilter);
+      const data = prepareChartData(normalizedLogs, timeFilter);
       console.log(`FastingStats ${timeFilter} chart data:`, data);
       
       // Check if we have meaningful data
@@ -47,7 +71,7 @@ const FastingStats: React.FC<FastingStatsProps> = ({ fastingLogs, timeFilter }) 
       });
       return [];
     }
-  }, [fastingLogs, timeFilter, toast]);
+  }, [normalizedLogs, timeFilter, toast]);
 
   return (
     <div className="flex flex-col h-full">

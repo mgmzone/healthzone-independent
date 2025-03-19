@@ -30,11 +30,15 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const totalHoursByMonth = Array(12).fill(0);
   
   console.log('Yearly - Processing logs count:', fastingLogs.length);
-  console.log('Yearly - Logs:', fastingLogs.map(log => ({
-    id: log.id,
-    start: new Date(log.startTime).toISOString(),
-    end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
-  })));
+  
+  // Log the first few logs for debugging
+  if (fastingLogs.length > 0) {
+    console.log('Yearly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
+      id: log.id,
+      start: new Date(log.startTime).toISOString(),
+      end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+    })));
+  }
   
   // Get the dates for the past year
   const now = new Date();
@@ -63,51 +67,55 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
-    const startTime = new Date(log.startTime);
-    const endTime = log.endTime ? new Date(log.endTime) : new Date();
-    
-    // Debug log
-    console.log(`Yearly - Log #${index}:`, {
-      id: log.id,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
-      isInYear: (endTime >= yearAgo)
-    });
-    
-    // Skip logs outside the past year
-    if (endTime < yearAgo) {
-      console.log(`Yearly - Log #${index} outside year window, skipping`);
-      return;
-    }
-    
-    // Adjust start time if it's before our window
-    const effectiveStartTime = startTime < yearAgo ? yearAgo : startTime;
-    
-    // For each month, check if this fast falls within it
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      // Get current month and year (going backward from now)
-      const currentMonthDate = new Date(now);
-      currentMonthDate.setMonth(now.getMonth() - (11 - monthIndex));
+    try {
+      const startTime = new Date(log.startTime);
+      const endTime = log.endTime ? new Date(log.endTime) : new Date();
       
-      // Skip future months or months before past year
-      if (currentMonthDate > now || currentMonthDate < yearAgo) continue;
+      // Debug log
+      console.log(`Yearly - Processing log #${index}:`, {
+        id: log.id,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
+        isInYear: (endTime >= yearAgo)
+      });
       
-      const monthStart = max([startOfMonth(currentMonthDate), yearAgo]);
-      const monthEnd = min([endOfMonth(currentMonthDate), now]);
+      // Skip logs outside the past year
+      if (endTime < yearAgo) {
+        console.log(`Yearly - Log #${index} outside year window, skipping`);
+        return;
+      }
       
-      // Check if this fast overlaps with this month
-      if (endTime < monthStart || effectiveStartTime > monthEnd) continue;
+      // Adjust start time if it's before our window
+      const effectiveStartTime = startTime < yearAgo ? yearAgo : startTime;
       
-      // Calculate intersection of fast with this month
-      const fastStartInMonth = max([monthStart, effectiveStartTime]);
-      const fastEndInMonth = min([monthEnd, endTime]);
-      
-      // Calculate fasting seconds that fall within this month
-      const fastingSecondsInMonth = differenceInSeconds(fastEndInMonth, fastStartInMonth);
-      fastingSecondsByMonth[monthIndex] += fastingSecondsInMonth;
-      
-      console.log(`Yearly - Adding ${(fastingSecondsInMonth / 3600).toFixed(2)}h to ${months[monthIndex]}`);
+      // For each month, check if this fast falls within it
+      for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+        // Get current month and year (going backward from now)
+        const currentMonthDate = new Date(now);
+        currentMonthDate.setMonth(now.getMonth() - (11 - monthIndex));
+        
+        // Skip future months or months before past year
+        if (currentMonthDate > now || currentMonthDate < yearAgo) continue;
+        
+        const monthStart = max([startOfMonth(currentMonthDate), yearAgo]);
+        const monthEnd = min([endOfMonth(currentMonthDate), now]);
+        
+        // Check if this fast overlaps with this month
+        if (endTime < monthStart || effectiveStartTime > monthEnd) continue;
+        
+        // Calculate intersection of fast with this month
+        const fastStartInMonth = max([monthStart, effectiveStartTime]);
+        const fastEndInMonth = min([monthEnd, endTime]);
+        
+        // Calculate fasting seconds that fall within this month
+        const fastingSecondsInMonth = differenceInSeconds(fastEndInMonth, fastStartInMonth);
+        fastingSecondsByMonth[monthIndex] += fastingSecondsInMonth;
+        
+        console.log(`Yearly - Adding ${(fastingSecondsInMonth / 3600).toFixed(2)}h to ${months[monthIndex]}`);
+      }
+    } catch (error) {
+      console.error(`Yearly - Error processing log #${index}:`, error);
     }
   });
   
@@ -126,14 +134,12 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
       
-      console.log(`Yearly - Month ${months[i]}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByMonth[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      console.log(`Yearly - Final Month ${months[i]}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByMonth[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
   // For debugging
-  console.log('Yearly chart data:', data);
-  console.log('Total hours by month:', totalHoursByMonth);
-  console.log('Fasting hours by month:', fastingSecondsByMonth.map(s => (s / 3600).toFixed(2)));
+  console.log('Yearly - Chart data:', data);
   
   return data;
 };

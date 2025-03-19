@@ -34,11 +34,15 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   
   console.log('Monthly - Processing logs count:', fastingLogs.length);
   console.log('Monthly - Time frame:', monthAgo.toISOString(), 'to', now.toISOString());
-  console.log('Monthly - Logs:', fastingLogs.map(log => ({
-    id: log.id,
-    start: new Date(log.startTime).toISOString(),
-    end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
-  })));
+  
+  // Log the first few logs for debugging
+  if (fastingLogs.length > 0) {
+    console.log('Monthly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
+      id: log.id,
+      start: new Date(log.startTime).toISOString(),
+      end: log.endTime ? new Date(log.endTime).toISOString() : 'active'
+    })));
+  }
   
   // For each week in the month, determine the start/end and elapsed hours
   for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
@@ -55,63 +59,67 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     const weekElapsedHours = Math.max(0, (weekEnd.getTime() - weekStart.getTime()) / (1000 * 60 * 60));
     totalHoursByWeek[weekIndex] = weekElapsedHours;
     
-    console.log(`Monthly - Week ${weekIndex + 1} from ${weekStart.toISOString()} to ${weekEnd.toISOString()}, elapsed: ${weekElapsedHours}h`);
+    console.log(`Monthly - Week ${weekIndex + 1} from ${weekStart.toISOString()} to ${weekEnd.toISOString()}, elapsed: ${weekElapsedHours.toFixed(2)}h`);
   }
   
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
-    const startTime = new Date(log.startTime);
-    const endTime = log.endTime ? new Date(log.endTime) : new Date();
-    
-    // Debug log
-    console.log(`Monthly - Log #${index}:`, {
-      id: log.id,
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
-      isInMonth: (endTime >= monthAgo)
-    });
-    
-    // Skip logs completely outside our month window
-    if (endTime < monthAgo) {
-      console.log(`Monthly - Log #${index} outside month window, skipping`);
-      return;
-    }
-    
-    // Adjust start time if it's before our window
-    const effectiveStartTime = startTime < monthAgo ? monthAgo : startTime;
-    
-    // For each week, check if this fast falls within it
-    for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
-      // Calculate this week's boundaries
-      const weekStart = addDays(monthAgo, weekIndex * 7);
-      const weekEnd = min([addDays(weekStart, 6), now]);
+    try {
+      const startTime = new Date(log.startTime);
+      const endTime = log.endTime ? new Date(log.endTime) : new Date();
       
-      // If this week hasn't started yet or fast ends before this week, skip
-      if (weekStart > now || endTime < weekStart) continue;
+      // Debug log
+      console.log(`Monthly - Processing log #${index}:`, {
+        id: log.id,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
+        isInMonth: (endTime >= monthAgo)
+      });
       
-      // If fast starts after this week ends, skip
-      if (effectiveStartTime > weekEnd) continue;
-      
-      // Calculate intersection of fast with this week
-      const fastStartInWeek = max([weekStart, effectiveStartTime]);
-      const fastEndInWeek = min([weekEnd, endTime]);
-      
-      // Calculate fasting hours that fall within this week
-      if (fastStartInWeek <= fastEndInWeek) {
-        const fastingSecondsInWeek = differenceInSeconds(fastEndInWeek, fastStartInWeek);
-        const fastingHoursInWeek = fastingSecondsInWeek / 3600;
-        fastingHoursByWeek[weekIndex] += fastingHoursInWeek;
-        
-        console.log(`Monthly - Adding ${fastingHoursInWeek.toFixed(2)}h to Week ${weekIndex + 1}`);
+      // Skip logs completely outside our month window
+      if (endTime < monthAgo) {
+        console.log(`Monthly - Log #${index} outside month window, skipping`);
+        return;
       }
+      
+      // Adjust start time if it's before our window
+      const effectiveStartTime = startTime < monthAgo ? monthAgo : startTime;
+      
+      // For each week, check if this fast falls within it
+      for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
+        // Calculate this week's boundaries
+        const weekStart = addDays(monthAgo, weekIndex * 7);
+        const weekEnd = min([addDays(weekStart, 6), now]);
+        
+        // If this week hasn't started yet or fast ends before this week, skip
+        if (weekStart > now || endTime < weekStart) continue;
+        
+        // If fast starts after this week ends, skip
+        if (effectiveStartTime > weekEnd) continue;
+        
+        // Calculate intersection of fast with this week
+        const fastStartInWeek = max([weekStart, effectiveStartTime]);
+        const fastEndInWeek = min([weekEnd, endTime]);
+        
+        // Calculate fasting hours that fall within this week
+        if (fastStartInWeek <= fastEndInWeek) {
+          const fastingSecondsInWeek = differenceInSeconds(fastEndInWeek, fastStartInWeek);
+          const fastingHoursInWeek = fastingSecondsInWeek / 3600;
+          fastingHoursByWeek[weekIndex] += fastingHoursInWeek;
+          
+          console.log(`Monthly - Adding ${fastingHoursInWeek.toFixed(2)}h to Week ${weekIndex + 1}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Monthly - Error processing log #${index}:`, error);
     }
   });
   
   // Calculate eating hours based on total elapsed time minus fasting time
   for (let i = 0; i < 5; i++) {
     if (totalHoursByWeek[i] > 0) {
-      // Set fasting hours
+      // Set fasting hours (capped at total hours)
       data[i].fasting = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
       
       // Calculate eating hours (total - fasting, minimum 0)
@@ -120,14 +128,12 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       // Make eating hours negative for the chart
       data[i].eating = -eatingHours;
       
-      console.log(`Monthly - Week ${i + 1}: fasting=${fastingHoursByWeek[i].toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      console.log(`Monthly - Final Week ${i + 1}: fasting=${data[i].fasting.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
   // For debugging
-  console.log('Monthly chart data:', data);
-  console.log('Total hours by week:', totalHoursByWeek);
-  console.log('Fasting hours by week:', fastingHoursByWeek);
+  console.log('Monthly - Chart data:', data);
   
   return data;
 };

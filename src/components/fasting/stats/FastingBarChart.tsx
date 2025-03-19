@@ -69,8 +69,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   // Determine domain limits based on data
   const maxFasting = Math.max(...chartData.map(d => d.fasting || 0), 1); // At least 1 hour
   const maxEating = Math.max(...chartData.map(d => Math.abs(d.eating || 0)), 1); // At least 1 hour
-  const domainMax = Math.max(24, maxFasting); // At least 24 hours, or more if needed
-  const domainMin = -Math.max(24, maxEating); // At least -24 hours for eating
+  const domainMax = Math.ceil(Math.max(24, maxFasting)); // At least 24 hours, or more if needed
+  const domainMin = -Math.ceil(Math.max(24, maxEating)); // At least -24 hours for eating
   
   if (!hasData) {
     return (
