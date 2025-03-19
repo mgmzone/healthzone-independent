@@ -1,4 +1,3 @@
-
 import { FastingLog } from '@/lib/types';
 import { differenceInSeconds, subMonths } from 'date-fns';
 
@@ -29,6 +28,9 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     eating: 0
   }));
 
+  // Keep track of days with data for each week
+  const daysWithDataByWeek = Array(maxWeekNumber).fill(0);
+
   // Fill in actual hours from logs
   const now = new Date();
   fastingLogs.forEach(log => {
@@ -53,14 +55,25 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
         const fastDurationInHours = differenceInSeconds(endTime, startTime) / 3600;
         data[weekIndex].fasting += fastDurationInHours;
         
-        // Only add eating time for completed fasts
+        // Track days with data
         if (log.endTime) {
-          const eatingHours = 24 - (fastDurationInHours % 24);
-          data[weekIndex].eating += eatingHours > 0 ? eatingHours : 0;
+          daysWithDataByWeek[weekIndex]++;
         }
       }
     }
   });
+  
+  // Calculate eating hours for each week and make them negative for the chart
+  for (let i = 0; i < data.length; i++) {
+    if (daysWithDataByWeek[i] > 0) {
+      // For each day with data, total possible hours = 24 * days
+      // Eating time = total possible hours - fasting time
+      const totalHoursInPeriod = daysWithDataByWeek[i] * 24;
+      const eatingHours = Math.max(totalHoursInPeriod - data[i].fasting, 0);
+      // Make eating hours negative so they appear below the x-axis
+      data[i].eating = -eatingHours;
+    }
+  }
   
   return data;
 };

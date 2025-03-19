@@ -33,9 +33,9 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     const cappedFastingHours = Math.min(fastDurationInHours, 24);
     data[dayIndex].fasting = cappedFastingHours;
     
-    // Only add eating time for completed fasts
+    // For the horizontal layout, we make eating negative so it appears below the x-axis
     if (log.endTime) {
-      data[dayIndex].eating = Math.max(24 - cappedFastingHours, 0);
+      data[dayIndex].eating = -Math.max(24 - cappedFastingHours, 0);
     }
   });
   

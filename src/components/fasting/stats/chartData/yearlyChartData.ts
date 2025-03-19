@@ -1,3 +1,4 @@
+
 import { FastingLog } from '@/lib/types';
 import { differenceInSeconds, subYears } from 'date-fns';
 
@@ -38,13 +39,15 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
-  // Calculate eating hours only for days that have fasting data
+  // Calculate eating hours for each month and make them negative for the chart
   for (let i = 0; i < 12; i++) {
     if (daysWithFastingByMonth[i] > 0) {
       // Calculate eating hours for days that have fasting data
-      // Assuming 24 hours in a day, eating time = (24 * days with fasting) - total fasting hours
+      // Total hours in period = days with fasting * 24
       const totalHoursInPeriod = daysWithFastingByMonth[i] * 24;
-      data[i].eating = Math.max(totalHoursInPeriod - data[i].fasting, 0);
+      const eatingHours = Math.max(totalHoursInPeriod - data[i].fasting, 0);
+      // Make eating hours negative so they appear below the x-axis
+      data[i].eating = -eatingHours;
     }
   }
   
