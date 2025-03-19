@@ -16,5 +16,6 @@ export interface TemplateFormValues {
   html_content: string;
 }
 
-// Re-export the EmailType to avoid importing from multiple places
-export type { EmailType } from '@/lib/services/emailService';
+// Import EmailType directly instead of re-exporting it
+import { EmailType } from '@/lib/services/emailService';
+export { EmailType };
