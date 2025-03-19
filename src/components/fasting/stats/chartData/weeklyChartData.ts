@@ -12,26 +12,41 @@ import {
   format,
   isSameDay,
   addDays,
-  isWithinInterval
+  isWithinInterval,
+  subDays
 } from 'date-fns';
+
+/**
+ * Ensure date is a proper Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  
+  try {
+    // Handle serialized Supabase dates
+    if (date && typeof date === 'object' && '_type' in date) {
+      if (date._type === 'Date' && date.value && date.value.iso) {
+        return new Date(date.value.iso);
+      }
+    }
+    // Try to create date from whatever we received
+    return new Date(date);
+  } catch (error) {
+    console.error('Failed to parse date:', date, error);
+    return new Date(); // Fallback to current date
+  }
+};
 
 /**
  * Prepare weekly chart data
  */
 export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const data = days.map(day => ({ 
-    day, 
-    fasting: 0,
-    eating: 0
-  }));
-  
-  console.log('Weekly - Starting preparation with', fastingLogs.length, 'logs');
   
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
     console.log('Weekly - No logs to process');
-    return data;
+    return [];
   }
   
   const now = new Date();
@@ -41,9 +56,11 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
   // Track fasting seconds for each day of the week
   const fastingSecondsByDay = Array(7).fill(0);
   const totalHoursByDay = Array(7).fill(0);
+  const dayHasActivity = Array(7).fill(false);
   
   console.log('Weekly - Current date:', now.toISOString());
   console.log('Weekly - Week range:', weekStart.toISOString(), 'to', weekEnd.toISOString());
+  console.log('Weekly - Processing logs count:', fastingLogs.length);
   
   // Calculate total elapsed hours for each day in the week (up to current time)
   for (let i = 0; i < 7; i++) {
@@ -60,43 +77,51 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
     }
     // Future days remain at 0 hours
     
-    console.log(`Weekly - Day ${days[i]}: total hours = ${totalHoursByDay[i].toFixed(2)}`);
+    console.log(`Weekly - Day ${days[i]} (${i}): isPastDay=${isPastDay}, isToday=${isToday}, totalHours=${totalHoursByDay[i]}`);
   }
   
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
     try {
-      // Ensure we have valid date objects
-      if (!(log.startTime instanceof Date)) {
-        console.error(`Invalid startTime for log #${index}:`, log.startTime);
-        return; // Skip this log
+      // Normalize date objects
+      const startTime = ensureDate(log.startTime);
+      // For active fast, use current time as end time
+      const endTime = log.endTime ? ensureDate(log.endTime) : new Date();
+      
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        console.error(`Weekly - Invalid date for log #${index}:`, log);
+        return;
       }
       
-      const startTime = log.startTime;
-      const endTime = log.endTime instanceof Date ? log.endTime : new Date();
-      
       // Debug log
-      console.log(`Processing log #${log.id}:`, {
+      console.log(`Weekly - Processing log #${index}:`, {
+        id: log.id,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h'
+        duration: (differenceInSeconds(endTime, startTime) / 3600).toFixed(2) + 'h',
+        isInWeek: (endTime >= weekStart && startTime <= weekEnd)
       });
       
       // Only include logs that overlap with the current week
       if (endTime < weekStart || startTime > weekEnd) {
-        console.log(`Log #${log.id} outside current week, skipping`);
+        console.log(`Weekly - Log #${index} outside current week, skipping`);
         return;
       }
       
-      // Adjust start/end times to be within the week
+      // If the fast starts before the week, adjust it to the week start
       const effectiveStartTime = startTime < weekStart ? weekStart : startTime;
+      // If the fast ends after the week, adjust it to the week end
       const effectiveEndTime = endTime > weekEnd ? weekEnd : endTime;
+      
+      console.log(`Weekly - Effective time range for log #${index}:`, 
+        effectiveStartTime.toISOString(), 'to', effectiveEndTime.toISOString());
       
       // Handle fasts that span multiple days by splitting hours for each day
       let currentDay = new Date(effectiveStartTime);
       currentDay.setHours(0, 0, 0, 0); // Start at beginning of the day
       
       while (currentDay <= effectiveEndTime) {
+        // Calculate start and end times for this day's portion of the fast
         const dayStart = startOfDay(currentDay);
         const dayEnd = endOfDay(currentDay);
         
@@ -110,36 +135,46 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
           
           const dayIndex = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
           fastingSecondsByDay[dayIndex] += fastingSecondsForDay;
+          dayHasActivity[dayIndex] = true;
           
-          console.log(`Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to ${days[dayIndex]}`);
+          console.log(`Weekly - Adding ${(fastingSecondsForDay / 3600).toFixed(2)}h to day ${days[dayIndex]} (${format(currentDay, 'yyyy-MM-dd')})`);
         }
         
         // Move to the next day
         currentDay.setDate(currentDay.getDate() + 1);
       }
     } catch (error) {
-      console.error(`Error processing log:`, error);
+      console.error(`Weekly - Error processing log #${index}:`, error);
     }
   });
   
+  // Only include days with actual fasting activity
+  const result = [];
+  
   // Calculate fasting and eating hours for the chart display
   for (let i = 0; i < 7; i++) {
-    // Only display data for days that have elapsed (past days or today)
-    if (totalHoursByDay[i] > 0) {
+    // Only include days with fasting activity and that have elapsed time
+    if (dayHasActivity[i] && totalHoursByDay[i] > 0) {
       // Convert seconds to hours
       const fastingHours = fastingSecondsByDay[i] / 3600;
       
       // Set fasting hours (cap at the total available hours)
-      data[i].fasting = Math.min(fastingHours, totalHoursByDay[i]);
+      const cappedFastingHours = Math.min(fastingHours, totalHoursByDay[i]);
       
       // Eating hours = total elapsed hours - fasting hours (with a minimum of 0)
       const eatingHours = Math.max(0, totalHoursByDay[i] - fastingHours);
-      data[i].eating = -eatingHours; // Negative for display below the x-axis
       
-      console.log(`Final day ${days[i]}: fasting=${data[i].fasting.toFixed(2)}h, eating=${Math.abs(data[i].eating).toFixed(2)}h`);
+      result.push({
+        day: days[i],
+        fasting: cappedFastingHours,
+        eating: -eatingHours // Negative for display below the x-axis
+      });
+      
+      console.log(`Weekly - Final day (${days[i]}): fasting=${cappedFastingHours.toFixed(2)}h, eating=${Math.abs(eatingHours).toFixed(2)}h, total=${totalHoursByDay[i].toFixed(2)}h`);
     }
   }
   
-  console.log('Weekly chart data prepared:', data);
-  return data;
+  console.log('Weekly - Chart data:', result);
+  
+  return result;
 };

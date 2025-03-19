@@ -48,7 +48,7 @@ export const prepareChartData = (
   // Guard against null logs
   if (!fastingLogs || !Array.isArray(fastingLogs) || fastingLogs.length === 0) {
     console.log(`No logs for ${timeFilter} chart`);
-    return getEmptyData(timeFilter);
+    return []; // Return empty array instead of dummy data when no logs exist
   }
   
   // Normalize date objects in logs
@@ -85,6 +85,11 @@ export const prepareChartData = (
     });
   }
   
+  // If there are no valid logs, return empty array
+  if (normalizedLogs.length === 0) {
+    return [];
+  }
+  
   // Call the appropriate prepare function based on time filter
   let result: ChartDataItem[] = [];
   try {
@@ -97,13 +102,13 @@ export const prepareChartData = (
     }
   } catch (error) {
     console.error(`Error preparing ${timeFilter} chart data:`, error);
-    return getEmptyData(timeFilter);
+    return [];
   }
   
   // Validate result
   if (!Array.isArray(result) || result.length === 0) {
     console.warn(`Invalid or empty result from prepare${timeFilter} function`);
-    return getEmptyData(timeFilter);
+    return [];
   }
   
   // Ensure all numeric values are proper numbers, not NaN
@@ -113,31 +118,11 @@ export const prepareChartData = (
     eating: isNaN(Number(item.eating)) ? 0 : Number(item.eating)
   }));
   
-  console.log(`Chart data for ${timeFilter} prepared:`, JSON.stringify(sanitizedResult, null, 2));
-  return sanitizedResult;
-};
-
-/**
- * Get empty data for different time filters
- */
-const getEmptyData = (timeFilter: 'week' | 'month' | 'year'): ChartDataItem[] => {
-  if (timeFilter === 'week') {
-    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => ({
-      day,
-      fasting: 0,
-      eating: 0
-    }));
-  } else if (timeFilter === 'month') {
-    return Array.from({ length: 5 }, (_, i) => ({
-      day: `Week ${i + 1}`,
-      fasting: 0,
-      eating: 0
-    }));
-  } else {
-    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(month => ({
-      day: month,
-      fasting: 0,
-      eating: 0
-    }));
-  }
+  // Filter out any periods with no fasting activity
+  const filteredResult = sanitizedResult.filter(item => 
+    item.fasting > 0 || item.eating < 0
+  );
+  
+  console.log(`Chart data for ${timeFilter} prepared:`, JSON.stringify(filteredResult, null, 2));
+  return filteredResult;
 };

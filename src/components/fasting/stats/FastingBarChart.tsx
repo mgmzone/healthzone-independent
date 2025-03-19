@@ -137,7 +137,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <Bar 
             dataKey="eating" 
             name="eating"
-            stackId="day" // Stack both bars for each day
+            stackId="day"
             radius={[4, 0, 0, 4]}
           >
             {processedData.map((_, index) => (
@@ -147,7 +147,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <Bar 
             dataKey="fasting" 
             name="fasting"
-            stackId="day" // Stack both bars for each day
+            stackId="day"
             radius={[0, 4, 4, 0]}
           >
             {processedData.map((_, index) => (

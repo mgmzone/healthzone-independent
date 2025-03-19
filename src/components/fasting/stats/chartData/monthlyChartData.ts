@@ -14,20 +14,34 @@ import {
 } from 'date-fns';
 
 /**
+ * Ensure date is a proper Date object
+ */
+const ensureDate = (date: any): Date => {
+  if (date instanceof Date) return date;
+  
+  try {
+    // Handle serialized Supabase dates
+    if (date && typeof date === 'object' && '_type' in date) {
+      if (date._type === 'Date' && date.value && date.value.iso) {
+        return new Date(date.value.iso);
+      }
+    }
+    // Try to create date from whatever we received
+    return new Date(date);
+  } catch (error) {
+    console.error('Failed to parse date:', date, error);
+    return new Date(); // Fallback to current date
+  }
+};
+
+/**
  * Prepare monthly chart data
  */
 export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
-  // Create weekly data points (up to 5 weeks for a month view)
-  const data = Array.from({ length: 5 }, (_, i) => ({ 
-    day: `Week ${i + 1}`, 
-    fasting: 0,
-    eating: 0
-  }));
-  
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
     console.log('Monthly - No logs to process');
-    return data;
+    return [];
   }
   
   // Set up time frame - past month
@@ -37,20 +51,10 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   // Create arrays to track fasting and total hours for each week
   const fastingHoursByWeek = Array(5).fill(0);
   const totalHoursByWeek = Array(5).fill(0);
+  const weekHasActivity = Array(5).fill(false);
   
   console.log('Monthly - Processing logs count:', fastingLogs.length);
   console.log('Monthly - Time frame:', monthAgo.toISOString(), 'to', now.toISOString());
-  
-  // Log the first few logs for debugging
-  if (fastingLogs.length > 0) {
-    console.log('Monthly - First few logs:', fastingLogs.slice(0, 3).map(log => ({
-      id: log.id,
-      start: log.startTime instanceof Date ? log.startTime.toISOString() : 'invalid date',
-      end: log.endTime instanceof Date ? log.endTime.toISOString() : 'active/invalid',
-      startType: typeof log.startTime,
-      endType: typeof log.endTime
-    })));
-  }
   
   // For each week in the month, determine the start/end and elapsed hours
   for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
@@ -73,15 +77,15 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
     try {
-      // Ensure we have valid date objects
-      if (!(log.startTime instanceof Date)) {
-        console.error(`Monthly - Invalid startTime for log #${index}:`, log.startTime);
-        return; // Skip this log
-      }
-      
-      const startTime = log.startTime;
+      // Normalize date objects
+      const startTime = ensureDate(log.startTime);
       // For active fast, use current time as end time
-      const endTime = log.endTime instanceof Date ? log.endTime : new Date();
+      const endTime = log.endTime ? ensureDate(log.endTime) : new Date();
+      
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        console.error(`Monthly - Invalid date for log #${index}:`, log);
+        return;
+      }
       
       // Debug log
       console.log(`Monthly - Processing log #${index}:`, {
@@ -122,6 +126,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
           const fastingSecondsInWeek = differenceInSeconds(fastEndInWeek, fastStartInWeek);
           const fastingHoursInWeek = fastingSecondsInWeek / 3600;
           fastingHoursByWeek[weekIndex] += fastingHoursInWeek;
+          weekHasActivity[weekIndex] = true;
           
           console.log(`Monthly - Adding ${fastingHoursInWeek.toFixed(2)}h to Week ${weekIndex + 1}`);
         }
@@ -131,24 +136,30 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
+  // Only include weeks with actual fasting activity
+  const result = [];
+  
   // Calculate eating hours based on total elapsed time minus fasting time
   for (let i = 0; i < 5; i++) {
-    if (totalHoursByWeek[i] > 0) {
+    if (weekHasActivity[i] && totalHoursByWeek[i] > 0) {
       // Set fasting hours (capped at total hours)
-      data[i].fasting = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
+      const fastingHours = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
       
       // Calculate eating hours (total - fasting, minimum 0)
       const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHoursByWeek[i]);
       
-      // Make eating hours negative for the chart
-      data[i].eating = -eatingHours;
+      result.push({
+        day: `Week ${i + 1}`,
+        fasting: fastingHours,
+        eating: -eatingHours
+      });
       
-      console.log(`Monthly - Final Week ${i + 1}: fasting=${data[i].fasting.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      console.log(`Monthly - Final Week ${i + 1}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
   // For debugging
-  console.log('Monthly - Chart data:', data);
+  console.log('Monthly - Chart data:', result);
   
-  return data;
+  return result;
 };

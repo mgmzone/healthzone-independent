@@ -48,13 +48,15 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
     console.log('Yearly - No logs to process');
-    return data;
+    return [];
   }
   
   // Track fasting seconds for each month
   const fastingSecondsByMonth = Array(12).fill(0);
   // Track total elapsed hours for each month
   const totalHoursByMonth = Array(12).fill(0);
+  // Track which months have activity
+  const monthHasActivity = Array(12).fill(false);
   
   console.log('Yearly - Processing logs count:', fastingLogs.length);
   
@@ -63,25 +65,6 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   const yearAgo = subYears(now, 1);
   
   console.log('Yearly - Time frame:', yearAgo.toISOString(), 'to', now.toISOString());
-  
-  // Calculate total elapsed hours for each month in the past year
-  for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-    // Get current month and year
-    const currentMonthDate = new Date(now);
-    currentMonthDate.setMonth(now.getMonth() - (11 - monthIndex));
-    
-    // Skip future months or months before past year
-    if (currentMonthDate > now || currentMonthDate < yearAgo) continue;
-    
-    const monthStart = max([startOfMonth(currentMonthDate), yearAgo]);
-    const monthEnd = min([endOfMonth(currentMonthDate), now]);
-    
-    // Calculate total hours in this month up to now
-    const totalHours = Math.max(0, (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60));
-    totalHoursByMonth[monthIndex] = totalHours;
-    
-    console.log(`Yearly - Month ${months[monthIndex]} from ${monthStart.toISOString()} to ${monthEnd.toISOString()}, elapsed: ${totalHours.toFixed(2)}h`);
-  }
   
   // Process each fasting log
   fastingLogs.forEach((log, index) => {
@@ -126,6 +109,10 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
         const monthStart = max([startOfMonth(currentMonthDate), yearAgo]);
         const monthEnd = min([endOfMonth(currentMonthDate), now]);
         
+        // Calculate total hours in this month up to now (only for months with activity)
+        const totalHours = Math.max(0, (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60));
+        totalHoursByMonth[monthIndex] = totalHours;
+        
         // Check if this fast overlaps with this month
         if (endTime < monthStart || effectiveStartTime > monthEnd) continue;
         
@@ -137,6 +124,9 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
         const fastingSecondsInMonth = differenceInSeconds(fastEndInMonth, fastStartInMonth);
         fastingSecondsByMonth[monthIndex] += fastingSecondsInMonth;
         
+        // Mark this month as having activity
+        monthHasActivity[monthIndex] = true;
+        
         console.log(`Yearly - Adding ${(fastingSecondsInMonth / 3600).toFixed(2)}h to ${months[monthIndex]}`);
       }
     } catch (error) {
@@ -145,26 +135,29 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
   });
   
   // Calculate eating hours based on total elapsed time minus fasting time
+  // But only for months with actual fasting activity
+  const result = [];
   for (let i = 0; i < 12; i++) {
-    if (totalHoursByMonth[i] > 0) {
+    // Only include data for months with fasting activity
+    if (monthHasActivity[i] && totalHoursByMonth[i] > 0) {
       // Convert seconds to hours and cap at total hours
       const fastingHours = Math.min(fastingSecondsByMonth[i] / 3600, totalHoursByMonth[i]);
-      
-      // Set the fasting hours
-      data[i].fasting = fastingHours;
       
       // Calculate eating hours (total elapsed - fasting)
       const eatingHours = Math.max(0, totalHoursByMonth[i] - fastingHours);
       
-      // Make eating hours negative for the chart
-      data[i].eating = -eatingHours;
+      result.push({
+        day: months[i],
+        fasting: fastingHours,
+        eating: -eatingHours // Make eating hours negative for the chart
+      });
       
       console.log(`Yearly - Final Month ${months[i]}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByMonth[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
   // For debugging
-  console.log('Yearly - Chart data:', data);
+  console.log('Yearly - Chart data:', result);
   
-  return data;
+  return result;
 };
