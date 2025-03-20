@@ -94,7 +94,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <XAxis 
             type="number"
             domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => `${Math.abs(value)}h`}
+            tickFormatter={(value) => `${Math.abs(Math.round(value))}h`}
             tickLine={false}
             axisLine={true}
             fontSize={12}

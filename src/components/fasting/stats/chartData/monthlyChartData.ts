@@ -1,13 +1,15 @@
-
 import { FastingLog } from '@/lib/types';
 import {
   differenceInSeconds,
   subMonths,
+  startOfDay,
+  endOfDay,
   min,
   max,
   addDays,
   format,
-  isBefore
+  getWeekOfMonth,
+  isWithinInterval
 } from 'date-fns';
 
 /**
@@ -35,10 +37,17 @@ const ensureDate = (date: any): Date => {
  * Prepare monthly chart data
  */
 export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
+  // Create weekly data points (up to 5 weeks for a month view)
+  const data = Array.from({ length: 5 }, (_, i) => ({ 
+    day: `Week ${i + 1}`, 
+    fasting: 0,
+    eating: 0
+  }));
+  
   // Ensure we have logs before proceeding
   if (!fastingLogs || fastingLogs.length === 0) {
     console.log('Monthly - No logs to process');
-    return [];
+    return data;
   }
   
   // Set up time frame - past month
@@ -48,7 +57,6 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
   // Create arrays to track fasting and total hours for each week
   const fastingHoursByWeek = Array(5).fill(0);
   const totalHoursByWeek = Array(5).fill(0);
-  const weekHasActivity = Array(5).fill(false);
   
   console.log('Monthly - Processing logs count:', fastingLogs.length);
   console.log('Monthly - Time frame:', monthAgo.toISOString(), 'to', now.toISOString());
@@ -100,7 +108,7 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       }
       
       // Adjust start time if it's before our window
-      const effectiveStartTime = isBefore(startTime, monthAgo) ? monthAgo : startTime;
+      const effectiveStartTime = startTime < monthAgo ? monthAgo : startTime;
       
       // For each week, check if this fast falls within it
       for (let weekIndex = 0; weekIndex < 5; weekIndex++) {
@@ -123,7 +131,6 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
           const fastingSecondsInWeek = differenceInSeconds(fastEndInWeek, fastStartInWeek);
           const fastingHoursInWeek = fastingSecondsInWeek / 3600;
           fastingHoursByWeek[weekIndex] += fastingHoursInWeek;
-          weekHasActivity[weekIndex] = true;
           
           console.log(`Monthly - Adding ${fastingHoursInWeek.toFixed(2)}h to Week ${weekIndex + 1}`);
         }
@@ -133,36 +140,27 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
     }
   });
   
-  // Only include weeks with actual fasting activity
-  const result = [];
-  
   // Calculate eating hours based on total elapsed time minus fasting time
   for (let i = 0; i < 5; i++) {
     if (totalHoursByWeek[i] > 0) {
       // Set fasting hours (capped at total hours)
-      const fastingHours = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
+      data[i].fasting = Math.min(fastingHoursByWeek[i], totalHoursByWeek[i]);
       
       // Calculate eating hours (total - fasting, minimum 0)
-      const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHours);
+      const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHoursByWeek[i]);
       
-      result.push({
-        day: `Week ${i + 1}`,
-        fasting: fastingHours,
-        eating: -eatingHours // Negative for display to the left of the y-axis
-      });
+      // Make eating hours for the chart
+      data[i].eating = eatingHours; // Will be negated in prepareChartData
       
-      console.log(`Monthly - Final Week ${i + 1}: fasting=${fastingHours.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
+      console.log(`Monthly - Final Week ${i + 1}: fasting=${data[i].fasting.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
   }
   
-  // Sort weeks in chronological order (Week 1 first)
-  result.sort((a, b) => {
-    const weekA = parseInt(a.day.split(' ')[1]);
-    const weekB = parseInt(b.day.split(' ')[1]);
-    return weekA - weekB;
-  });
+  // Only keep weeks with activity
+  const filteredData = data.filter((week, i) => totalHoursByWeek[i] > 0);
   
-  console.log('Monthly - Chart data:', result);
+  // For debugging
+  console.log('Monthly - Chart data:', filteredData);
   
-  return result;
+  return filteredData;
 };

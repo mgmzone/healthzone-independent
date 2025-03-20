@@ -146,7 +146,7 @@ export const prepareYearlyChartData = (fastingLogs: FastingLog[]) => {
       result.push({
         day: monthKey,
         fasting: fastingHours,
-        eating: -eatingHours // Make eating hours negative for the chart
+        eating: eatingHours // Will be made negative in prepareChartData
       });
       
       console.log(`Period - Final Month ${monthKey}: fasting=${fastingHours.toFixed(2)}h, total=${data.totalHours.toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
