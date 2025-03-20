@@ -53,9 +53,9 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
-  // Define colors explicitly
-  const fastingColor = "hsl(var(--primary))"; // Blue
-  const eatingColor = "hsl(var(--destructive))"; // Red
+  // Define colors explicitly - using hex values for more reliable rendering
+  const fastingColor = "#0EA5E9"; // Blue
+  const eatingColor = "#F43F5E"; // Red
 
   console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
   
@@ -112,7 +112,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             verticalAlign="top" 
             height={36}
             formatter={(value) => (
-              <span className={value === 'eating' ? 'text-destructive' : 'text-primary'}>
+              <span style={{ color: value === 'eating' ? eatingColor : fastingColor }}>
                 {value === 'eating' ? 'Eating Time' : 'Fasting Time'}
               </span>
             )}
