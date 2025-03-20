@@ -56,8 +56,9 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   // Define colors explicitly - using hex values for more reliable rendering
   const fastingColor = "#0EA5E9"; // Blue
   const eatingColor = "#F43F5E"; // Red
-
+  
   console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
+  console.log('FastingBarChart - Colors being used:', { fastingColor, eatingColor });
   
   // Filter out entries where BOTH fasting and eating are 0 or undefined
   const filteredChartData = chartData.filter(item => 
@@ -111,35 +112,39 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           <Legend 
             verticalAlign="top" 
             height={36}
-            formatter={(value) => (
-              <span style={{ color: value === 'eating' ? eatingColor : fastingColor }}>
-                {value === 'eating' ? 'Eating Time' : 'Fasting Time'}
-              </span>
-            )}
+            formatter={(value) => {
+              console.log('Legend formatter called for value:', value);
+              return (
+                <span style={{ color: value === 'eating' ? eatingColor : fastingColor }}>
+                  {value === 'eating' ? 'Eating Time' : 'Fasting Time'}
+                </span>
+              );
+            }}
           />
           <ReferenceLine x={0} stroke="#666" />
-          {/* Use explicit bars instead of one bar with stacking */}
+          
+          {/* Eating bar (negative values) - explicitly set to RED */}
           <Bar 
             dataKey="eating" 
             name="eating"
-            fill={eatingColor}
-            stackId="a"
             radius={[4, 0, 0, 4]}
           >
-            {filteredChartData.map((entry, index) => (
-              <Cell key={`cell-eating-${index}`} fill={eatingColor} />
-            ))}
+            {filteredChartData.map((entry, index) => {
+              console.log(`Rendering eating cell ${index} with color: ${eatingColor}`);
+              return <Cell key={`cell-eating-${index}`} fill={eatingColor} />;
+            })}
           </Bar>
+          
+          {/* Fasting bar (positive values) - explicitly set to BLUE */}
           <Bar 
             dataKey="fasting" 
             name="fasting"
-            fill={fastingColor}
-            stackId="a" 
             radius={[0, 4, 4, 0]}
           >
-            {filteredChartData.map((entry, index) => (
-              <Cell key={`cell-fasting-${index}`} fill={fastingColor} />
-            ))}
+            {filteredChartData.map((entry, index) => {
+              console.log(`Rendering fasting cell ${index} with color: ${fastingColor}`);
+              return <Cell key={`cell-fasting-${index}`} fill={fastingColor} />;
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -148,3 +153,4 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
 };
 
 export default FastingBarChart;
+
