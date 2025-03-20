@@ -81,6 +81,32 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     );
   }
   
+  // Custom legend that renders colored squares
+  const CustomLegend = (props: any) => {
+    const { payload } = props;
+    
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+        {payload.map((entry: any, index: number) => {
+          const color = entry.value === 'eating' ? eatingColor : fastingColor;
+          return (
+            <div key={`legend-${index}`} style={{ display: 'flex', alignItems: 'center', marginRight: 20 }}>
+              <div style={{ 
+                width: 10, 
+                height: 10, 
+                backgroundColor: color, 
+                marginRight: 5 
+              }} />
+              <span style={{ color }}>
+                {entry.value === 'eating' ? 'Eating Time' : 'Fasting Time'}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+  
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -88,7 +114,8 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           data={filteredChartData}
           margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
           layout="vertical" // Set layout to vertical for horizontal bars
-          barCategoryGap={20} // Increase gap between day groups
+          barCategoryGap={8} // Gap between category groups, reduced to bring bars closer
+          barGap={0} // No gap between bars in the same category
           barSize={20} // Control bar thickness
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
@@ -110,41 +137,34 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
+            content={<CustomLegend />}
             verticalAlign="top" 
             height={36}
-            formatter={(value) => {
-              console.log('Legend formatter called for value:', value);
-              return (
-                <span style={{ color: value === 'eating' ? eatingColor : fastingColor }}>
-                  {value === 'eating' ? 'Eating Time' : 'Fasting Time'}
-                </span>
-              );
-            }}
           />
           <ReferenceLine x={0} stroke="#666" />
           
-          {/* Eating bar (negative values) - explicitly set to RED */}
+          {/* Eating bar (negative values) - RED with left rounded corners */}
           <Bar 
             dataKey="eating" 
             name="eating"
-            radius={[4, 0, 0, 4]}
+            stackId="a" // Use stackId to align bars
+            radius={[4, 0, 0, 4]} // Left side rounded corners
           >
-            {filteredChartData.map((entry, index) => {
-              console.log(`Rendering eating cell ${index} with color: ${eatingColor}`);
-              return <Cell key={`cell-eating-${index}`} fill={eatingColor} />;
-            })}
+            {filteredChartData.map((entry, index) => (
+              <Cell key={`cell-eating-${index}`} fill={eatingColor} />
+            ))}
           </Bar>
           
-          {/* Fasting bar (positive values) - explicitly set to BLUE */}
+          {/* Fasting bar (positive values) - BLUE with right rounded corners */}
           <Bar 
             dataKey="fasting" 
             name="fasting"
-            radius={[0, 4, 4, 0]}
+            stackId="a" // Use stackId to align bars
+            radius={[0, 4, 4, 0]} // Right side rounded corners
           >
-            {filteredChartData.map((entry, index) => {
-              console.log(`Rendering fasting cell ${index} with color: ${fastingColor}`);
-              return <Cell key={`cell-fasting-${index}`} fill={fastingColor} />;
-            })}
+            {filteredChartData.map((entry, index) => (
+              <Cell key={`cell-fasting-${index}`} fill={fastingColor} />
+            ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -153,4 +173,3 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
 };
 
 export default FastingBarChart;
-
