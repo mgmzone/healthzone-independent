@@ -89,7 +89,6 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
           layout="vertical" // Vertical layout for horizontal bars
           barSize={20} // Control bar thickness
-          stackId="0"
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
           <XAxis 
@@ -124,6 +123,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             name="eating"
             fill={eatingColor}
             stroke={eatingColor}
+            stackId="a" // Same stackId for both bars to align them
             radius={[4, 0, 0, 4]} // Left side rounded corners
           />
           
@@ -133,6 +133,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             name="fasting"
             fill={fastingColor} 
             stroke={fastingColor}
+            stackId="a" // Same stackId for both bars to align them
             radius={[0, 4, 4, 0]} // Right side rounded corners
           />
         </BarChart>

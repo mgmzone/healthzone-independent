@@ -1,3 +1,4 @@
+
 import { FastingLog } from '@/lib/types';
 import {
   differenceInSeconds,
@@ -149,8 +150,8 @@ export const prepareMonthlyChartData = (fastingLogs: FastingLog[]) => {
       // Calculate eating hours (total - fasting, minimum 0)
       const eatingHours = Math.max(0, totalHoursByWeek[i] - fastingHoursByWeek[i]);
       
-      // Make eating hours for the chart
-      data[i].eating = eatingHours; // Will be negated in prepareChartData
+      // Make eating hours negative for the chart
+      data[i].eating = -eatingHours;
       
       console.log(`Monthly - Final Week ${i + 1}: fasting=${data[i].fasting.toFixed(2)}h, total=${totalHoursByWeek[i].toFixed(2)}h, eating=${eatingHours.toFixed(2)}h`);
     }
