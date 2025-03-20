@@ -116,7 +116,7 @@ export const prepareChartData = (
   const sanitizedResult = result.map(item => ({
     day: item.day,
     fasting: isNaN(Number(item.fasting)) ? 0 : Number(item.fasting),
-    eating: isNaN(Number(item.eating)) ? 0 : -Math.abs(Number(item.eating))
+    eating: isNaN(Number(item.eating)) ? 0 : Number(item.eating) < 0 ? Number(item.eating) : -Math.abs(Number(item.eating))
   }));
   
   // Log the final processed data

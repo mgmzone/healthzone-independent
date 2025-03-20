@@ -60,11 +60,18 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
   console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
   console.log('FastingBarChart - Colors being used:', { fastingColor, eatingColor });
   
+  // Make sure eating values are negative for proper display
+  const processedChartData = chartData.map(item => ({
+    ...item,
+    eating: item.eating < 0 ? item.eating : -Math.abs(item.eating)
+  }));
+  
   // Filter out entries where BOTH fasting and eating are 0 or undefined
-  const filteredChartData = chartData.filter(item => 
+  const filteredChartData = processedChartData.filter(item => 
     item && (Math.abs(item.fasting || 0) > 0.01 || Math.abs(item.eating || 0) > 0.01)
   );
   
+  console.log('FastingBarChart - Processed data:', JSON.stringify(processedChartData, null, 2));
   console.log('FastingBarChart - Filtered data:', JSON.stringify(filteredChartData, null, 2));
   console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 

@@ -167,7 +167,7 @@ export const prepareWeeklyChartData = (fastingLogs: FastingLog[]) => {
       result.push({
         day: days[i],
         fasting: cappedFastingHours,
-        eating: eatingHours // Will be made negative in prepareChartData
+        eating: -eatingHours // Make eating hours negative for the chart
       });
       
       console.log(`Weekly - Final day (${days[i]}): fasting=${cappedFastingHours.toFixed(2)}h, eating=${Math.abs(eatingHours).toFixed(2)}h, total=${totalHoursByDay[i].toFixed(2)}h`);
