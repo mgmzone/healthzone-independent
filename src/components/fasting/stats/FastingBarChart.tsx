@@ -118,6 +118,7 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             )}
           />
           <ReferenceLine x={0} stroke="#666" />
+          {/* Use explicit bars instead of one bar with stacking */}
           <Bar 
             dataKey="eating" 
             name="eating"
