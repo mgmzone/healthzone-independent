@@ -81,42 +81,15 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     );
   }
   
-  // Custom legend that renders colored squares
-  const CustomLegend = (props: any) => {
-    const { payload } = props;
-    
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-        {payload.map((entry: any, index: number) => {
-          const color = entry.value === 'eating' ? eatingColor : fastingColor;
-          return (
-            <div key={`legend-${index}`} style={{ display: 'flex', alignItems: 'center', marginRight: 20 }}>
-              <div style={{ 
-                width: 10, 
-                height: 10, 
-                backgroundColor: color, 
-                marginRight: 5 
-              }} />
-              <span style={{ color }}>
-                {entry.value === 'eating' ? 'Eating Time' : 'Fasting Time'}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-  
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={filteredChartData}
           margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
-          layout="vertical" // Set layout to vertical for horizontal bars
-          barCategoryGap={8} // Gap between category groups, reduced to bring bars closer
-          barGap={0} // No gap between bars in the same category
+          layout="vertical" // Vertical layout for horizontal bars
           barSize={20} // Control bar thickness
+          stackId="0"
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
           <XAxis 
@@ -137,35 +110,31 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
-            content={<CustomLegend />}
             verticalAlign="top" 
             height={36}
+            formatter={(value) => value === 'eating' ? 'Eating Time' : 'Fasting Time'} 
+            iconType="square"
+            iconSize={10}
           />
           <ReferenceLine x={0} stroke="#666" />
           
-          {/* Eating bar (negative values) - RED with left rounded corners */}
+          {/* Eating bar (negative values) */}
           <Bar 
             dataKey="eating" 
             name="eating"
-            stackId="a" // Use stackId to align bars
+            fill={eatingColor}
+            stroke={eatingColor}
             radius={[4, 0, 0, 4]} // Left side rounded corners
-          >
-            {filteredChartData.map((entry, index) => (
-              <Cell key={`cell-eating-${index}`} fill={eatingColor} />
-            ))}
-          </Bar>
+          />
           
-          {/* Fasting bar (positive values) - BLUE with right rounded corners */}
+          {/* Fasting bar (positive values) */}
           <Bar 
             dataKey="fasting" 
             name="fasting"
-            stackId="a" // Use stackId to align bars
+            fill={fastingColor} 
+            stroke={fastingColor}
             radius={[0, 4, 4, 0]} // Right side rounded corners
-          >
-            {filteredChartData.map((entry, index) => (
-              <Cell key={`cell-fasting-${index}`} fill={fastingColor} />
-            ))}
-          </Bar>
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
