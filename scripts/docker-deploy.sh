@@ -80,9 +80,9 @@ done
 print_success "Environment variables validated"
 
 # Stop existing container if running
-if docker-compose ps | grep -q "healthzone-app"; then
+if docker compose ps | grep -q "healthzone-app"; then
     print_status "Stopping existing HealthZone container..."
-    docker-compose down
+    docker compose down
 fi
 
 # Remove old images (optional, saves space)
@@ -94,10 +94,10 @@ fi
 
 # Build and start the container
 print_status "Building HealthZone Docker image..."
-docker-compose build --no-cache
+docker compose build --no-cache
 
 print_status "Starting HealthZone container..."
-docker-compose up -d
+docker compose up -d
 
 # Wait for container to be healthy
 print_status "Waiting for container to be healthy..."
@@ -105,7 +105,7 @@ timeout=60
 counter=0
 
 while [ $counter -lt $timeout ]; do
-    if docker-compose ps | grep -q "healthy"; then
+    if docker compose ps | grep -q "healthy"; then
         print_success "Container is healthy and running!"
         break
     fi
@@ -113,7 +113,7 @@ while [ $counter -lt $timeout ]; do
     if [ $counter -eq $timeout ]; then
         print_error "Container failed to become healthy within $timeout seconds"
         print_status "Container logs:"
-        docker-compose logs healthzone
+        docker compose logs healthzone
         exit 1
     fi
     
@@ -128,7 +128,7 @@ echo ""
 print_success "🎉 HealthZone deployment completed!"
 echo ""
 echo "📊 Container Status:"
-docker-compose ps
+docker compose ps
 
 echo ""
 echo "🌐 Access Information:"
@@ -146,9 +146,9 @@ echo "   3. Test the application through your Cloudflare domain"
 echo "   4. Deploy Supabase Edge Functions (see DEPLOYMENT.md)"
 echo ""
 echo "📋 Management Commands:"
-echo "   View logs:    docker-compose logs -f"
-echo "   Stop:         docker-compose down"
-echo "   Restart:      docker-compose restart"
+echo "   View logs:    docker compose logs -f"
+echo "   Stop:         docker compose down"
+echo "   Restart:      docker compose restart"
 echo "   Update:       ./scripts/docker-deploy.sh --clean"
 echo ""
 

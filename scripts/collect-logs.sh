@@ -18,7 +18,7 @@ echo "🖥️ Collecting system info..."
     echo ""
     echo "=== Docker Version ==="
     docker --version
-    docker-compose --version
+    docker compose --version
     echo ""
     echo "=== Disk Usage ==="
     df -h
@@ -34,7 +34,7 @@ echo "🐳 Collecting Docker info..."
     docker system info 2>/dev/null || echo "Docker system info failed"
     echo ""
     echo "=== Container Status ==="
-    docker-compose ps 2>/dev/null || echo "Docker compose ps failed"
+    docker compose ps 2>/dev/null || echo "Docker compose ps failed"
     echo ""
     echo "=== Docker Images ==="
     docker images | grep healthzone
@@ -42,8 +42,8 @@ echo "🐳 Collecting Docker info..."
 
 # Application logs
 echo "📄 Collecting application logs..."
-if docker-compose ps | grep -q healthzone; then
-    docker-compose logs --tail=1000 > "$LOG_DIR/app-logs.txt" 2>&1
+if docker compose ps | grep -q healthzone; then
+    docker compose logs --tail=1000 > "$LOG_DIR/app-logs.txt" 2>&1
 else
     echo "No running healthzone container found" > "$LOG_DIR/app-logs.txt"
 fi
@@ -68,7 +68,7 @@ echo "⚙️ Collecting configuration..."
 echo "🏥 Running health checks..."
 {
     echo "=== Container Health Check ==="
-    if docker-compose ps | grep -q healthy; then
+    if docker compose ps | grep -q healthy; then
         echo "Container is healthy"
     else
         echo "Container is not healthy"
@@ -104,7 +104,7 @@ echo ""
 echo "🔍 Quick summary:"
 echo "   System: $(uname -s) $(uname -r)"
 echo "   Docker: $(docker --version 2>/dev/null || echo 'Not available')"
-echo "   Container: $(docker-compose ps 2>/dev/null | grep healthzone || echo 'Not running')"
+echo "   Container: $(docker compose ps 2>/dev/null | grep healthzone || echo 'Not running')"
 echo ""
 
 # Cleanup

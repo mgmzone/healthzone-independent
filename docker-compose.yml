@@ -1,6 +1,4 @@
 # HealthZone Docker Compose - Optimized for Cloudflare Tunnel
-version: '3.8'
-
 services:
   healthzone:
     build:
