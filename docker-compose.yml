@@ -1,0 +1,54 @@
+# HealthZone Docker Compose - Optimized for Cloudflare Tunnel
+services:
+  healthzone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthzone-app
+    restart: unless-stopped
+    
+    # Internal port only - Cloudflare Tunnel will handle external access
+    ports:
+      - "3001:80"  # Change this port if you have conflicts
+    
+    environment:
+      - NODE_ENV=production
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Volume for logs (optional)
+    volumes:
+      - healthzone-logs:/var/log/nginx
+    
+    # Resource limits (adjust based on your homelab resources)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    
+    # Labels for container management
+    labels:
+      - "com.healthzone.description=HealthZone Web Application"
+      - "com.healthzone.version=1.0.0"
+      - "traefik.enable=false"  # We're using Cloudflare Tunnel, not Traefik
+
+# Named volumes
+volumes:
+  healthzone-logs:
+    driver: local
+
+# Networks (optional, using default bridge)
+networks:
+  default:
+    name: healthzone-network

@@ -13,9 +13,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "http://localhost:8080",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 // Email template types
@@ -32,10 +33,25 @@ interface EmailRequest {
   data?: Record<string, any>;
 }
 
+// Sanitize HTML content to prevent XSS attacks
+function sanitizeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Replace placeholders in a string with actual values
 function replacePlaceholders(template: string, data: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    return data[key] !== undefined ? String(data[key]) : match;
+    if (data[key] !== undefined) {
+      // Sanitize the replacement value to prevent XSS
+      const value = String(data[key]);
+      return sanitizeHtml(value);
+    }
+    return match;
   });
 }
 
@@ -148,8 +164,9 @@ const handler = async (req: Request): Promise<Response> => {
     const emailContent = await generateEmailContent(type, name, data);
 
     // Send the email
+    const fromEmail = Deno.env.get("FROM_EMAIL") || "HealthZone <noreply@yourdomain.com>";
     const emailResponse = await resend.emails.send({
-      from: "HealthZone <onboarding@resend.dev>", // Update with your verified domain
+      from: fromEmail,
       to: [email],
       subject: emailContent.subject,
       html: emailContent.html,

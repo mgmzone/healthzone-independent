@@ -205,8 +205,9 @@ const handler = async (_req: Request): Promise<Response> => {
           appUrl
         });
         
+        const fromEmail = Deno.env.get("FROM_EMAIL") || "HealthZone <noreply@yourdomain.com>";
         const emailResponse = await resend.emails.send({
-          from: "HealthZone <onboarding@resend.dev>", // Update with your verified domain
+          from: fromEmail,
           to: [summary.email],
           subject: emailContent.subject,
           html: emailContent.html,
