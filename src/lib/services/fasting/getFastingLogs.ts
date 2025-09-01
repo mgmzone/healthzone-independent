@@ -10,6 +10,11 @@ export async function getFastingLogs(limit?: number) {
 
   const period = await getCurrentPeriodRange();
 
+  if (!period?.start) {
+    // No active period → show no data
+    return [];
+  }
+
   let query = supabase
     .from('fasting_logs')
     .select('*')

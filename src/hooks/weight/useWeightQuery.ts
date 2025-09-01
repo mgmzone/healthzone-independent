@@ -11,6 +11,11 @@ export function useWeightQuery() {
     queryKey: ['weighIns'],
     queryFn: async () => {
       const period = await getCurrentPeriodRange();
+      if (!period?.start) {
+        // No active period → show no data
+        return [] as WeighIn[];
+      }
+
       let query = supabase
         .from('weigh_ins')
         .select('*')

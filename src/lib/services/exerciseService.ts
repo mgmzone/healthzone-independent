@@ -8,6 +8,11 @@ export async function getExerciseLogs(limit?: number) {
 
   const period = await getCurrentPeriodRange();
 
+  if (!period?.start) {
+    // No active period → show no data
+    return [];
+  }
+
   let query = supabase
     .from('exercise_logs')
     .select('*')
