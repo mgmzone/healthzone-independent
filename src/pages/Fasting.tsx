@@ -8,10 +8,14 @@ import FastingTimer from '@/components/fasting/FastingTimer';
 import FastingStats from '@/components/fasting/FastingStats';
 import FastingTable from '@/components/fasting/FastingTable';
 import FastingPageHeader from '@/components/fasting/FastingPageHeader';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import FastingEntryModal from '@/components/fasting/FastingEntryModal';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 
 const Fasting = () => {
   const { profile } = useAuth();
@@ -31,6 +35,8 @@ const Fasting = () => {
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'year'>('week');
   const currentPeriod = getCurrentPeriod();
 
+  const navigate = useNavigate();
+
   if (isLoading) {
     return (
       <Layout>
@@ -47,11 +53,25 @@ const Fasting = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-16">
+        {!currentPeriod && (
+          <Alert className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No active period</AlertTitle>
+            <AlertDescription className="flex justify-between items-center">
+              <span>Create a period to start or log fasting.</span>
+              <Button size="sm" variant="outline" onClick={() => navigate('/periods')}>
+                Create Period
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <FastingPageHeader 
           onAddFast={() => setIsModalOpen(true)}
           activeFast={activeFast}
           onStartFast={startFast}
           onEndFast={endFast}
+          isPeriodActive={!!currentPeriod}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

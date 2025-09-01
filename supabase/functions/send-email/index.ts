@@ -11,13 +11,18 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// CORS headers for cross-origin requests
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "http://localhost:8080",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// Compute CORS headers dynamically to support multiple allowed origins
+function buildCorsHeaders(req: Request) {
+  const allowed = (Deno.env.get("ALLOWED_ORIGIN") || "http://localhost:8080,http://localhost:5173,http://localhost:8081").split(",").map(s => s.trim());
+  const reqOrigin = req.headers.get("Origin") || "";
+  const originToUse = allowed.includes(reqOrigin) ? reqOrigin : allowed[0] || "*";
+  return {
+    "Access-Control-Allow-Origin": originToUse,
+    "Vary": "Origin",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  } as Record<string, string>;
+}
 
 // Email template types
 export type EmailType = 
@@ -151,7 +156,7 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: buildCorsHeaders(req) });
   }
 
   try {
@@ -179,7 +184,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        ...corsHeaders,
+        ...buildCorsHeaders(req),
       },
     });
   } catch (error: any) {
@@ -193,7 +198,7 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
       }
     );
   }

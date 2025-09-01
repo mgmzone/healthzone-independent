@@ -1,6 +1,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { WeighIn } from "@/lib/types";
+import { getCurrentPeriodInfo } from '@/lib/services/periodsService';
 
 export async function getWeighIns(limit?: number) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -42,6 +43,10 @@ export async function addWeighIn(weighInData: Partial<WeighIn>) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  // Require an active period and attach its id
+  const period = await getCurrentPeriodInfo();
+  if (!period?.id) throw new Error('No active period. Create a period before adding data.');
+
   // Convert camelCase to snake_case for DB and Date to string
   const dbData = {
     user_id: session.user.id,
@@ -52,7 +57,7 @@ export async function addWeighIn(weighInData: Partial<WeighIn>) {
     skeletal_muscle_mass: weighInData.skeletalMuscleMass,
     bone_mass: weighInData.boneMass,
     body_water_percentage: weighInData.bodyWaterPercentage,
-    period_id: weighInData.periodId
+    period_id: period.id
   };
 
   const { data, error } = await supabase

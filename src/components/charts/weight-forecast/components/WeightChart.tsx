@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine
 } from 'recharts';
-import { format, addDays } from 'date-fns';
+import { format, addDays, startOfMonth, addMonths, differenceInMonths } from 'date-fns';
 import CustomTooltip from '../../CustomTooltip';
 
 interface WeightChartProps {
@@ -39,6 +39,31 @@ const WeightChart: React.FC<WeightChartProps> = ({
   // Add padding to the end date to ensure labels aren't cut off
   // Reduced padding from 35 days to 15 days to minimize whitespace
   const paddedEndDate = addDays(new Date(endDate), 15).getTime();
+
+  // Generate clean, unique x-axis ticks at monthly boundaries to avoid
+  // dense/overlapping labels and Recharts duplicate key warnings
+  const xTicks = (() => {
+    const ticks: number[] = [];
+    const start = startOfMonth(new Date(startDate));
+    const end = new Date(paddedEndDate);
+    let cursor = start.getTime() < startDate 
+      ? addMonths(start, 1) 
+      : start;
+    while (cursor.getTime() <= end.getTime()) {
+      ticks.push(cursor.getTime());
+      cursor = addMonths(cursor, 1);
+    }
+    // Always include the very end marker if not aligned to a month
+    if (ticks.length === 0 || ticks[ticks.length - 1] < end.getTime()) {
+      ticks.push(end.getTime());
+    }
+    return ticks;
+  })();
+
+  const monthsSpan = differenceInMonths(new Date(paddedEndDate), new Date(startDate));
+  const tickFormat = (date: number) => monthsSpan <= 4
+    ? format(new Date(date), 'MMM d')
+    : format(new Date(date), 'MMM');
   
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -51,10 +76,11 @@ const WeightChart: React.FC<WeightChartProps> = ({
           dataKey="date"
           type="number"
           domain={[startDate, paddedEndDate]} 
-          tickFormatter={(date) => format(new Date(date), 'MMM d')}
+          ticks={xTicks}
+          tickFormatter={tickFormat}
           scale="time"
+          minTickGap={20}
           tick={{ fill: '#666', fontSize: 12 }}
-          allowDataOverflow
         />
         <YAxis 
           domain={[minWeight, maxWeight]}

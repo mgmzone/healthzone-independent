@@ -9,13 +9,15 @@ interface FastingPageHeaderProps {
   activeFast: FastingLog | null;
   onStartFast: () => void;
   onEndFast: () => void;
+  isPeriodActive?: boolean;
 }
 
 const FastingPageHeader: React.FC<FastingPageHeaderProps> = ({ 
   onAddFast, 
   activeFast, 
   onStartFast, 
-  onEndFast 
+  onEndFast,
+  isPeriodActive = true,
 }) => {
   return (
     <div className="flex justify-end items-center mb-6">
@@ -32,6 +34,7 @@ const FastingPageHeader: React.FC<FastingPageHeaderProps> = ({
         ) : (
           <Button 
             onClick={onStartFast}
+            disabled={!isPeriodActive}
             className="flex items-center gap-2"
           >
             <Play className="h-4 w-4" />
@@ -41,6 +44,7 @@ const FastingPageHeader: React.FC<FastingPageHeaderProps> = ({
         <Button 
           variant="outline" 
           onClick={onAddFast}
+          disabled={!isPeriodActive}
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />

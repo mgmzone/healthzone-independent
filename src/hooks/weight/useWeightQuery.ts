@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { WeighIn } from '@/lib/types';
 import { useWeightBase } from './useWeightBase';
+import { getCurrentPeriodRange } from '@/lib/services/periodsService';
 
 export function useWeightQuery() {
   const { toast, supabase } = useWeightBase();
@@ -9,10 +10,20 @@ export function useWeightQuery() {
   const { data: weighIns = [], isLoading } = useQuery({
     queryKey: ['weighIns'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const period = await getCurrentPeriodRange();
+      let query = supabase
         .from('weigh_ins')
         .select('*')
         .order('date', { ascending: false });
+
+      if (period?.start) {
+        query = query.gte('date', period.start);
+      }
+      if (period?.end) {
+        query = query.lte('date', period.end);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching weigh-ins:', error);

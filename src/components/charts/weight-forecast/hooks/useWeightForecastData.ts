@@ -122,18 +122,20 @@ export const useWeightForecastData = ({
   
   // Define chart domain
   const startDate = useMemo(() => {
-    return new Date(currentPeriod.startDate).getTime();
+    const d = new Date(currentPeriod.startDate as any);
+    const t = d.getTime();
+    return Number.isFinite(t) ? t : Date.now();
   }, [currentPeriod.startDate]);
   
   const endDate = useMemo(() => {
     // Use the projected end date from the period
     const projectedDate = currentPeriod.projectedEndDate ? 
-      new Date(currentPeriod.projectedEndDate) : 
+      new Date(currentPeriod.projectedEndDate as any) : 
       (currentPeriod.endDate ? 
-        new Date(currentPeriod.endDate) : 
+        new Date(currentPeriod.endDate as any) : 
         addDays(new Date(), 30)); // 30 days from now if no end date
-    
-    return projectedDate.getTime();
+    const t = projectedDate.getTime();
+    return Number.isFinite(t) ? t : addDays(new Date(), 30).getTime();
   }, [currentPeriod.projectedEndDate, currentPeriod.endDate]);
 
   return {

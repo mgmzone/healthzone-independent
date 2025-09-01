@@ -11,9 +11,16 @@ import { Plus } from 'lucide-react';
 import { TimeFilter } from '@/lib/types';
 import { useExerciseData } from '@/hooks/useExerciseData';
 import ExercisePageHeader from '@/components/exercise/ExercisePageHeader';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const Exercise = () => {
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  const { getCurrentPeriod } = usePeriodsData();
+  const currentPeriod = getCurrentPeriod();
+  const navigate = useNavigate();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
   const { 
     exerciseLogs, 
@@ -28,9 +35,22 @@ const Exercise = () => {
       <div className="container max-w-7xl py-6 space-y-6 mt-16">
         <ExercisePageHeader exerciseLogs={exerciseLogs} isLoading={isLoading} />
         
+        {!currentPeriod && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No active period</AlertTitle>
+            <AlertDescription className="flex justify-between items-center">
+              <span>Create a period to log exercise activities.</span>
+              <Button size="sm" variant="outline" onClick={() => navigate('/periods')}>
+                Create Period
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Exercise Tracker</h1>
-          <Button onClick={() => setIsEntryModalOpen(true)}>
+          <Button onClick={() => setIsEntryModalOpen(true)} disabled={!currentPeriod}>
             <Plus className="mr-2 h-4 w-4" /> Add Activity
           </Button>
         </div>

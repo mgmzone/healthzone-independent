@@ -26,6 +26,17 @@ const Weight = () => {
 
   const currentPeriod = getCurrentPeriod();
 
+  // Scope weigh-ins to the current period window
+  const periodWeighIns = React.useMemo(() => {
+    if (!currentPeriod) return weighIns;
+    const start = new Date(currentPeriod.startDate);
+    const end = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
+    return weighIns.filter(w => {
+      const d = new Date(w.date);
+      return d >= start && d <= end;
+    });
+  }, [weighIns, currentPeriod]);
+
   const { 
     convertWeight, 
     getLatestWeight, 
@@ -33,7 +44,7 @@ const Weight = () => {
     filterWeighInsByTimePeriod,
     calculateFilteredWeightChange,
     getStartingWeight
-  } = useWeightCalculations(weighIns, isImperial);
+  } = useWeightCalculations(periodWeighIns, isImperial);
 
   const filteredWeighIns = filterWeighInsByTimePeriod(timeFilter);
   
@@ -94,7 +105,7 @@ const Weight = () => {
           onAddWeight={() => setIsModalOpen(true)} 
         />
 
-        {weighIns.length === 0 ? (
+        {periodWeighIns.length === 0 ? (
           <WeightEmptyState 
             onAddWeight={() => setIsModalOpen(true)} 
             isPeriodActive={!!currentPeriod}

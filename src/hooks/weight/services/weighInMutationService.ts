@@ -26,12 +26,15 @@ export async function performWeighInMutation(
     bodyWaterPercentage?: number;
   } = {}
 ) {
+  if (!currentPeriod) {
+    throw new Error('No active period. Create a period before adding data.');
+  }
   // Prepare data for insertion
   const weighInData = await prepareWeighInData(
     supabase,
     weight, 
     date, 
-    currentPeriod?.id || null,
+    currentPeriod.id,
     additionalMetrics
   );
   

@@ -30,21 +30,34 @@ const DashboardContent = () => {
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
+  const currentPeriod = getCurrentPeriod();
+
   const getLatestWeight = () => {
     if (weighIns.length === 0) return null;
-    
-    const weightInKg = weighIns[0].weight;
+    const start = currentPeriod ? new Date(currentPeriod.startDate) : null;
+    const end = currentPeriod?.endDate ? new Date(currentPeriod.endDate) : new Date();
+    const scoped = start
+      ? weighIns.filter(w => {
+          const d = new Date(w.date);
+          return d >= start && d <= (end as Date);
+        })
+      : weighIns;
+    if (scoped.length === 0) return null;
+    const weightInKg = scoped[0].weight;
     return isImperial ? weightInKg * 2.20462 : weightInKg;
   };
 
   const latestWeight = getLatestWeight();
-  const currentPeriod = getCurrentPeriod();
 
   const calculateAverageWeightLoss = () => {
     if (!currentPeriod || weighIns.length < 2) return null;
     
     const periodStartDate = new Date(currentPeriod.startDate);
-    const relevantWeighIns = weighIns.filter(w => new Date(w.date) >= periodStartDate);
+    const periodEndDate = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
+    const relevantWeighIns = weighIns.filter(w => {
+      const d = new Date(w.date);
+      return d >= periodStartDate && d <= periodEndDate;
+    });
     
     if (relevantWeighIns.length < 2) return null;
     

@@ -62,5 +62,6 @@ export const getDaysRemaining = (endDate: Date | string | undefined, projectedEn
 // Helper to ensure we always have a Date object
 export const ensureDate = (dateValue: Date | string | undefined | null): Date | undefined => {
   if (!dateValue) return undefined;
-  return dateValue instanceof Date ? dateValue : new Date(dateValue);
+  const d = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return isNaN(d.getTime()) ? undefined : d;
 };

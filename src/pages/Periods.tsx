@@ -22,17 +22,27 @@ const Periods = () => {
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
+  const currentPeriod = getCurrentPeriod();
+
   // Get latest weight directly in the unit we need to display
   const getLatestWeight = () => {
     if (weighIns.length === 0) return null;
-    
+    // Restrict to current period window
+    const start = currentPeriod ? new Date(currentPeriod.startDate) : null;
+    const end = currentPeriod?.endDate ? new Date(currentPeriod.endDate) : new Date();
+    const scoped = start
+      ? weighIns.filter(w => {
+          const d = new Date(w.date);
+          return d >= start && d <= (end as Date);
+        })
+      : weighIns;
+    if (scoped.length === 0) return null;
     // Weight is stored in kg, convert to lbs if needed
-    const weightInKg = weighIns[0].weight;
+    const weightInKg = scoped[0].weight;
     return isImperial ? weightInKg * 2.20462 : weightInKg;
   };
 
   const latestWeight = getLatestWeight();
-  const currentPeriod = getCurrentPeriod();
 
   useEffect(() => {
     if (!periodsLoading && periods.length === 0) {

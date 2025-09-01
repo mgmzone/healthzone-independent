@@ -1,15 +1,25 @@
 import { supabase } from "@/lib/supabase";
 import { ExerciseLog } from "@/lib/types";
+import { getCurrentPeriodRange } from '@/lib/services/periodsService';
 
 export async function getExerciseLogs(limit?: number) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return [];
+
+  const period = await getCurrentPeriodRange();
 
   let query = supabase
     .from('exercise_logs')
     .select('*')
     .eq('user_id', session.user.id)
     .order('date', { ascending: false });
+
+  if (period?.start) {
+    query = query.gte('date', period.start);
+  }
+  if (period?.end) {
+    query = query.lte('date', period.end);
+  }
 
   if (limit) {
     query = query.limit(limit);
@@ -41,6 +51,10 @@ export async function getExerciseLogs(limit?: number) {
 export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
+
+  // Require an active period to add data
+  const period = await getCurrentPeriodRange();
+  if (!period) throw new Error('No active period. Create a period before adding data.');
 
   // Convert camelCase to snake_case for DB and Date to string
   const dbData = {

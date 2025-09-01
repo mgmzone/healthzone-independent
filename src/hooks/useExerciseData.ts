@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ExerciseLog, TimeFilter } from '@/lib/types';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { useAuth } from '@/lib/AuthContext';
+import { usePeriodQueries } from '@/hooks/periods/usePeriodQueries';
 import { 
   getExerciseLogs, 
   addExerciseLog as addExerciseLogService, 
@@ -16,16 +17,19 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { getCurrentPeriod } = usePeriodQueries();
+  const currentPeriod = getCurrentPeriod();
 
   useEffect(() => {
     const fetchExerciseLogs = async () => {
       setIsLoading(true);
       try {
         const logs = await getExerciseLogs();
-        
-        // Filter logs based on timeFilter
-        const filteredLogs = filterLogsByTimeFilter(logs, timeFilter);
-        
+
+        // Filter logs based on current period first, then by UI timeFilter
+        const periodFiltered = filterByCurrentPeriod(logs, currentPeriod);
+        const filteredLogs = filterLogsByTimeFilter(periodFiltered, timeFilter);
+
         setExerciseLogs(filteredLogs);
       } catch (error) {
         console.error('Error fetching exercise logs:', error);
@@ -45,7 +49,7 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
       setExerciseLogs([]);
       setIsLoading(false);
     }
-  }, [timeFilter, toast, user]);
+  }, [timeFilter, toast, user, currentPeriod]);
 
   const handleAddExerciseLog = async (data: Partial<ExerciseLog>) => {
     try {
@@ -151,5 +155,15 @@ function filterLogsByTimeFilter(logs: ExerciseLog[], timeFilter: TimeFilter): Ex
     
     // For 'period', keep all logs (will be filtered by period ID in a real implementation)
     return true;
+  });
+}
+
+function filterByCurrentPeriod(logs: ExerciseLog[], currentPeriod: { startDate: Date | string; endDate?: Date | string } | undefined) {
+  if (!currentPeriod) return logs;
+  const start = new Date(currentPeriod.startDate);
+  const end = currentPeriod.endDate ? new Date(currentPeriod.endDate) : new Date();
+  return logs.filter(log => {
+    const d = new Date(log.date);
+    return d >= start && d <= end;
   });
 }

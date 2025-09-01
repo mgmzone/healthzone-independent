@@ -34,7 +34,6 @@ export function usePeriodMutations() {
           type: period.type,
           start_date: period.startDate.toISOString(),
           end_date: period.endDate ? period.endDate.toISOString() : null,
-          original_end_date: period.endDate ? period.endDate.toISOString() : null,
           fasting_schedule: period.fastingSchedule,
           projected_end_date: projectedEndDate ? projectedEndDate.toISOString() : null,
           user_id: (await supabase.auth.getUser()).data.user?.id
@@ -46,6 +45,11 @@ export function usePeriodMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['periods'] });
+      // Period change affects all metrics; refresh dependent datasets
+      queryClient.invalidateQueries({ queryKey: ['weighIns'] });
+      queryClient.invalidateQueries({ queryKey: ['fastingLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['currentFast'] });
+      queryClient.invalidateQueries({ queryKey: ['exerciseLogs'] });
       toast({
         title: 'Period added',
         description: 'Your new period has been created successfully.',
@@ -89,6 +93,10 @@ export function usePeriodMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['periods'] });
+      queryClient.invalidateQueries({ queryKey: ['weighIns'] });
+      queryClient.invalidateQueries({ queryKey: ['fastingLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['currentFast'] });
+      queryClient.invalidateQueries({ queryKey: ['exerciseLogs'] });
       toast({
         title: 'Period updated',
         description: 'Your period has been updated successfully.',
@@ -114,6 +122,10 @@ export function usePeriodMutations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['periods'] });
+      queryClient.invalidateQueries({ queryKey: ['weighIns'] });
+      queryClient.invalidateQueries({ queryKey: ['fastingLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['currentFast'] });
+      queryClient.invalidateQueries({ queryKey: ['exerciseLogs'] });
       toast({
         title: 'Period deleted',
         description: 'Your period has been deleted successfully.',

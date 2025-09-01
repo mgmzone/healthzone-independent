@@ -41,12 +41,16 @@ const WeightForecastChart: React.FC<WeightForecastChartProps> = ({
     targetWeight
   });
 
+  const safeISO = (t: number) => {
+    const d = new Date(t);
+    return isNaN(d.getTime()) ? 'invalid' : d.toISOString();
+  };
   console.log('Chart data:', {
     actualDataCount: processedData.length,
     forecastDataCount: forecastData.length,
     combinedDataCount: combinedData.length,
-    startDate: new Date(startDate).toISOString(),
-    endDate: new Date(endDate).toISOString(),
+    startDate: safeISO(startDate),
+    endDate: safeISO(endDate),
     minWeight,
     maxWeight,
     displayTargetWeight,

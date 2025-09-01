@@ -2,6 +2,7 @@
 import { supabase } from "@/lib/supabase";
 import { transformFastingLogResponse } from './utils';
 import { calculateEatingWindowHours } from '@/components/fasting/utils/fastingUtils';
+import { getCurrentPeriodRange } from '@/lib/services/periodsService';
 
 export async function addFastingLog(fastData: {
   startTime: Date;
@@ -11,6 +12,10 @@ export async function addFastingLog(fastData: {
 }) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
+
+  // Require an active period to add data
+  const period = await getCurrentPeriodRange();
+  if (!period) throw new Error('No active period. Create a period before adding data.');
 
   const insertData: any = {
     user_id: session.user.id,
