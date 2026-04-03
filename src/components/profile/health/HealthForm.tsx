@@ -11,6 +11,7 @@ interface HealthFormProps {
     height?: number;
     fitnessLevel?: string;
     exerciseMinutesPerDay?: number;
+    targetMealsPerDay?: number;
     healthGoals?: string;
     measurementUnit?: string;
   };
@@ -78,6 +79,24 @@ const HealthForm: React.FC<HealthFormProps> = ({
             placeholder="Exercise Minutes Per Day"
             step="1"
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="targetMealsPerDay" className="text-left block">Meals Per Day</Label>
+          <Select
+            value={String(formData.targetMealsPerDay || 3)}
+            onValueChange={(value) => handleNumberChange('targetMealsPerDay', value)}
+          >
+            <SelectTrigger id="targetMealsPerDay">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1 (OMAD)</SelectItem>
+              <SelectItem value="2">2 meals</SelectItem>
+              <SelectItem value="3">3 meals</SelectItem>
+              <SelectItem value="4">4 meals</SelectItem>
+              <SelectItem value="5">5 meals</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       

@@ -24,6 +24,7 @@ export const useProfileFormState = () => {
     targetWeight: 0,
     fitnessLevel: 'moderate',
     exerciseMinutesPerDay: 30,
+    targetMealsPerDay: 3,
     healthGoals: '',
     measurementUnit: 'imperial',
     startingWeight: 0,
@@ -47,6 +48,7 @@ export const useProfileFormState = () => {
         startingWeight: profile.startingWeight || 0,
         fitnessLevel: profile.fitnessLevel || 'moderate',
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
+        targetMealsPerDay: profile.targetMealsPerDay || 3,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
       };
