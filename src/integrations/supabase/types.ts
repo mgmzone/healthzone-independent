@@ -9,6 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      daily_goal_entries: {
+        Row: {
+          created_at: string
+          date: string
+          goal_id: string
+          id: string
+          met: boolean
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          goal_id: string
+          id?: string
+          met?: boolean
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          goal_id?: string
+          id?: string
+          met?: boolean
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_goal_entries_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "daily_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_goals: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           created_at: string
@@ -149,6 +220,78 @@ export type Database = {
           fasting_hours?: number | null
           id?: string
           start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_logs: {
+        Row: {
+          anti_inflammatory: boolean
+          created_at: string
+          date: string
+          id: string
+          irritant_notes: string | null
+          irritant_violation: boolean
+          meal_slot: string
+          notes: string | null
+          protein_grams: number | null
+          protein_source: string | null
+          user_id: string
+        }
+        Insert: {
+          anti_inflammatory?: boolean
+          created_at?: string
+          date: string
+          id?: string
+          irritant_notes?: string | null
+          irritant_violation?: boolean
+          meal_slot: string
+          notes?: string | null
+          protein_grams?: number | null
+          protein_source?: string | null
+          user_id: string
+        }
+        Update: {
+          anti_inflammatory?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          irritant_notes?: string | null
+          irritant_violation?: boolean
+          meal_slot?: string
+          notes?: string | null
+          protein_grams?: number | null
+          protein_source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      protein_sources: {
+        Row: {
+          created_at: string
+          id: string
+          is_anti_inflammatory: boolean
+          name: string
+          sort_order: number
+          typical_protein_grams: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_anti_inflammatory?: boolean
+          name: string
+          sort_order?: number
+          typical_protein_grams?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_anti_inflammatory?: boolean
+          name?: string
+          sort_order?: number
+          typical_protein_grams?: number | null
           user_id?: string
         }
         Relationships: []

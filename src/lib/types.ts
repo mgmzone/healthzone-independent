@@ -77,6 +77,61 @@ export interface HealthStat {
   restingHeartRate?: number;
 }
 
+export interface MealLog {
+  id: string;
+  userId: string;
+  date: Date;
+  mealSlot: 'noon' | 'afternoon' | 'evening';
+  proteinGrams?: number;
+  proteinSource?: string;
+  irritantViolation: boolean;
+  irritantNotes?: string;
+  antiInflammatory: boolean;
+  notes?: string;
+}
+
+export interface ProteinSource {
+  id: string;
+  userId: string;
+  name: string;
+  typicalProteinGrams?: number;
+  isAntiInflammatory: boolean;
+  sortOrder: number;
+}
+
+export interface DailyGoal {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  category: 'dietary' | 'hydration' | 'supplement' | 'lifestyle';
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface DailyGoalEntry {
+  id: string;
+  userId: string;
+  goalId: string;
+  date: Date;
+  met: boolean;
+  notes?: string;
+}
+
+export type MealSlot = 'noon' | 'afternoon' | 'evening';
+
+export const MEAL_SLOT_LABELS: Record<MealSlot, string> = {
+  noon: '12:00 PM — Break Fast',
+  afternoon: '3:00 PM — Afternoon',
+  evening: '5:30 PM — Evening',
+};
+
+export const PROTEIN_TARGET_MIN = 130;
+export const PROTEIN_TARGET_MAX = 150;
+
+export const GOAL_CATEGORIES = ['dietary', 'hydration', 'supplement', 'lifestyle'] as const;
+export type GoalCategory = typeof GOAL_CATEGORIES[number];
+
 export type TimeFilter = 'week' | 'month' | 'period';
 
 // Mock data

@@ -59,6 +59,14 @@ export const getDaysRemaining = (endDate: Date | string | undefined, projectedEn
   return differenceInDays(end, today);
 };
 
+// Format a Date to YYYY-MM-DD in the local timezone (avoids UTC shift from toISOString)
+export const toLocalDateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Helper to ensure we always have a Date object
 export const ensureDate = (dateValue: Date | string | undefined | null): Date | undefined => {
   if (!dateValue) return undefined;

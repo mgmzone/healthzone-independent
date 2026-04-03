@@ -17,6 +17,7 @@ import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Admin from './pages/Admin';
+import Nutrition from './pages/Nutrition';
 import { AuthProvider } from './lib/auth';
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => {
             <Route path="/weight" element={<Weight />} />
             <Route path="/fasting" element={<Fasting />} />
             <Route path="/exercise" element={<Exercise />} />
+            <Route path="/nutrition" element={<Nutrition />} />
             <Route path="/periods" element={<Periods />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

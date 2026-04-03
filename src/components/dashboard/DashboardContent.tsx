@@ -5,6 +5,8 @@ import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useWeightData } from '@/hooks/useWeightData';
 import { useFastingData } from '@/hooks/useFastingData';
 import { useExerciseData } from '@/hooks/useExerciseData';
+import { useMealData } from '@/hooks/useMealData';
+import { useDailyGoalsData } from '@/hooks/useDailyGoalsData';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
@@ -25,6 +27,8 @@ const DashboardContent = () => {
   const { weighIns, isLoading: weighInsLoading } = useWeightData();
   const { fastingLogs } = useFastingData();
   const { exerciseLogs } = useExerciseData();
+  const { mealLogs } = useMealData();
+  const { activeGoals, entries: goalEntries } = useDailyGoalsData();
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
   
   const isImperial = profile?.measurementUnit === 'imperial';
@@ -152,12 +156,15 @@ const DashboardContent = () => {
           {!currentPeriod && <NoActivePeriodAlert />}
           {currentPeriod && currentMetrics && (
             <>
-              <DashboardCards 
+              <DashboardCards
                 latestWeight={latestWeight}
                 weightUnit={weightUnit}
                 currentPeriod={currentPeriod}
                 exerciseLogs={exerciseLogs}
                 fastingLogs={fastingLogs}
+                mealLogs={mealLogs}
+                activeGoals={activeGoals}
+                goalEntries={goalEntries}
                 currentMetrics={currentMetrics}
               />
 

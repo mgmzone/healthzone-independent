@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut, Calendar, Scale, ShieldCheck } from 'lucide-react';
+import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut, Calendar, Scale, ShieldCheck, Apple } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
@@ -38,6 +38,7 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
     { name: 'Weight', path: '/weight', icon: Scale },
     { name: 'Fasting', path: '/fasting', icon: Clock },
     { name: 'Exercise', path: '/exercise', icon: Dumbbell },
+    { name: 'Nutrition', path: '/nutrition', icon: Apple },
     { name: 'Periods', path: '/periods', icon: Calendar },
     { name: 'Profile', path: '/profile', icon: User },
   ];
