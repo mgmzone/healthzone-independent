@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, X } from 'lucide-react';
 import { DailyGoal, GoalCategory, GOAL_CATEGORIES } from '@/lib/types';
 
 interface GoalManagerProps {
@@ -50,6 +50,10 @@ const GoalManager: React.FC<GoalManagerProps> = ({
   const [newDescription, setNewDescription] = useState('');
   const [newCategory, setNewCategory] = useState<GoalCategory>('dietary');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editCategory, setEditCategory] = useState<GoalCategory>('dietary');
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
@@ -74,6 +78,27 @@ const GoalManager: React.FC<GoalManagerProps> = ({
 
   const handleToggleActive = async (goal: DailyGoal) => {
     await onUpdate(goal.id, { isActive: !goal.isActive });
+  };
+
+  const startEditing = (goal: DailyGoal) => {
+    setEditingId(goal.id);
+    setEditName(goal.name);
+    setEditDescription(goal.description || '');
+    setEditCategory(goal.category);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editName.trim()) return;
+    await onUpdate(editingId, {
+      name: editName.trim(),
+      description: editDescription.trim() || undefined,
+      category: editCategory,
+    });
+    setEditingId(null);
   };
 
   return (
@@ -141,39 +166,83 @@ const GoalManager: React.FC<GoalManagerProps> = ({
                 key={goal.id}
                 className="flex items-center justify-between py-2 px-3 rounded-lg border"
               >
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={!goal.isActive ? 'text-muted-foreground' : ''}>
-                        {goal.name}
-                      </span>
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {goal.category}
-                      </Badge>
-                      {!goal.isActive && (
-                        <Badge variant="secondary" className="text-xs">Paused</Badge>
-                      )}
+                {editingId === goal.id ? (
+                  <div className="flex-1 space-y-2 mr-2">
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      autoFocus
+                    />
+                    <Input
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder="Description (optional)"
+                    />
+                    <Select value={editCategory} onValueChange={(v) => setEditCategory(v as GoalCategory)}>
+                      <SelectTrigger className="w-[160px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GOAL_CATEGORIES.map(cat => (
+                          <SelectItem key={cat} value={cat}>{CATEGORY_LABELS[cat]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSaveEdit} disabled={!editName.trim()}>
+                        <Check className="h-3.5 w-3.5 mr-1" /> Save
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={cancelEditing}>
+                        <X className="h-3.5 w-3.5 mr-1" /> Cancel
+                      </Button>
                     </div>
-                    {goal.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{goal.description}</p>
-                    )}
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={goal.isActive}
-                    onCheckedChange={() => handleToggleActive(goal)}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-red-500 hover:text-red-600"
-                    onClick={() => setDeleteId(goal.id)}
-                    aria-label={`Delete ${goal.name}`}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={!goal.isActive ? 'text-muted-foreground' : ''}>
+                            {goal.name}
+                          </span>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {goal.category}
+                          </Badge>
+                          {!goal.isActive && (
+                            <Badge variant="secondary" className="text-xs">Paused</Badge>
+                          )}
+                        </div>
+                        {goal.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{goal.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => startEditing(goal)}
+                        aria-label={`Edit ${goal.name}`}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Switch
+                        checked={goal.isActive}
+                        onCheckedChange={() => handleToggleActive(goal)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-red-500 hover:text-red-600"
+                        onClick={() => setDeleteId(goal.id)}
+                        aria-label={`Delete ${goal.name}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             ))
           )}

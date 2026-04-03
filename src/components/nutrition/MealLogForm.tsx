@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -36,16 +36,28 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   proteinSources,
   initialData,
 }) => {
-  const [date, setDate] = useState<Date>(initialData?.date || new Date());
-  const [mealSlot, setMealSlot] = useState<MealSlot>(initialData?.mealSlot || 'noon');
-  const [proteinGrams, setProteinGrams] = useState<string>(
-    initialData?.proteinGrams?.toString() || ''
-  );
-  const [proteinSource, setProteinSource] = useState(initialData?.proteinSource || '');
-  const [irritantViolation, setIrritantViolation] = useState(initialData?.irritantViolation || false);
-  const [irritantNotes, setIrritantNotes] = useState(initialData?.irritantNotes || '');
-  const [antiInflammatory, setAntiInflammatory] = useState(initialData?.antiInflammatory || false);
-  const [notes, setNotes] = useState(initialData?.notes || '');
+  const [date, setDate] = useState<Date>(new Date());
+  const [mealSlot, setMealSlot] = useState<MealSlot>('noon');
+  const [proteinGrams, setProteinGrams] = useState<string>('');
+  const [proteinSource, setProteinSource] = useState('');
+  const [irritantViolation, setIrritantViolation] = useState(false);
+  const [irritantNotes, setIrritantNotes] = useState('');
+  const [antiInflammatory, setAntiInflammatory] = useState(false);
+  const [notes, setNotes] = useState('');
+
+  // Sync form state when initialData changes (edit mode)
+  useEffect(() => {
+    if (isOpen) {
+      setDate(initialData?.date ? new Date(initialData.date) : new Date());
+      setMealSlot(initialData?.mealSlot || 'noon');
+      setProteinGrams(initialData?.proteinGrams?.toString() || '');
+      setProteinSource(initialData?.proteinSource || '');
+      setIrritantViolation(initialData?.irritantViolation || false);
+      setIrritantNotes(initialData?.irritantNotes || '');
+      setAntiInflammatory(initialData?.antiInflammatory || false);
+      setNotes(initialData?.notes || '');
+    }
+  }, [isOpen, initialData]);
 
   const handleProteinSourceSelect = (sourceId: string) => {
     const source = proteinSources.find(s => s.id === sourceId);
@@ -72,13 +84,6 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       antiInflammatory,
       notes: notes || undefined,
     });
-    // Reset form before closing to avoid state updates on unmounted component
-    setProteinGrams('');
-    setProteinSource('');
-    setIrritantViolation(false);
-    setIrritantNotes('');
-    setAntiInflammatory(false);
-    setNotes('');
     onClose();
   };
 
