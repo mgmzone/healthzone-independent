@@ -163,6 +163,7 @@ const DashboardContent = () => {
                 exerciseLogs={exerciseLogs}
                 fastingLogs={fastingLogs}
                 mealLogs={mealLogs}
+                targetMealsPerDay={profile?.targetMealsPerDay || 3}
                 activeGoals={activeGoals}
                 goalEntries={goalEntries}
                 currentMetrics={currentMetrics}

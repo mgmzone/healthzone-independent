@@ -18,9 +18,10 @@ import {
 
 interface ProteinSummaryProps {
   mealLogs: MealLog[];
+  targetMealsPerDay: number;
 }
 
-const ProteinSummary: React.FC<ProteinSummaryProps> = ({ mealLogs }) => {
+const ProteinSummary: React.FC<ProteinSummaryProps> = ({ mealLogs, targetMealsPerDay }) => {
   // Today's protein
   const todayStr = toLocalDateString(new Date());
   const todayMeals = mealLogs.filter(
@@ -109,7 +110,7 @@ const ProteinSummary: React.FC<ProteinSummaryProps> = ({ mealLogs }) => {
                     : 'Above target'
                   : `${PROTEIN_TARGET_MIN - todayProtein}g to go`}
               </span>
-              <span>{todayMeals.length}/3 meals logged</span>
+              <span>{todayMeals.length}/{targetMealsPerDay} meals logged</span>
             </div>
           </div>
 

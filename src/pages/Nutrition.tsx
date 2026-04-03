@@ -3,6 +3,7 @@ import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { useMealData } from '@/hooks/useMealData';
 import { useDailyGoalsData } from '@/hooks/useDailyGoalsData';
@@ -20,6 +21,7 @@ import ProteinSourceManager from '@/components/nutrition/ProteinSourceManager';
 const Nutrition = () => {
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<MealLog | undefined>(undefined);
+  const { profile } = useAuth();
   const { getCurrentPeriod } = usePeriodsData();
   const currentPeriod = getCurrentPeriod();
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const Nutrition = () => {
   const {
     mealLogs,
     proteinSources,
+    recentMealNames,
     isLoading: mealsLoading,
     addMealLog,
     updateMealLog,
@@ -111,7 +114,7 @@ const Nutrition = () => {
                 getGoalStreak={getGoalStreak}
                 getPerfectDayStreak={getPerfectDayStreak}
               />
-              <ProteinSummary mealLogs={mealLogs} />
+              <ProteinSummary mealLogs={mealLogs} targetMealsPerDay={profile?.targetMealsPerDay || 3} />
             </div>
           </TabsContent>
 
@@ -148,6 +151,7 @@ const Nutrition = () => {
           onClose={handleCloseModal}
           onSave={handleSaveMeal}
           proteinSources={proteinSources}
+          recentMealNames={recentMealNames}
           initialData={editingMeal}
         />
       </div>

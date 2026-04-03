@@ -15,6 +15,7 @@ export interface User {
   lastName: string;
   avatarUrl?: string;
   startingWeight?: number;
+  targetMealsPerDay: number;
   isAdmin: boolean;
 }
 
@@ -81,7 +82,7 @@ export interface MealLog {
   id: string;
   userId: string;
   date: Date;
-  mealSlot: 'noon' | 'afternoon' | 'evening';
+  mealSlot: string;
   proteinGrams?: number;
   proteinSource?: string;
   irritantViolation: boolean;
@@ -118,13 +119,7 @@ export interface DailyGoalEntry {
   notes?: string;
 }
 
-export type MealSlot = 'noon' | 'afternoon' | 'evening';
-
-export const MEAL_SLOT_LABELS: Record<MealSlot, string> = {
-  noon: '12:00 PM — Break Fast',
-  afternoon: '3:00 PM — Afternoon',
-  evening: '5:30 PM — Evening',
-};
+export const DEFAULT_MEAL_NAMES = ['Meal 1', 'Meal 2', 'Meal 3'];
 
 export const PROTEIN_TARGET_MIN = 130;
 export const PROTEIN_TARGET_MAX = 150;
@@ -151,6 +146,7 @@ export const mockUser: User = {
   lastName: 'Doe',
   avatarUrl: '',
   startingWeight: 90,
+  targetMealsPerDay: 3,
   isAdmin: false,
 };
 

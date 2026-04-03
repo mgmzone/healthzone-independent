@@ -386,6 +386,7 @@ export type Database = {
           measurement_unit: string | null
           starting_weight: number | null
           system_notification_emails: boolean | null
+          target_meals_per_day: number | null
           target_weight: number | null
           updated_at: string
           weekly_summary_emails: boolean | null
@@ -407,6 +408,7 @@ export type Database = {
           measurement_unit?: string | null
           starting_weight?: number | null
           system_notification_emails?: boolean | null
+          target_meals_per_day?: number | null
           target_weight?: number | null
           updated_at?: string
           weekly_summary_emails?: boolean | null
@@ -428,6 +430,7 @@ export type Database = {
           measurement_unit?: string | null
           starting_weight?: number | null
           system_notification_emails?: boolean | null
+          target_meals_per_day?: number | null
           target_weight?: number | null
           updated_at?: string
           weekly_summary_emails?: boolean | null

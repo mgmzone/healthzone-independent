@@ -65,6 +65,7 @@ export async function getProfile() {
       lastName: data.last_name || '',
       avatarUrl: avatarUrl || data.avatar_url || '',
       startingWeight: data.starting_weight || 0,
+      targetMealsPerDay: data.target_meals_per_day || 3,
       isAdmin: data.is_admin || false // Added this field
     };
     return transformedData;
@@ -101,6 +102,7 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.measurementUnit !== undefined) dbProfileData.measurement_unit = profileData.measurementUnit;
   if (profileData.avatarUrl !== undefined) dbProfileData.avatar_url = profileData.avatarUrl;
   if (profileData.startingWeight !== undefined) dbProfileData.starting_weight = profileData.startingWeight;
+  if (profileData.targetMealsPerDay !== undefined) dbProfileData.target_meals_per_day = profileData.targetMealsPerDay;
 
   const { data, error } = await supabase
     .from('profiles')

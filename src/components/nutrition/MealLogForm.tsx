@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, useMemo, FormEvent } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MealLog, MealSlot, MEAL_SLOT_LABELS, ProteinSource } from '@/lib/types';
+import { MealLog, ProteinSource, DEFAULT_MEAL_NAMES } from '@/lib/types';
 import DatePickerField from '@/components/weight/DatePickerField';
 
 interface MealLogFormProps {
@@ -26,6 +26,7 @@ interface MealLogFormProps {
   onClose: () => void;
   onSave: (data: Partial<MealLog>) => Promise<any>;
   proteinSources: ProteinSource[];
+  recentMealNames: string[];
   initialData?: MealLog;
 }
 
@@ -34,10 +35,11 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   onClose,
   onSave,
   proteinSources,
+  recentMealNames,
   initialData,
 }) => {
   const [date, setDate] = useState<Date>(new Date());
-  const [mealSlot, setMealSlot] = useState<MealSlot>('noon');
+  const [mealSlot, setMealSlot] = useState('');
   const [proteinGrams, setProteinGrams] = useState<string>('');
   const [proteinSource, setProteinSource] = useState('');
   const [irritantViolation, setIrritantViolation] = useState(false);
@@ -45,11 +47,18 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   const [antiInflammatory, setAntiInflammatory] = useState(false);
   const [notes, setNotes] = useState('');
 
-  // Sync form state when initialData changes (edit mode)
+  // Build meal name suggestions from recent usage + defaults
+  const mealNameSuggestions = useMemo(() => {
+    const names = new Set<string>(recentMealNames);
+    DEFAULT_MEAL_NAMES.forEach(n => names.add(n));
+    return [...names];
+  }, [recentMealNames]);
+
+  // Sync form state when dialog opens
   useEffect(() => {
     if (isOpen) {
       setDate(initialData?.date ? new Date(initialData.date) : new Date());
-      setMealSlot(initialData?.mealSlot || 'noon');
+      setMealSlot(initialData?.mealSlot || '');
       setProteinGrams(initialData?.proteinGrams?.toString() || '');
       setProteinSource(initialData?.proteinSource || '');
       setIrritantViolation(initialData?.irritantViolation || false);
@@ -76,7 +85,7 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
     e.preventDefault();
     await onSave({
       date,
-      mealSlot,
+      mealSlot: mealSlot || 'Meal',
       proteinGrams: proteinGrams ? parseFloat(proteinGrams) : undefined,
       proteinSource: proteinSource || undefined,
       irritantViolation,
@@ -100,17 +109,24 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
               <DatePickerField date={date} onChange={setDate} />
             </div>
             <div className="space-y-2">
-              <Label>Meal Slot</Label>
-              <Select value={mealSlot} onValueChange={(v) => setMealSlot(v as MealSlot)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(MEAL_SLOT_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Meal Name</Label>
+              {mealNameSuggestions.length > 0 && (
+                <Select value={mealSlot} onValueChange={setMealSlot}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick or type below..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mealNameSuggestions.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Input
+                value={mealSlot}
+                onChange={(e) => setMealSlot(e.target.value)}
+                placeholder="e.g. Lunch, OMAD, Snack..."
+              />
             </div>
           </div>
 

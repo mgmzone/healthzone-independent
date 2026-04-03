@@ -7,12 +7,14 @@ import { toLocalDateString } from '@/lib/utils/dateUtils';
 
 interface NutritionCardProps {
   mealLogs: MealLog[];
+  targetMealsPerDay: number;
   cardClassName?: string;
   cardStyle?: React.CSSProperties;
 }
 
 const NutritionCard: React.FC<NutritionCardProps> = ({
   mealLogs,
+  targetMealsPerDay,
   cardClassName,
   cardStyle,
 }) => {
@@ -55,7 +57,7 @@ const NutritionCard: React.FC<NutritionCardProps> = ({
     },
     {
       label: "Meals Logged",
-      value: `${todayMeals.length}/3`,
+      value: `${todayMeals.length}/${targetMealsPerDay}`,
     },
     {
       label: "Protein Streak",

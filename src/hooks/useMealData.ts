@@ -178,6 +178,9 @@ export function useMealData() {
     return mealLogs.filter(log => toLocalDateString(new Date(log.date)) === today);
   };
 
+  // Computed: unique meal names from recent logs (for autocomplete)
+  const recentMealNames = [...new Set(mealLogs.map(log => log.mealSlot).filter(Boolean))];
+
   // Computed: daily protein total for a given date
   const getDailyProtein = (date: Date) => {
     const dateStr = toLocalDateString(date);
@@ -198,5 +201,6 @@ export function useMealData() {
     deleteProteinSource: handleDeleteProteinSource,
     getTodaysMeals,
     getDailyProtein,
+    recentMealNames,
   };
 }

@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Pencil, Trash2, AlertTriangle, Leaf } from 'lucide-react';
-import { MealLog, MEAL_SLOT_LABELS, MealSlot } from '@/lib/types';
+import { MealLog } from '@/lib/types';
 import { format } from 'date-fns';
 
 interface MealTableProps {
@@ -115,15 +115,10 @@ const MealTable: React.FC<MealTableProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {dayMeals
-                      .sort((a, b) => {
-                        const order: Record<string, number> = { noon: 0, afternoon: 1, evening: 2 };
-                        return (order[a.mealSlot] || 0) - (order[b.mealSlot] || 0);
-                      })
-                      .map(meal => (
+                    {dayMeals.map(meal => (
                         <TableRow key={meal.id}>
                           <TableCell className="text-sm">
-                            {MEAL_SLOT_LABELS[meal.mealSlot as MealSlot]?.split(' — ')[1] || meal.mealSlot}
+                            {meal.mealSlot}
                           </TableCell>
                           <TableCell className="font-medium">
                             {meal.proteinGrams ? `${meal.proteinGrams}g` : '—'}

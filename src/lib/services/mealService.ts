@@ -38,7 +38,7 @@ export async function getMealLogs() {
     id: item.id,
     userId: item.user_id,
     date: new Date(item.date + 'T12:00:00'),
-    mealSlot: item.meal_slot as 'noon' | 'afternoon' | 'evening',
+    mealSlot: item.meal_slot,
     proteinGrams: item.protein_grams || undefined,
     proteinSource: item.protein_source || undefined,
     irritantViolation: item.irritant_violation,

@@ -15,6 +15,7 @@ interface DashboardCardsProps {
   exerciseLogs: ExerciseLog[];
   fastingLogs: FastingLog[];
   mealLogs: MealLog[];
+  targetMealsPerDay: number;
   activeGoals: DailyGoal[];
   goalEntries: DailyGoalEntry[];
   currentMetrics: {
@@ -33,6 +34,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
   exerciseLogs,
   fastingLogs,
   mealLogs,
+  targetMealsPerDay,
   activeGoals,
   goalEntries,
   currentMetrics
@@ -68,7 +70,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
           showProgressCircle={true}
         />
 
-        <NutritionCard mealLogs={mealLogs} />
+        <NutritionCard mealLogs={mealLogs} targetMealsPerDay={targetMealsPerDay} />
 
         <GoalsCard activeGoals={activeGoals} entries={goalEntries} />
       </div>
