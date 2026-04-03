@@ -2,6 +2,7 @@ import React from 'react';
 import { Apple } from 'lucide-react';
 import { MealLog, PROTEIN_TARGET_MIN, PROTEIN_TARGET_MAX } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
+import ProgressCircle from '@/components/ProgressCircle';
 import { toLocalDateString } from '@/lib/utils/dateUtils';
 
 interface NutritionCardProps {
@@ -20,6 +21,7 @@ const NutritionCard: React.FC<NutritionCardProps> = ({
     log => toLocalDateString(new Date(log.date)) === todayStr
   );
   const todayProtein = todayMeals.reduce((sum, m) => sum + (m.proteinGrams || 0), 0);
+  const proteinPercent = Math.round((todayProtein / PROTEIN_TARGET_MIN) * 100);
 
   // Protein streak
   let proteinStreak = 0;
@@ -69,6 +71,18 @@ const NutritionCard: React.FC<NutritionCardProps> = ({
       color="#f97316"
       className={cardClassName}
       style={cardStyle}
+      footer={
+        <div className="mt-4 flex justify-center">
+          <ProgressCircle
+            value={proteinPercent}
+            showPercentage={true}
+            valueLabel={`${todayProtein}/${PROTEIN_TARGET_MIN}g`}
+            size={120}
+            strokeWidth={10}
+            allowExceedGoal={true}
+          />
+        </div>
+      }
     />
   );
 };

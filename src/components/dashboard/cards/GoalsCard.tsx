@@ -2,6 +2,7 @@ import React from 'react';
 import { Target } from 'lucide-react';
 import { DailyGoal, DailyGoalEntry } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
+import ProgressCircle from '@/components/ProgressCircle';
 import { subDays } from 'date-fns';
 import { toLocalDateString } from '@/lib/utils/dateUtils';
 
@@ -84,6 +85,17 @@ const GoalsCard: React.FC<GoalsCardProps> = ({
       color="#8b5cf6"
       className={cardClassName}
       style={cardStyle}
+      footer={
+        <div className="mt-4 flex justify-center">
+          <ProgressCircle
+            value={complianceRate}
+            showPercentage={true}
+            valueLabel={`${metCount}/${totalCount} goals`}
+            size={120}
+            strokeWidth={10}
+          />
+        </div>
+      }
     />
   );
 };
