@@ -152,7 +152,7 @@ export async function getDailyGoalEntries(startDate?: string, endDate?: string) 
     id: item.id,
     userId: item.user_id,
     goalId: item.goal_id,
-    date: new Date(item.date),
+    date: new Date(item.date + 'T12:00:00'),
     met: item.met,
     notes: item.notes || undefined,
   }));
@@ -193,7 +193,7 @@ export async function upsertDailyGoalEntry(entryData: {
     id: data.id,
     userId: data.user_id,
     goalId: data.goal_id,
-    date: new Date(data.date),
+    date: new Date(data.date + 'T12:00:00'),
     met: data.met,
     notes: data.notes || undefined,
   };
