@@ -35,13 +35,23 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 - Auth check at top of every service function: `supabase.auth.getSession()`
 - Toast notifications for all user-facing success/error feedback
 - Use `toLocalDateString()` from `src/lib/utils/dateUtils.ts` for date-to-string — never `toISOString().split('T')[0]` (timezone bug)
+- When converting date-only DB strings (e.g. `"2026-04-03"`) to Date objects, append `T12:00:00` — `new Date("2026-04-03")` parses as UTC midnight which shifts to the previous day in US timezones
+- Protein targets are centralized as `PROTEIN_TARGET_MIN` / `PROTEIN_TARGET_MAX` in `src/lib/types.ts`
+- Meal slots are freeform text (not a fixed enum) — users name their own meals
+- `target_meals_per_day` is on the `profiles` table, configurable in Profile > Health
 
 ## Supabase
 - Project ref: `kvmvekesxdzwodnfabdr`
 - CLI linked via `supabase link`
-- Push migrations: `supabase db push`
+- Push migrations: `supabase db push` — migration filenames must match `<timestamp>_name.sql` pattern
 - Query remote: `supabase db query --linked "SQL"`
 - Edge functions exist for email (send-email, send-weekly-summary) but are not fully operational
+- Supabase CLI auth expires periodically — run `supabase login` if push/query fails with SASL errors
+
+### Tables
+Core: `profiles`, `periods`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
+Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
+System: `email_templates`
 
 ## Git & Deployment
 - Remote uses SSH: `git@github.com-mgmzone:mgmzone/healthzone-independent.git`
