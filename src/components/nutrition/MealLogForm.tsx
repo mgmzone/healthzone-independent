@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -48,11 +48,7 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   const [notes, setNotes] = useState('');
 
   // Build meal name suggestions from recent usage + defaults
-  const mealNameSuggestions = useMemo(() => {
-    const names = new Set<string>(recentMealNames);
-    DEFAULT_MEAL_NAMES.forEach(n => names.add(n));
-    return [...names];
-  }, [recentMealNames]);
+  const mealNameSuggestions = [...new Set([...recentMealNames, ...DEFAULT_MEAL_NAMES])];
 
   // Sync form state when dialog opens
   useEffect(() => {
@@ -104,29 +100,20 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <DatePickerField date={date} onChange={setDate} />
-            </div>
+            <DatePickerField date={date} onChange={setDate} />
             <div className="space-y-2">
               <Label>Meal Name</Label>
-              {mealNameSuggestions.length > 0 && (
-                <Select value={mealSlot} onValueChange={setMealSlot}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pick or type below..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mealNameSuggestions.map(name => (
-                      <SelectItem key={name} value={name}>{name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
               <Input
                 value={mealSlot}
                 onChange={(e) => setMealSlot(e.target.value)}
                 placeholder="e.g. Lunch, OMAD, Snack..."
+                list="meal-name-suggestions"
               />
+              <datalist id="meal-name-suggestions">
+                {mealNameSuggestions.map(name => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
             </div>
           </div>
 
