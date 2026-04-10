@@ -150,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 500,
         system: systemParts.join("\n"),
         messages: [
@@ -174,10 +174,11 @@ const handler = async (req: Request): Promise<Response> => {
     const claudeData = await claudeResponse.json();
     const responseText = claudeData.content?.[0]?.text || "";
 
-    // Parse response
+    // Parse response — strip markdown code fences if present
     let result = { summary: "", highlights: [] as string[], concerns: [] as string[], tip: "" };
     try {
-      const parsed = JSON.parse(responseText);
+      const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      const parsed = JSON.parse(jsonStr);
       result.summary = parsed.summary || "";
       result.highlights = Array.isArray(parsed.highlights) ? parsed.highlights : [];
       result.concerns = Array.isArray(parsed.concerns) ? parsed.concerns : [];

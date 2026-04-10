@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20241022",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 300,
         system: systemParts.join("\n"),
         messages: [
@@ -115,11 +115,12 @@ const handler = async (req: Request): Promise<Response> => {
     const claudeData = await claudeResponse.json();
     const responseText = claudeData.content?.[0]?.text || "";
 
-    // Parse the JSON response from Claude
+    // Parse the JSON response from Claude — strip markdown code fences if present
     let proteinEstimate = 0;
     let assessment = "";
     try {
-      const parsed = JSON.parse(responseText);
+      const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      const parsed = JSON.parse(jsonStr);
       proteinEstimate = typeof parsed.proteinEstimate === "number" ? parsed.proteinEstimate : 0;
       assessment = parsed.assessment || "";
     } catch {
