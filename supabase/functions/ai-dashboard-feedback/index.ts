@@ -27,14 +27,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId }: DashboardFeedbackRequest = await req.json();
-
-    if (!userId) {
-      return new Response(JSON.stringify({ success: false, error: "userId is required" }), {
-        status: 400,
+    // Verify the user is authenticated via their JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: "Not authenticated" }), {
+        status: 401,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
       });
     }
+
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid or expired session" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
+      });
+    }
+
+    const userId = user.id;
 
     // Fetch user profile
     const { data: profile, error: profileError } = await supabase

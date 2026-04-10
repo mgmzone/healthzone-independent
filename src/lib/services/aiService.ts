@@ -17,12 +17,8 @@ export async function evaluateMeal(data: {
   notes?: string;
   mealSlot?: string;
 }): Promise<MealEvaluation> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error("Not authenticated");
-
   const { data: result, error } = await supabase.functions.invoke("evaluate-meal", {
     body: {
-      userId: session.user.id,
       proteinSource: data.proteinSource,
       notes: data.notes,
       mealSlot: data.mealSlot,
@@ -39,11 +35,8 @@ export async function evaluateMeal(data: {
 }
 
 export async function getDashboardFeedback(): Promise<DashboardFeedback> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error("Not authenticated");
-
   const { data: result, error } = await supabase.functions.invoke("ai-dashboard-feedback", {
-    body: { userId: session.user.id },
+    body: {},
   });
 
   if (error) throw new Error(error.message);
