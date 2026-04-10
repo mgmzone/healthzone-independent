@@ -11,243 +11,332 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Interface to model activity summary data
-interface UserActivitySummary {
+interface UserWeeklyData {
   userId: string;
   email: string;
   name: string;
   weighIns: number;
   fastingDays: number;
   exercises: number;
+  mealsLogged: number;
+  avgDailyProtein: number;
+  irritantViolations: number;
+  goalCompliance: number;
+  aiSummary: string;
+  aiHighlights: string[];
+  aiConcerns: string[];
+  aiTip: string;
 }
 
-// Replace placeholders in a string with actual values
-function replacePlaceholders(template: string, data: Record<string, any>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    return data[key] !== undefined ? String(data[key]) : match;
-  });
-}
+// Get AI feedback for a user's weekly data
+async function getAIFeedback(profile: {
+  claude_api_key: string | null;
+  ai_prompt: string | null;
+  health_goals: string | null;
+}, dataSummary: string): Promise<{ summary: string; highlights: string[]; concerns: string[]; tip: string }> {
+  const empty = { summary: "", highlights: [], concerns: [], tip: "" };
 
-// Get email template from the database
-async function getEmailTemplate(type: string): Promise<{ subject: string; html: string } | null> {
-  const { data, error } = await supabase
-    .from('email_templates')
-    .select('subject, html_content')
-    .eq('type', type)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+  if (!profile.claude_api_key) return empty;
 
-  if (error || !data) {
-    console.error('Error fetching email template:', error);
-    return null;
+  const systemParts: string[] = [
+    "You are a supportive health coach AI reviewing a user's weekly health data for an email summary. Be encouraging but honest.",
+    'Respond with valid JSON: {"summary": "<2-3 sentences>", "highlights": ["<good thing>"], "concerns": ["<concern>"], "tip": "<one actionable tip>"}',
+    "Keep it concise — this goes in an email. 1-2 highlights and 0-2 concerns max.",
+  ];
+
+  if (profile.health_goals) {
+    systemParts.push(`\nUser's health goals: ${profile.health_goals}`);
+  }
+  if (profile.ai_prompt) {
+    systemParts.push(`\nUser's dietary context: ${profile.ai_prompt}`);
   }
 
-  return {
-    subject: data.subject,
-    html: data.html_content
-  };
-}
+  try {
+    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": profile.claude_api_key,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 400,
+        system: systemParts.join("\n"),
+        messages: [{
+          role: "user",
+          content: `Here is my health data for the past week:\n\n${dataSummary}`,
+        }],
+      }),
+    });
 
-// Generate HTML for the weekly summary email
-async function generateWeeklySummaryEmail(name: string, data: {
-  weighIns: number;
-  fastingDays: number;
-  exercises: number;
-  appUrl: string;
-}) {
-  // Prepare the placeholder data
-  const placeholders = {
-    name,
-    appUrl: data.appUrl,
-    weighIns: data.weighIns,
-    fastingDays: data.fastingDays,
-    exercises: data.exercises
-  };
-  
-  // Try to get template from database
-  const template = await getEmailTemplate("weekly_summary");
-  
-  if (template) {
+    if (!claudeResponse.ok) {
+      console.error("Claude API error in weekly summary:", claudeResponse.status);
+      return empty;
+    }
+
+    const claudeData = await claudeResponse.json();
+    const responseText = claudeData.content?.[0]?.text || "";
+    const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const parsed = JSON.parse(jsonStr);
+
     return {
-      subject: replacePlaceholders(template.subject, placeholders),
-      html: replacePlaceholders(template.html, placeholders),
+      summary: parsed.summary || "",
+      highlights: Array.isArray(parsed.highlights) ? parsed.highlights : [],
+      concerns: Array.isArray(parsed.concerns) ? parsed.concerns : [],
+      tip: parsed.tip || "",
     };
+  } catch (error) {
+    console.error("AI feedback error for weekly email:", error);
+    return empty;
   }
-  
-  // Fallback template if database template is not available
+}
+
+// Build a data summary string for AI context
+function buildDataSummary(data: {
+  meals: any[];
+  weighIns: any[];
+  exercises: any[];
+  fasting: any[];
+  goalEntries: any[];
+}): string {
+  const parts: string[] = [];
+
+  // Meals
+  const totalProtein = data.meals.reduce((sum: number, m: any) => sum + (m.protein_grams || 0), 0);
+  const daysWithMeals = new Set(data.meals.map((m: any) => m.date)).size;
+  const avgDailyProtein = daysWithMeals > 0 ? Math.round(totalProtein / daysWithMeals) : 0;
+  const irritantCount = data.meals.filter((m: any) => m.irritant_violation).length;
+  parts.push(`MEALS: ${data.meals.length} meals over ${daysWithMeals} days. Average daily protein: ${avgDailyProtein}g (target: 130-150g). Irritant violations: ${irritantCount}.`);
+
+  // Weight
+  if (data.weighIns.length > 0) {
+    const latest = data.weighIns[0].weight;
+    const earliest = data.weighIns[data.weighIns.length - 1].weight;
+    const change = latest - earliest;
+    parts.push(`WEIGHT: ${data.weighIns.length} weigh-ins. Change: ${change > 0 ? '+' : ''}${change.toFixed(1)}kg.`);
+  } else {
+    parts.push("WEIGHT: No weigh-ins this week.");
+  }
+
+  // Exercise
+  if (data.exercises.length > 0) {
+    const totalMin = data.exercises.reduce((sum: number, e: any) => sum + (e.minutes || 0), 0);
+    parts.push(`EXERCISE: ${data.exercises.length} sessions, ${totalMin} minutes total.`);
+  } else {
+    parts.push("EXERCISE: None logged.");
+  }
+
+  // Fasting
+  if (data.fasting.length > 0) {
+    const avgHours = data.fasting.reduce((sum: number, f: any) => sum + (f.fasting_hours || 0), 0) / data.fasting.length;
+    parts.push(`FASTING: ${data.fasting.length} sessions, avg ${avgHours.toFixed(1)} hours.`);
+  }
+
+  // Goals
+  if (data.goalEntries.length > 0) {
+    const met = data.goalEntries.filter((g: any) => g.met).length;
+    parts.push(`DAILY GOALS: ${met}/${data.goalEntries.length} met (${Math.round((met / data.goalEntries.length) * 100)}%).`);
+  }
+
+  return parts.join("\n");
+}
+
+// Generate HTML email
+function generateEmailHtml(data: UserWeeklyData, appUrl: string): { subject: string; html: string } {
+  const aiSection = data.aiSummary ? `
+    <div style="margin: 20px 0; padding: 15px; background-color: #f3f0ff; border-left: 4px solid #8b5cf6; border-radius: 4px;">
+      <h3 style="margin: 0 0 8px 0; color: #6d28d9; font-size: 14px;">AI Coach Insights</h3>
+      <p style="margin: 0 0 12px 0; color: #374151; font-size: 14px;">${data.aiSummary}</p>
+      ${data.aiHighlights.length > 0 ? `
+        <div style="margin-bottom: 8px;">
+          ${data.aiHighlights.map(h => `<div style="color: #059669; font-size: 13px; margin-bottom: 4px;">&#10003; ${h}</div>`).join("")}
+        </div>
+      ` : ""}
+      ${data.aiConcerns.length > 0 ? `
+        <div style="margin-bottom: 8px;">
+          ${data.aiConcerns.map(c => `<div style="color: #d97706; font-size: 13px; margin-bottom: 4px;">&#9888; ${c}</div>`).join("")}
+        </div>
+      ` : ""}
+      ${data.aiTip ? `
+        <div style="margin-top: 8px; padding: 8px 12px; background-color: #fef9c3; border-radius: 4px; font-size: 13px; color: #854d0e;">
+          &#128161; <strong>Tip:</strong> ${data.aiTip}
+        </div>
+      ` : ""}
+    </div>
+  ` : "";
+
   return {
     subject: "Your Weekly HealthZone Summary",
     html: `
-      <h1>Hello ${name},</h1>
-      <p>Here's your weekly summary from HealthZone:</p>
-      
-      <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
-        <h2 style="margin-top: 0;">Your Activity This Week</h2>
-        <p>Weight tracking: ${data.weighIns} entries</p>
-        <p>Fasting days: ${data.fastingDays} days</p>
-        <p>Exercise sessions: ${data.exercises} sessions</p>
+      <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937;">
+        <div style="background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); padding: 24px; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; color: white; font-size: 22px;">Weekly Summary</h1>
+          <p style="margin: 4px 0 0; color: #dbeafe; font-size: 14px;">Hello ${data.name}, here's your week in review</p>
+        </div>
+
+        <div style="padding: 24px; background: white; border: 1px solid #e5e7eb; border-top: none;">
+          <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+              <tr>
+                <td width="33%" style="padding: 12px; background: #f0f9ff; border-radius: 8px; text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #2563eb;">${data.weighIns}</div>
+                  <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Weigh-ins</div>
+                </td>
+                <td width="4"></td>
+                <td width="33%" style="padding: 12px; background: #f0fdf4; border-radius: 8px; text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${data.exercises}</div>
+                  <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Workouts</div>
+                </td>
+                <td width="4"></td>
+                <td width="33%" style="padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #d97706;">${data.fastingDays}</div>
+                  <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Fasting Days</div>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">Nutrition</h3>
+            <p style="margin: 0; font-size: 14px; color: #6b7280;">
+              ${data.mealsLogged} meals logged &bull;
+              ${data.avgDailyProtein}g avg daily protein &bull;
+              ${data.irritantViolations > 0 ? `<span style="color: #dc2626;">${data.irritantViolations} irritant violation${data.irritantViolations > 1 ? 's' : ''}</span>` : '<span style="color: #059669;">No irritant violations</span>'}
+            </p>
+            ${data.goalCompliance > 0 ? `<p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Daily goal compliance: <strong>${data.goalCompliance}%</strong></p>` : ""}
+          </div>
+
+          ${aiSection}
+
+          <div style="text-align: center; margin-top: 24px;">
+            <a href="${appUrl}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">
+              View Dashboard
+            </a>
+          </div>
+        </div>
+
+        <div style="padding: 16px; text-align: center; font-size: 12px; color: #9ca3af;">
+          <p style="margin: 0;">HealthZone &bull; <a href="${appUrl}/profile" style="color: #9ca3af;">Manage email preferences</a></p>
+        </div>
       </div>
-      
-      <p><a href="${data.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">View Full Report</a></p>
-      <p>Thank you for using HealthZone,<br>The HealthZone Team</p>
     `,
   };
 }
 
-// Get the URL of the app (for email links)
-function getAppUrl(): string {
-  const appUrl = Deno.env.get("APP_URL") || "";
-  if (appUrl) return appUrl;
-  
-  // Fallback: Extract project URL from SUPABASE_URL
-  // Remove the specific project reference and use the domain
-  const supabaseUrlParts = supabaseUrl.split(".");
-  if (supabaseUrlParts.length >= 2) {
-    return `https://${supabaseUrlParts[0].replace("https://", "")}.vercel.app`;
-  }
-  
-  return "https://your-app-url.com";
-}
-
-// Main handler for the edge function
+// Main handler
 const handler = async (_req: Request): Promise<Response> => {
   try {
     console.log("Starting weekly summary email job");
-    
-    // 1. Get users who have opted into weekly summary emails
+
+    // Get users who opted into weekly emails
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name")
+      .select("id, first_name, last_name, claude_api_key, ai_prompt, health_goals")
       .eq("weekly_summary_emails", true);
 
     if (profilesError) {
       throw new Error(`Error fetching profiles: ${profilesError.message}`);
     }
 
-    console.log(`Found ${profiles.length} users with weekly email preferences enabled`);
-    
-    // Prepare for batch processing
-    const userSummaries: UserActivitySummary[] = [];
+    console.log(`Found ${profiles.length} users with weekly email enabled`);
+
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    const oneWeekAgoStr = oneWeekAgo.toISOString();
-    
-    // 2. For each user, fetch their email and activity data
-    for (const profile of profiles) {
-      try {
-        // Get user email from auth.users
-        const { data: user, error: userError } = await supabase.auth.admin.getUserById(profile.id);
-        
-        if (userError || !user.user) {
-          console.error(`Error fetching user ${profile.id}: ${userError?.message}`);
-          continue;
-        }
-        
-        // Get weekly activity data
-        const [weighInsResult, fastingLogsResult, exerciseLogsResult] = await Promise.all([
-          // Weight logs
-          supabase
-            .from("weigh_ins")
-            .select("id")
-            .eq("user_id", profile.id)
-            .gte("created_at", oneWeekAgoStr),
-          
-          // Fasting logs
-          supabase
-            .from("fasting_logs")
-            .select("id")
-            .eq("user_id", profile.id)
-            .gte("created_at", oneWeekAgoStr),
-          
-          // Exercise logs
-          supabase
-            .from("exercise_logs")
-            .select("id")
-            .eq("user_id", profile.id)
-            .gte("created_at", oneWeekAgoStr)
-        ]);
+    const dateStr = oneWeekAgo.toISOString().split("T")[0];
+    const appUrl = Deno.env.get("APP_URL") || "https://healthzone.mgm.zone";
 
-        userSummaries.push({
-          userId: profile.id,
-          email: user.user.email || "",
-          name: `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "there",
-          weighIns: weighInsResult.data?.length || 0,
-          fastingDays: fastingLogsResult.data?.length || 0,
-          exercises: exerciseLogsResult.data?.length || 0
-        });
-      } catch (error) {
-        console.error(`Error processing user ${profile.id}:`, error);
-      }
-    }
-    
-    // 3. Send emails to each user
-    console.log(`Preparing to send ${userSummaries.length} summary emails`);
-    const appUrl = getAppUrl();
-    
     let successCount = 0;
     let errorCount = 0;
-    
-    for (const summary of userSummaries) {
+
+    for (const profile of profiles) {
       try {
-        // Skip if no email
-        if (!summary.email) {
-          console.warn(`No email found for user ${summary.userId}`);
+        // Get user email
+        const { data: user, error: userError } = await supabase.auth.admin.getUserById(profile.id);
+        if (userError || !user.user?.email) {
+          console.error(`No email for user ${profile.id}`);
           continue;
         }
-        
+
+        // Fetch all weekly data in parallel
+        const [mealsResult, weighInsResult, exerciseResult, fastingResult, goalsResult] = await Promise.all([
+          supabase.from("meal_logs").select("date, protein_grams, irritant_violation, protein_source, anti_inflammatory").eq("user_id", profile.id).gte("date", dateStr).order("date", { ascending: false }),
+          supabase.from("weigh_ins").select("date, weight").eq("user_id", profile.id).gte("date", dateStr).order("date", { ascending: false }),
+          supabase.from("exercise_logs").select("date, type, minutes, intensity").eq("user_id", profile.id).gte("created_at", dateStr + "T00:00:00"),
+          supabase.from("fasting_logs").select("start_time, fasting_hours").eq("user_id", profile.id).gte("start_time", dateStr + "T00:00:00"),
+          supabase.from("daily_goal_entries").select("date, met").eq("user_id", profile.id).gte("date", dateStr),
+        ]);
+
+        const meals = mealsResult.data || [];
+        const weighIns = weighInsResult.data || [];
+        const exercises = exerciseResult.data || [];
+        const fasting = fastingResult.data || [];
+        const goalEntries = goalsResult.data || [];
+
+        // Calculate stats
+        const totalProtein = meals.reduce((sum, m) => sum + (m.protein_grams || 0), 0);
+        const daysWithMeals = new Set(meals.map(m => m.date)).size;
+        const avgDailyProtein = daysWithMeals > 0 ? Math.round(totalProtein / daysWithMeals) : 0;
+        const irritantViolations = meals.filter(m => m.irritant_violation).length;
+        const goalsMet = goalEntries.filter(g => g.met).length;
+        const goalCompliance = goalEntries.length > 0 ? Math.round((goalsMet / goalEntries.length) * 100) : 0;
+
+        // Get AI feedback if user has API key
+        const dataSummary = buildDataSummary({ meals, weighIns, exercises, fasting, goalEntries });
+        const aiFeedback = await getAIFeedback(profile, dataSummary);
+
+        const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "there";
+
+        const weeklyData: UserWeeklyData = {
+          userId: profile.id,
+          email: user.user.email,
+          name,
+          weighIns: weighIns.length,
+          fastingDays: fasting.length,
+          exercises: exercises.length,
+          mealsLogged: meals.length,
+          avgDailyProtein,
+          irritantViolations,
+          goalCompliance,
+          aiSummary: aiFeedback.summary,
+          aiHighlights: aiFeedback.highlights,
+          aiConcerns: aiFeedback.concerns,
+          aiTip: aiFeedback.tip,
+        };
+
         // Generate and send email
-        const emailContent = await generateWeeklySummaryEmail(summary.name, {
-          weighIns: summary.weighIns,
-          fastingDays: summary.fastingDays,
-          exercises: summary.exercises,
-          appUrl
-        });
-        
-        const fromEmail = Deno.env.get("FROM_EMAIL") || "HealthZone <noreply@yourdomain.com>";
-        const emailResponse = await resend.emails.send({
+        const emailContent = generateEmailHtml(weeklyData, appUrl);
+        const fromEmail = Deno.env.get("FROM_EMAIL") || "HealthZone <healthzone@mgm.zone>";
+
+        await resend.emails.send({
           from: fromEmail,
-          to: [summary.email],
+          to: [weeklyData.email],
           subject: emailContent.subject,
           html: emailContent.html,
         });
-        
-        console.log(`Sent weekly summary to ${summary.email} (${summary.userId})`);
+
+        console.log(`Sent weekly summary to ${weeklyData.email}`);
         successCount++;
       } catch (error) {
-        console.error(`Error sending email to ${summary.email}:`, error);
+        console.error(`Error processing user ${profile.id}:`, error);
         errorCount++;
       }
     }
-    
-    // 4. Return results
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Weekly summary complete. Sent ${successCount} emails with ${errorCount} errors.`,
+        message: `Weekly summary complete. Sent ${successCount} emails, ${errorCount} errors.`,
       }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Error in weekly summary job:", error);
-    
-    // Return error response
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 };
 
-// Start the server
 serve(handler);
