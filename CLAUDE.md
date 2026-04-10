@@ -53,14 +53,22 @@ Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
 System: `email_templates`
 
 ### Edge Functions
-All edge functions use `verify_jwt: false` at the gateway level (configured in `supabase/functions.json`) but perform JWT auth internally so CORS preflight requests work. Deploy with: `supabase functions deploy <name> --no-verify-jwt`
+All edge functions use `verify_jwt: false` at the gateway level (configured in `supabase/functions.json`) but perform auth internally so CORS preflight requests work. Deploy with: `supabase functions deploy <name> --no-verify-jwt`
 
-| Function | Purpose |
-|----------|---------|
-| `send-email` | Sends templated emails via Resend |
-| `send-weekly-summary` | Cron-triggered weekly activity summary emails |
-| `evaluate-meal` | Proxies Claude API for meal protein estimation + assessment |
-| `ai-dashboard-feedback` | Proxies Claude API for weekly progress insights |
+| Function | Auth | Purpose |
+|----------|------|---------|
+| `send-email` | JWT (user session) | Sends templated emails via Resend |
+| `send-weekly-summary` | `CRON_SECRET` Bearer token | Weekly activity + AI summary emails |
+| `evaluate-meal` | JWT (user session) | Proxies Claude API for meal protein estimation + assessment |
+| `ai-dashboard-feedback` | JWT (user session) | Proxies Claude API for weekly progress insights |
+
+### Email & Scheduling
+- Email provider: Resend (API key in `RESEND_API_KEY` secret)
+- Verified sending domains: `updates.healthapp.zone`, `mgm.zone`
+- From address: `HealthZone <healthzone@mgm.zone>` (in `FROM_EMAIL` secret)
+- Weekly summary cron: `pg_cron` job `weekly-summary-email` runs `0 13 * * 1` (Monday 8am EST)
+- Weekly summary includes AI Coach Insights section when user has Claude API key configured
+- To trigger manually: `curl` the function URL with `Authorization: Bearer $CRON_SECRET`
 
 ### AI Integration
 - Users store their personal Claude API key in `profiles.claude_api_key` (Profile > Health > AI Settings)
