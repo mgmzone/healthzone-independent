@@ -1,5 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff } from 'lucide-react';
+import HealthForm from './health/HealthForm';
 
 interface HealthInfoTabProps {
   formData: {
@@ -7,6 +13,13 @@ interface HealthInfoTabProps {
     currentWeight?: number;
     targetWeight?: number;
     measurementUnit?: string;
+    height?: number;
+    fitnessLevel?: string;
+    exerciseMinutesPerDay?: number;
+    targetMealsPerDay?: number;
+    healthGoals?: string;
+    claudeApiKey?: string;
+    aiPrompt?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -20,13 +33,12 @@ const HealthInfoTab: React.FC<HealthInfoTabProps> = ({
   handleNumberChange
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="text-center p-4 bg-muted/20 rounded-lg">
-        <p className="text-muted-foreground">
-          Health statistics are now available on the Dashboard for easier access.
-        </p>
-      </div>
-    </div>
+    <HealthForm
+      formData={formData}
+      handleInputChange={handleInputChange}
+      handleSelectChange={handleSelectChange}
+      handleNumberChange={handleNumberChange}
+    />
   );
 };
 
