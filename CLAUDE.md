@@ -45,13 +45,33 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 - CLI linked via `supabase link`
 - Push migrations: `supabase db push` — migration filenames must match `<timestamp>_name.sql` pattern
 - Query remote: `supabase db query --linked "SQL"`
-- Edge functions exist for email (send-email, send-weekly-summary) but are not fully operational
 - Supabase CLI auth expires periodically — run `supabase login` if push/query fails with SASL errors
 
 ### Tables
 Core: `profiles`, `periods`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
 Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
 System: `email_templates`
+
+### Edge Functions
+All edge functions use `verify_jwt: false` at the gateway level (configured in `supabase/functions.json`) but perform JWT auth internally so CORS preflight requests work. Deploy with: `supabase functions deploy <name> --no-verify-jwt`
+
+| Function | Purpose |
+|----------|---------|
+| `send-email` | Sends templated emails via Resend |
+| `send-weekly-summary` | Cron-triggered weekly activity summary emails |
+| `evaluate-meal` | Proxies Claude API for meal protein estimation + assessment |
+| `ai-dashboard-feedback` | Proxies Claude API for weekly progress insights |
+
+### AI Integration
+- Users store their personal Claude API key in `profiles.claude_api_key` (Profile > Health > AI Settings)
+- Users can write custom AI context in `profiles.ai_prompt` — sent with every AI evaluation
+- AI edge functions verify JWT from Authorization header, extract user ID from token (no userId in request body)
+- `meal_logs` has `ai_assessment` (text) and `ai_protein_estimate` (numeric) columns for storing AI responses
+- Claude model: `claude-sonnet-4-20250514` — called via direct HTTP to `api.anthropic.com/v1/messages`
+- Claude often wraps JSON in markdown code fences — edge functions strip ``` before parsing
+- CORS: production domain must be in `ALLOWED_ORIGIN` Supabase secret
+- Frontend service: `src/lib/services/aiService.ts` — `evaluateMeal()` and `getDashboardFeedback()`
+- Dashboard card: `src/components/dashboard/cards/AIFeedbackCard.tsx` — caches in sessionStorage for 30 min
 
 ## Git & Deployment
 - Remote uses SSH: `git@github.com-mgmzone:mgmzone/healthzone-independent.git`
