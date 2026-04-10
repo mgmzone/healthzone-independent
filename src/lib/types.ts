@@ -17,6 +17,8 @@ export interface User {
   startingWeight?: number;
   targetMealsPerDay: number;
   isAdmin: boolean;
+  claudeApiKey?: string;
+  aiPrompt?: string;
 }
 
 export interface Period {
@@ -89,6 +91,8 @@ export interface MealLog {
   irritantNotes?: string;
   antiInflammatory: boolean;
   notes?: string;
+  aiAssessment?: string;
+  aiProteinEstimate?: number;
 }
 
 export interface ProteinSource {

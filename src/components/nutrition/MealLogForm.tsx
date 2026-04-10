@@ -18,7 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Brain, Loader2 } from 'lucide-react';
 import { MealLog, ProteinSource, DEFAULT_MEAL_NAMES } from '@/lib/types';
+import { evaluateMeal } from '@/lib/services/aiService';
+import { useAuth } from '@/lib/AuthContext';
 import DatePickerField from '@/components/weight/DatePickerField';
 
 interface MealLogFormProps {
@@ -38,6 +41,9 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   recentMealNames,
   initialData,
 }) => {
+  const { profile } = useAuth();
+  const hasApiKey = Boolean(profile?.claudeApiKey);
+
   const [date, setDate] = useState<Date>(new Date());
   const [mealSlot, setMealSlot] = useState('');
   const [proteinGrams, setProteinGrams] = useState<string>('');
@@ -46,6 +52,9 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   const [irritantNotes, setIrritantNotes] = useState('');
   const [antiInflammatory, setAntiInflammatory] = useState(false);
   const [notes, setNotes] = useState('');
+  const [aiAssessment, setAiAssessment] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   // Build meal name suggestions from recent usage + defaults
   const mealNameSuggestions = [...new Set([...recentMealNames, ...DEFAULT_MEAL_NAMES])];
@@ -61,6 +70,8 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       setIrritantNotes(initialData?.irritantNotes || '');
       setAntiInflammatory(initialData?.antiInflammatory || false);
       setNotes(initialData?.notes || '');
+      setAiAssessment(initialData?.aiAssessment || '');
+      setAiError('');
     }
   }, [isOpen, initialData]);
 
@@ -77,17 +88,42 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
     }
   };
 
+  const handleAskAI = async () => {
+    if (!proteinSource && !notes) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiAssessment('');
+    try {
+      const result = await evaluateMeal({
+        proteinSource,
+        notes,
+        mealSlot: mealSlot || undefined,
+      });
+      if (result.proteinEstimate > 0) {
+        setProteinGrams(result.proteinEstimate.toString());
+      }
+      setAiAssessment(result.assessment);
+    } catch (err: any) {
+      setAiError(err.message || 'AI evaluation failed');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    const parsedGrams = proteinGrams ? parseFloat(proteinGrams) : undefined;
     await onSave({
       date,
       mealSlot: mealSlot || 'Meal',
-      proteinGrams: proteinGrams ? parseFloat(proteinGrams) : undefined,
+      proteinGrams: parsedGrams,
       proteinSource: proteinSource || undefined,
       irritantViolation,
       irritantNotes: irritantViolation ? irritantNotes : undefined,
       antiInflammatory,
       notes: notes || undefined,
+      aiAssessment: aiAssessment || undefined,
+      aiProteinEstimate: aiAssessment ? parsedGrams : undefined,
     });
     onClose();
   };
@@ -196,6 +232,36 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
               rows={2}
             />
           </div>
+
+          {hasApiKey && (
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAskAI}
+                disabled={aiLoading || (!proteinSource && !notes)}
+                className="w-full"
+              >
+                {aiLoading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Evaluating...</>
+                ) : (
+                  <><Brain className="mr-2 h-4 w-4" /> Ask AI to Evaluate</>
+                )}
+              </Button>
+              {aiError && (
+                <p className="text-sm text-red-500">{aiError}</p>
+              )}
+              {aiAssessment && (
+                <div className="rounded-md border bg-muted/50 p-3 text-sm">
+                  <p className="font-medium mb-1 flex items-center gap-1">
+                    <Brain className="h-3 w-3" /> AI Assessment
+                  </p>
+                  <p className="text-muted-foreground">{aiAssessment}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

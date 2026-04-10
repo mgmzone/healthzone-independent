@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff } from 'lucide-react';
 import WeightInputField from '@/components/periods/WeightInputField';
 
 interface HealthFormProps {
@@ -14,6 +16,8 @@ interface HealthFormProps {
     targetMealsPerDay?: number;
     healthGoals?: string;
     measurementUnit?: string;
+    claudeApiKey?: string;
+    aiPrompt?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -26,6 +30,7 @@ const HealthForm: React.FC<HealthFormProps> = ({
   handleSelectChange,
   handleNumberChange
 }) => {
+  const [showApiKey, setShowApiKey] = useState(false);
   const unit = formData.measurementUnit || 'imperial';
   const isImperial = unit === 'imperial';
   
@@ -110,6 +115,55 @@ const HealthForm: React.FC<HealthFormProps> = ({
           placeholder="Describe your health goals..."
           rows={4}
         />
+      </div>
+
+      <div className="border-t pt-6 mt-6 space-y-4">
+        <h3 className="text-lg font-semibold">AI Settings</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="aiPrompt" className="text-left block">AI Instructions</Label>
+          <Textarea
+            id="aiPrompt"
+            name="aiPrompt"
+            value={formData.aiPrompt || ''}
+            onChange={handleInputChange}
+            placeholder="Tell AI about your dietary goals, restrictions, surgery prep requirements... e.g. 'I am preparing for bariatric surgery. I need high protein (130-150g/day), low carb meals. Flag any irritants like tomato, citrus, caffeine.'"
+            rows={4}
+          />
+          <p className="text-sm text-muted-foreground">
+            This context is sent to Claude when evaluating your meals and generating dashboard feedback.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="claudeApiKey" className="text-left block">Claude API Key</Label>
+          <div className="flex gap-2">
+            <Input
+              id="claudeApiKey"
+              name="claudeApiKey"
+              type={showApiKey ? 'text' : 'password'}
+              value={formData.claudeApiKey || ''}
+              onChange={handleInputChange}
+              placeholder="sk-ant-api03-..."
+              className="font-mono"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setShowApiKey(!showApiKey)}
+            >
+              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Your personal Anthropic API key. Used for AI meal evaluation and dashboard insights.
+            Get one at{' '}
+            <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" className="underline">
+              console.anthropic.com
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

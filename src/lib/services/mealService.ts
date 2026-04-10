@@ -45,6 +45,8 @@ export async function getMealLogs() {
     irritantNotes: item.irritant_notes || undefined,
     antiInflammatory: item.anti_inflammatory,
     notes: item.notes || undefined,
+    aiAssessment: item.ai_assessment || undefined,
+    aiProteinEstimate: item.ai_protein_estimate || undefined,
   }));
 }
 
@@ -69,6 +71,8 @@ export async function addMealLog(mealData: Partial<MealLog>) {
     irritant_notes: mealData.irritantNotes,
     anti_inflammatory: mealData.antiInflammatory || false,
     notes: mealData.notes,
+    ai_assessment: mealData.aiAssessment,
+    ai_protein_estimate: mealData.aiProteinEstimate,
   };
 
   const { data, error } = await supabase
@@ -93,6 +97,8 @@ export async function addMealLog(mealData: Partial<MealLog>) {
     irritantNotes: data.irritant_notes || undefined,
     antiInflammatory: data.anti_inflammatory,
     notes: data.notes || undefined,
+    aiAssessment: data.ai_assessment || undefined,
+    aiProteinEstimate: data.ai_protein_estimate || undefined,
   };
 }
 
@@ -112,6 +118,8 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
   if (mealData.irritantNotes !== undefined) dbData.irritant_notes = mealData.irritantNotes;
   if (mealData.antiInflammatory !== undefined) dbData.anti_inflammatory = mealData.antiInflammatory;
   if (mealData.notes !== undefined) dbData.notes = mealData.notes;
+  if (mealData.aiAssessment !== undefined) dbData.ai_assessment = mealData.aiAssessment;
+  if (mealData.aiProteinEstimate !== undefined) dbData.ai_protein_estimate = mealData.aiProteinEstimate;
 
   const { data, error } = await supabase
     .from('meal_logs')
@@ -137,6 +145,8 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
     irritantNotes: data.irritant_notes || undefined,
     antiInflammatory: data.anti_inflammatory,
     notes: data.notes || undefined,
+    aiAssessment: data.ai_assessment || undefined,
+    aiProteinEstimate: data.ai_protein_estimate || undefined,
   };
 }
 

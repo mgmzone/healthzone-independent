@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Period, ExerciseLog, FastingLog, MealLog, DailyGoal, DailyGoalEntry } from '@/lib/types';
+import { Period, ExerciseLog, FastingLog, MealLog, DailyGoal, DailyGoalEntry, User } from '@/lib/types';
 import WeightCard from './cards/WeightCard';
 import PeriodCard from './cards/PeriodCard';
 import ExerciseCard from './cards/ExerciseCard';
 import FastingCard from './cards/FastingCard';
 import NutritionCard from './cards/NutritionCard';
 import GoalsCard from './cards/GoalsCard';
+import AIFeedbackCard from './cards/AIFeedbackCard';
 
 interface DashboardCardsProps {
   latestWeight: number | null;
@@ -18,6 +19,7 @@ interface DashboardCardsProps {
   targetMealsPerDay: number;
   activeGoals: DailyGoal[];
   goalEntries: DailyGoalEntry[];
+  profile: User | null;
   currentMetrics: {
     weightProgress: number;
     timeProgress: number;
@@ -37,6 +39,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
   targetMealsPerDay,
   activeGoals,
   goalEntries,
+  profile,
   currentMetrics
 }) => {
   return (
@@ -74,6 +77,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
 
         <GoalsCard activeGoals={activeGoals} entries={goalEntries} />
       </div>
+      <AIFeedbackCard hasApiKey={Boolean(profile?.claudeApiKey)} />
     </div>
   );
 };

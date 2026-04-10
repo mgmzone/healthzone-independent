@@ -166,6 +166,7 @@ const DashboardContent = () => {
                 targetMealsPerDay={profile?.targetMealsPerDay || 3}
                 activeGoals={activeGoals}
                 goalEntries={goalEntries}
+                profile={profile}
                 currentMetrics={currentMetrics}
               />
 

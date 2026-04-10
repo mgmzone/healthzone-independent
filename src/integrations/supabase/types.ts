@@ -226,6 +226,8 @@ export type Database = {
       }
       meal_logs: {
         Row: {
+          ai_assessment: string | null
+          ai_protein_estimate: number | null
           anti_inflammatory: boolean
           created_at: string
           date: string
@@ -239,6 +241,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_assessment?: string | null
+          ai_protein_estimate?: number | null
           anti_inflammatory?: boolean
           created_at?: string
           date: string
@@ -252,6 +256,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_assessment?: string | null
+          ai_protein_estimate?: number | null
           anti_inflammatory?: boolean
           created_at?: string
           date?: string
@@ -370,8 +376,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_prompt: string | null
           avatar_url: string | null
           birth_date: string | null
+          claude_api_key: string | null
           created_at: string
           current_weight: number | null
           exercise_minutes_per_day: number | null
@@ -392,8 +400,10 @@ export type Database = {
           weekly_summary_emails: boolean | null
         }
         Insert: {
+          ai_prompt?: string | null
           avatar_url?: string | null
           birth_date?: string | null
+          claude_api_key?: string | null
           created_at?: string
           current_weight?: number | null
           exercise_minutes_per_day?: number | null
@@ -414,8 +424,10 @@ export type Database = {
           weekly_summary_emails?: boolean | null
         }
         Update: {
+          ai_prompt?: string | null
           avatar_url?: string | null
           birth_date?: string | null
+          claude_api_key?: string | null
           created_at?: string
           current_weight?: number | null
           exercise_minutes_per_day?: number | null

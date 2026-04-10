@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2, AlertTriangle, Leaf } from 'lucide-react';
+import { Pencil, Trash2, AlertTriangle, Leaf, Brain } from 'lucide-react';
 import { MealLog } from '@/lib/types';
 import { format } from 'date-fns';
 
@@ -116,49 +116,64 @@ const MealTable: React.FC<MealTableProps> = ({
                   </TableHeader>
                   <TableBody>
                     {dayMeals.map(meal => (
-                        <TableRow key={meal.id}>
-                          <TableCell className="text-sm">
-                            {meal.mealSlot}
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {meal.proteinGrams ? `${meal.proteinGrams}g` : '—'}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {meal.proteinSource || '—'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {meal.antiInflammatory && (
-                                <Leaf className="h-4 w-4 text-green-500" title="Anti-inflammatory" />
-                              )}
-                              {meal.irritantViolation && (
-                                <AlertTriangle className="h-4 w-4 text-red-500" title={meal.irritantNotes || 'Irritant violation'} />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={() => onEdit(meal)}
-                                aria-label="Edit meal"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-red-500 hover:text-red-600"
-                                onClick={() => setDeleteId(meal.id)}
-                                aria-label="Delete meal"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        <React.Fragment key={meal.id}>
+                          <TableRow>
+                            <TableCell className="text-sm">
+                              {meal.mealSlot}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {meal.proteinGrams ? `${meal.proteinGrams}g` : '—'}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {meal.proteinSource || '—'}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                {meal.antiInflammatory && (
+                                  <Leaf className="h-4 w-4 text-green-500" title="Anti-inflammatory" />
+                                )}
+                                {meal.irritantViolation && (
+                                  <AlertTriangle className="h-4 w-4 text-red-500" title={meal.irritantNotes || 'Irritant violation'} />
+                                )}
+                                {meal.aiAssessment && (
+                                  <Brain className="h-4 w-4 text-purple-500" title="AI evaluated" />
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => onEdit(meal)}
+                                  aria-label="Edit meal"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-red-500 hover:text-red-600"
+                                  onClick={() => setDeleteId(meal.id)}
+                                  aria-label="Delete meal"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                          {meal.aiAssessment && (
+                            <TableRow>
+                              <TableCell colSpan={5} className="pt-0 pb-3">
+                                <div className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground flex items-start gap-1.5">
+                                  <Brain className="h-3 w-3 mt-0.5 shrink-0 text-purple-500" />
+                                  <span>{meal.aiAssessment}</span>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       ))}
                   </TableBody>
                 </Table>

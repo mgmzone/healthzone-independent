@@ -28,6 +28,8 @@ export const useProfileFormState = () => {
     healthGoals: '',
     measurementUnit: 'imperial',
     startingWeight: 0,
+    claudeApiKey: '',
+    aiPrompt: '',
   });
 
   // Only set form data once when profile loads or changes
@@ -51,6 +53,8 @@ export const useProfileFormState = () => {
         targetMealsPerDay: profile.targetMealsPerDay || 3,
         healthGoals: profile.healthGoals || '',
         measurementUnit: profile.measurementUnit || 'imperial',
+        claudeApiKey: profile.claudeApiKey || '',
+        aiPrompt: profile.aiPrompt || '',
       };
       
       setFormData(newFormData);

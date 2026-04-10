@@ -66,7 +66,9 @@ export async function getProfile() {
       avatarUrl: avatarUrl || data.avatar_url || '',
       startingWeight: data.starting_weight || 0,
       targetMealsPerDay: data.target_meals_per_day || 3,
-      isAdmin: data.is_admin || false // Added this field
+      isAdmin: data.is_admin || false,
+      claudeApiKey: data.claude_api_key || '',
+      aiPrompt: data.ai_prompt || ''
     };
     return transformedData;
   }
@@ -103,6 +105,8 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.avatarUrl !== undefined) dbProfileData.avatar_url = profileData.avatarUrl;
   if (profileData.startingWeight !== undefined) dbProfileData.starting_weight = profileData.startingWeight;
   if (profileData.targetMealsPerDay !== undefined) dbProfileData.target_meals_per_day = profileData.targetMealsPerDay;
+  if (profileData.claudeApiKey !== undefined) dbProfileData.claude_api_key = profileData.claudeApiKey;
+  if (profileData.aiPrompt !== undefined) dbProfileData.ai_prompt = profileData.aiPrompt;
 
   const { data, error } = await supabase
     .from('profiles')
