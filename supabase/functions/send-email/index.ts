@@ -160,6 +160,27 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify the user is authenticated via their JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: "Not authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
+      });
+    }
+
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: authData, error: authError } = await authClient.auth.getUser();
+    if (authError || !authData.user) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid or expired session" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
+      });
+    }
+
     // Parse the request body
     const { type, email, name, data }: EmailRequest = await req.json();
 

@@ -227,6 +227,18 @@ function generateEmailHtml(data: UserWeeklyData, appUrl: string): { subject: str
 // Main handler
 const handler = async (_req: Request): Promise<Response> => {
   try {
+    // Verify cron secret to prevent unauthorized invocations
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const authHeader = _req.headers.get("Authorization") || "";
+    const providedSecret = authHeader.replace("Bearer ", "");
+
+    if (!cronSecret || providedSecret !== cronSecret) {
+      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     console.log("Starting weekly summary email job");
 
     // Get users who opted into weekly emails
