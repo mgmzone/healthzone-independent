@@ -161,6 +161,7 @@ export type Database = {
           lowest_heart_rate: number | null
           minutes: number
           steps: number | null
+          strava_activity_id: number | null
           type: string
           user_id: string
         }
@@ -175,6 +176,7 @@ export type Database = {
           lowest_heart_rate?: number | null
           minutes: number
           steps?: number | null
+          strava_activity_id?: number | null
           type: string
           user_id: string
         }
@@ -189,6 +191,7 @@ export type Database = {
           lowest_heart_rate?: number | null
           minutes?: number
           steps?: number | null
+          strava_activity_id?: number | null
           type?: string
           user_id?: string
         }
@@ -393,6 +396,10 @@ export type Database = {
           last_name: string | null
           measurement_unit: string | null
           starting_weight: number | null
+          strava_client_id: string | null
+          strava_client_secret: string | null
+          strava_last_sync_at: string | null
+          strava_refresh_token: string | null
           surgery_date: string | null
           system_notification_emails: boolean | null
           target_meals_per_day: number | null
@@ -418,6 +425,10 @@ export type Database = {
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
+          strava_client_id?: string | null
+          strava_client_secret?: string | null
+          strava_last_sync_at?: string | null
+          strava_refresh_token?: string | null
           surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
@@ -443,6 +454,10 @@ export type Database = {
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
+          strava_client_id?: string | null
+          strava_client_secret?: string | null
+          strava_last_sync_at?: string | null
+          strava_refresh_token?: string | null
           surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null

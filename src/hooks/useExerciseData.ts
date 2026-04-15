@@ -15,6 +15,7 @@ import {
 export function useExerciseData(timeFilter: TimeFilter = 'week') {
   const [exerciseLogs, setExerciseLogs] = useState<ExerciseLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
   const { getCurrentPeriod } = usePeriodQueries();
@@ -49,7 +50,7 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
       setExerciseLogs([]);
       setIsLoading(false);
     }
-  }, [timeFilter, toast, user, currentPeriod]);
+  }, [timeFilter, toast, user, currentPeriod, refreshKey]);
 
   const handleAddExerciseLog = async (data: Partial<ExerciseLog>) => {
     try {
@@ -128,12 +129,15 @@ export function useExerciseData(timeFilter: TimeFilter = 'week') {
     }
   };
 
+  const refresh = () => setRefreshKey(k => k + 1);
+
   return {
     exerciseLogs,
     isLoading,
     addExerciseLog: handleAddExerciseLog,
     updateExerciseLog: handleUpdateExerciseLog,
     deleteExerciseLog: handleDeleteExerciseLog,
+    refresh,
   };
 }
 

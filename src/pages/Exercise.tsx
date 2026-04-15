@@ -7,7 +7,7 @@ import ExerciseTable from '@/components/exercise/ExerciseTable';
 import ExerciseGoals from '@/components/exercise/ExerciseGoals';
 import ExerciseEntryModal from '@/components/exercise/ExerciseEntryModal';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Activity, Loader2 } from 'lucide-react';
 import { TimeFilter } from '@/lib/types';
 import { useExerciseData } from '@/hooks/useExerciseData';
 import ExercisePageHeader from '@/components/exercise/ExercisePageHeader';
@@ -15,6 +15,8 @@ import { usePeriodsData } from '@/hooks/usePeriodsData';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { syncStrava } from '@/lib/services/stravaService';
+import { useToast } from '@/hooks/use-toast';
 
 const Exercise = () => {
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
@@ -22,13 +24,36 @@ const Exercise = () => {
   const currentPeriod = getCurrentPeriod();
   const navigate = useNavigate();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('week');
-  const { 
-    exerciseLogs, 
-    isLoading, 
+  const {
+    exerciseLogs,
+    isLoading,
     addExerciseLog,
     updateExerciseLog,
-    deleteExerciseLog
+    deleteExerciseLog,
+    refresh,
   } = useExerciseData(timeFilter);
+  const { toast } = useToast();
+  const [syncing, setSyncing] = useState(false);
+
+  const handleStravaSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await syncStrava('today');
+      toast({
+        title: 'Strava sync complete',
+        description: `Imported ${res.inserted}, skipped ${res.skipped} already-synced of ${res.total} activities today.`,
+      });
+      refresh();
+    } catch (err: any) {
+      toast({
+        title: 'Strava sync failed',
+        description: err.message || 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <Layout>
@@ -50,9 +75,16 @@ const Exercise = () => {
 
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Exercise Tracker</h1>
-          <Button onClick={() => setIsEntryModalOpen(true)} disabled={!currentPeriod}>
-            <Plus className="mr-2 h-4 w-4" /> Add Activity
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleStravaSync} disabled={syncing || !currentPeriod}>
+              {syncing
+                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Syncing...</>
+                : <><Activity className="mr-2 h-4 w-4 text-orange-500" /> Sync Strava</>}
+            </Button>
+            <Button onClick={() => setIsEntryModalOpen(true)} disabled={!currentPeriod}>
+              <Plus className="mr-2 h-4 w-4" /> Add Activity
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="summary" className="w-full">

@@ -12,6 +12,7 @@ import ProfileHeader from '@/components/profile/ProfileHeader';
 import PersonalInfoTab from '@/components/profile/PersonalInfoTab';
 import HealthInfoTab from '@/components/profile/HealthInfoTab';
 import DataTab from '@/components/profile/DataTab';
+import IntegrationsTab from '@/components/profile/IntegrationsTab';
 import { useProfileForm } from '@/hooks/useProfileForm';
 import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 import { cn } from '@/lib/utils';
@@ -163,12 +164,15 @@ const Profile = () => {
             
             <form onSubmit={onFormSubmit} className="space-y-4 mt-4">
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <TabsList className="grid grid-cols-3 w-full">
+                <TabsList className="grid grid-cols-4 w-full">
                   <TabsTrigger value="personal">
                     Settings
                   </TabsTrigger>
                   <TabsTrigger value="health">
                     Health Info
+                  </TabsTrigger>
+                  <TabsTrigger value="integrations">
+                    Integrations
                   </TabsTrigger>
                   <TabsTrigger value="data">
                     Data
@@ -192,6 +196,10 @@ const Profile = () => {
                     handleSelectChange={handleSelectChange}
                     handleNumberChange={handleNumberChange}
                   />
+                </TabsContent>
+
+                <TabsContent value="integrations" className="mt-4">
+                  <IntegrationsTab />
                 </TabsContent>
 
                 <TabsContent value="data" className="mt-4">
