@@ -70,29 +70,28 @@ const IntegrationsTab: React.FC = () => {
         <p className="font-medium">One-time setup</p>
         <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
           <li>
-            Go to{' '}
+            At{' '}
             <a href="https://www.strava.com/settings/api" target="_blank" rel="noopener noreferrer" className="underline">
               strava.com/settings/api
             </a>{' '}
-            and create (or reuse) an API application.
+            create (or edit) your API app. Strava's branding rules forbid "Strava" being a prominent part of your app name — use something like "MGM Fitness Sync". Set Authorization Callback Domain to a domain you control (e.g. <code className="bg-muted px-1 rounded">mgm.zone</code>).
           </li>
-          <li>Set Authorization Callback Domain to <code className="bg-muted px-1 rounded">localhost</code> (we only need the OAuth step once).</li>
           <li>
-            Visit this URL in your browser (replace <code>YOUR_CLIENT_ID</code>):
+            Visit this URL in your browser (replace <code>YOUR_CLIENT_ID</code> and use any <code>redirect_uri</code> that matches your callback domain — the destination doesn't need to serve anything, we just read the <code>code</code> from the URL bar):
             <br />
             <code className="break-all text-xs">
-              https://www.strava.com/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost&response_type=code&scope=activity:read_all&approval_prompt=force
+              https://www.strava.com/oauth/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=https://healthzone.mgm.zone&response_type=code&scope=activity:read_all&approval_prompt=force
             </code>
           </li>
-          <li>After approving, Strava redirects to a broken localhost URL — copy the <code>code=...</code> value from the address bar.</li>
+          <li>After approving, Strava redirects to a URL ending in <code>?state=&amp;code=XXX&amp;scope=...</code>. Copy the <code>code=...</code> value.</li>
           <li>
-            Exchange it for tokens with curl (replace placeholders):
+            Exchange the code for a refresh token (replace placeholders):
             <br />
             <code className="break-all text-xs">
               curl -X POST https://www.strava.com/oauth/token -d client_id=YOUR_ID -d client_secret=YOUR_SECRET -d code=THE_CODE -d grant_type=authorization_code
             </code>
           </li>
-          <li>Paste Client ID, Client Secret, and the returned <code>refresh_token</code> below.</li>
+          <li>Paste Client ID, Client Secret, and the returned <code>refresh_token</code> below. The refresh token is long-lived — access tokens are fetched on demand.</li>
         </ol>
       </div>
 
