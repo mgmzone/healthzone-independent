@@ -19,6 +19,7 @@ export interface User {
   isAdmin: boolean;
   claudeApiKey?: string;
   aiPrompt?: string;
+  surgeryDate?: string; // YYYY-MM-DD
 }
 
 export interface Period {

@@ -68,6 +68,19 @@ const Nutrition = () => {
     setIsEntryModalOpen(true);
   };
 
+  const handleDuplicateMeal = async (meal: MealLog) => {
+    await addMealLog({
+      date: new Date(),
+      mealSlot: meal.mealSlot,
+      proteinGrams: meal.proteinGrams,
+      proteinSource: meal.proteinSource,
+      antiInflammatory: meal.antiInflammatory,
+      irritantViolation: meal.irritantViolation,
+      irritantNotes: meal.irritantNotes,
+      notes: meal.notes,
+    });
+  };
+
   const handleCloseModal = () => {
     setIsEntryModalOpen(false);
     setEditingMeal(undefined);
@@ -124,6 +137,7 @@ const Nutrition = () => {
               isLoading={mealsLoading}
               onDelete={deleteMealLog}
               onEdit={handleEditMeal}
+              onDuplicate={handleDuplicateMeal}
             />
           </TabsContent>
 

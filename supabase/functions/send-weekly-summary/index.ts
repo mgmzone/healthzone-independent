@@ -2,6 +2,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { Resend } from "npm:resend@2.0.0";
+import {
+  buildDataSummary,
+  callClaudeForFeedback,
+  EMPTY_FEEDBACK,
+  fetchWeeklyData,
+  resolveClaudeApiKey,
+} from "../_shared/aiFeedback.ts";
 
 // Initialize Resend with API key from environment variables
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -26,120 +33,6 @@ interface UserWeeklyData {
   aiHighlights: string[];
   aiConcerns: string[];
   aiTip: string;
-}
-
-// Get AI feedback for a user's weekly data
-async function getAIFeedback(profile: {
-  claude_api_key: string | null;
-  ai_prompt: string | null;
-  health_goals: string | null;
-}, dataSummary: string): Promise<{ summary: string; highlights: string[]; concerns: string[]; tip: string }> {
-  const empty = { summary: "", highlights: [], concerns: [], tip: "" };
-
-  if (!profile.claude_api_key) return empty;
-
-  const systemParts: string[] = [
-    "You are a supportive health coach AI reviewing a user's weekly health data for an email summary. Be encouraging but honest.",
-    'Respond with valid JSON: {"summary": "<2-3 sentences>", "highlights": ["<good thing>"], "concerns": ["<concern>"], "tip": "<one actionable tip>"}',
-    "Keep it concise — this goes in an email. 1-2 highlights and 0-2 concerns max.",
-  ];
-
-  if (profile.health_goals) {
-    systemParts.push(`\nUser's health goals: ${profile.health_goals}`);
-  }
-  if (profile.ai_prompt) {
-    systemParts.push(`\nUser's dietary context: ${profile.ai_prompt}`);
-  }
-
-  try {
-    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": profile.claude_api_key,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 400,
-        system: systemParts.join("\n"),
-        messages: [{
-          role: "user",
-          content: `Here is my health data for the past week:\n\n${dataSummary}`,
-        }],
-      }),
-    });
-
-    if (!claudeResponse.ok) {
-      console.error("Claude API error in weekly summary:", claudeResponse.status);
-      return empty;
-    }
-
-    const claudeData = await claudeResponse.json();
-    const responseText = claudeData.content?.[0]?.text || "";
-    const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-    const parsed = JSON.parse(jsonStr);
-
-    return {
-      summary: parsed.summary || "",
-      highlights: Array.isArray(parsed.highlights) ? parsed.highlights : [],
-      concerns: Array.isArray(parsed.concerns) ? parsed.concerns : [],
-      tip: parsed.tip || "",
-    };
-  } catch (error) {
-    console.error("AI feedback error for weekly email:", error);
-    return empty;
-  }
-}
-
-// Build a data summary string for AI context
-function buildDataSummary(data: {
-  meals: any[];
-  weighIns: any[];
-  exercises: any[];
-  fasting: any[];
-  goalEntries: any[];
-}): string {
-  const parts: string[] = [];
-
-  // Meals
-  const totalProtein = data.meals.reduce((sum: number, m: any) => sum + (m.protein_grams || 0), 0);
-  const daysWithMeals = new Set(data.meals.map((m: any) => m.date)).size;
-  const avgDailyProtein = daysWithMeals > 0 ? Math.round(totalProtein / daysWithMeals) : 0;
-  const irritantCount = data.meals.filter((m: any) => m.irritant_violation).length;
-  parts.push(`MEALS: ${data.meals.length} meals over ${daysWithMeals} days. Average daily protein: ${avgDailyProtein}g (target: 130-150g). Irritant violations: ${irritantCount}.`);
-
-  // Weight
-  if (data.weighIns.length > 0) {
-    const latest = data.weighIns[0].weight;
-    const earliest = data.weighIns[data.weighIns.length - 1].weight;
-    const change = latest - earliest;
-    parts.push(`WEIGHT: ${data.weighIns.length} weigh-ins. Change: ${change > 0 ? '+' : ''}${change.toFixed(1)}kg.`);
-  } else {
-    parts.push("WEIGHT: No weigh-ins this week.");
-  }
-
-  // Exercise
-  if (data.exercises.length > 0) {
-    const totalMin = data.exercises.reduce((sum: number, e: any) => sum + (e.minutes || 0), 0);
-    parts.push(`EXERCISE: ${data.exercises.length} sessions, ${totalMin} minutes total.`);
-  } else {
-    parts.push("EXERCISE: None logged.");
-  }
-
-  // Fasting
-  if (data.fasting.length > 0) {
-    const avgHours = data.fasting.reduce((sum: number, f: any) => sum + (f.fasting_hours || 0), 0) / data.fasting.length;
-    parts.push(`FASTING: ${data.fasting.length} sessions, avg ${avgHours.toFixed(1)} hours.`);
-  }
-
-  // Goals
-  if (data.goalEntries.length > 0) {
-    const met = data.goalEntries.filter((g: any) => g.met).length;
-    parts.push(`DAILY GOALS: ${met}/${data.goalEntries.length} met (${Math.round((met / data.goalEntries.length) * 100)}%).`);
-  }
-
-  return parts.join("\n");
 }
 
 // Generate HTML email
@@ -293,9 +186,17 @@ const handler = async (_req: Request): Promise<Response> => {
         const goalsMet = goalEntries.filter(g => g.met).length;
         const goalCompliance = goalEntries.length > 0 ? Math.round((goalsMet / goalEntries.length) * 100) : 0;
 
-        // Get AI feedback if user has API key
-        const dataSummary = buildDataSummary({ meals, weighIns, exercises, fasting, goalEntries });
-        const aiFeedback = await getAIFeedback(profile, dataSummary);
+        // Get AI feedback — matches dashboard logic; falls back to server key when user has none
+        const apiKey = resolveClaudeApiKey(profile.claude_api_key, Deno.env.get("CLAUDE_API_KEY_FALLBACK"));
+        let aiFeedback = EMPTY_FEEDBACK;
+        if (apiKey) {
+          try {
+            const dataSummary = buildDataSummary({ meals, weighIns, exercises, fasting, goalEntries }, profile);
+            aiFeedback = await callClaudeForFeedback(apiKey, profile, dataSummary);
+          } catch (err) {
+            console.error(`AI feedback failed for user ${profile.id}:`, err);
+          }
+        }
 
         const name = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "there";
 

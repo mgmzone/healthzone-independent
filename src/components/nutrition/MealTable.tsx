@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2, AlertTriangle, Leaf, Brain } from 'lucide-react';
+import { Pencil, Trash2, AlertTriangle, Leaf, Brain, Copy } from 'lucide-react';
 import { MealLog } from '@/lib/types';
 import { format } from 'date-fns';
 
@@ -29,6 +29,7 @@ interface MealTableProps {
   isLoading: boolean;
   onDelete: (id: string) => Promise<any>;
   onEdit: (meal: MealLog) => void;
+  onDuplicate?: (meal: MealLog) => Promise<any> | void;
 }
 
 const MealTable: React.FC<MealTableProps> = ({
@@ -36,6 +37,7 @@ const MealTable: React.FC<MealTableProps> = ({
   isLoading,
   onDelete,
   onEdit,
+  onDuplicate,
 }) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -142,6 +144,18 @@ const MealTable: React.FC<MealTableProps> = ({
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-1">
+                                {onDuplicate && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => onDuplicate(meal)}
+                                    aria-label="Duplicate meal to today"
+                                    title="Re-log this meal for today"
+                                  >
+                                    <Copy className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
                                 <Button
                                   variant="ghost"
                                   size="icon"

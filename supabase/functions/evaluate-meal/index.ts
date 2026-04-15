@@ -68,7 +68,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    if (!profile.claude_api_key) {
+    const apiKey = (profile.claude_api_key && profile.claude_api_key.trim())
+      || (Deno.env.get("CLAUDE_API_KEY_FALLBACK") || "").trim()
+      || null;
+    if (!apiKey) {
       return new Response(JSON.stringify({ success: false, error: "No Claude API key configured. Add one in Profile > Health > AI Settings." }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
@@ -102,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": profile.claude_api_key,
+        "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({

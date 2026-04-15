@@ -68,7 +68,8 @@ export async function getProfile() {
       targetMealsPerDay: data.target_meals_per_day || 3,
       isAdmin: data.is_admin || false,
       claudeApiKey: data.claude_api_key || '',
-      aiPrompt: data.ai_prompt || ''
+      aiPrompt: data.ai_prompt || '',
+      surgeryDate: data.surgery_date || undefined,
     };
     return transformedData;
   }
@@ -107,6 +108,7 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.targetMealsPerDay !== undefined) dbProfileData.target_meals_per_day = profileData.targetMealsPerDay;
   if (profileData.claudeApiKey !== undefined) dbProfileData.claude_api_key = profileData.claudeApiKey;
   if (profileData.aiPrompt !== undefined) dbProfileData.ai_prompt = profileData.aiPrompt;
+  if (profileData.surgeryDate !== undefined) dbProfileData.surgery_date = profileData.surgeryDate || null;
 
   const { data, error } = await supabase
     .from('profiles')

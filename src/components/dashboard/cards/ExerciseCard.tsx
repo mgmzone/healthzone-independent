@@ -4,10 +4,12 @@ import { Dumbbell } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
 import ProgressCircle from '@/components/ProgressCircle'; // Change import to use the correct component
+import TrendArrow from '../TrendArrow';
 import { useAuth } from '@/lib/auth';
-import { 
+import {
   calculateCurrentWeekExercise,
   calculateExerciseGoalPercentage,
+  calculatePreviousWeekExercise,
 } from '../utils/exerciseCalculations';
 
 interface ExerciseCardProps {
@@ -42,11 +44,16 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     setGoalPercentage(Math.round(percentage));
   }, [exerciseLogs, weeklyExerciseGoal]);
 
+  const previousWeekMinutes = calculatePreviousWeekExercise(exerciseLogs);
+
   const getExerciseValues = () => {
     return [
       {
         label: "This Week",
-        value: `${currentWeekMinutes} mins`
+        value: `${currentWeekMinutes} mins`,
+        trend: previousWeekMinutes > 0
+          ? <TrendArrow current={currentWeekMinutes} previous={previousWeekMinutes} unit="m" betterDirection="higher" />
+          : undefined,
       },
       {
         label: "Weekly Target",

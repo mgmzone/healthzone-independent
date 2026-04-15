@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, RefreshCw, Loader2, CheckCircle, AlertTriangle, Lightbulb } from 'lucide-react';
 import { getDashboardFeedback, DashboardFeedback } from '@/lib/services/aiService';
-import { useNavigate } from 'react-router-dom';
 
 interface AIFeedbackCardProps {
-  hasApiKey: boolean;
+  hasApiKey?: boolean; // retained for back-compat; server now also has a fallback key
 }
 
 const CACHE_KEY = 'healthzone_ai_feedback';
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const CACHE_TTL = 30 * 60 * 1000;
 
 function getCachedFeedback(): DashboardFeedback | null {
   try {
@@ -31,11 +30,16 @@ function setCachedFeedback(data: DashboardFeedback) {
   sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
 }
 
-const AIFeedbackCard: React.FC<AIFeedbackCardProps> = ({ hasApiKey }) => {
-  const navigate = useNavigate();
+const AIFeedbackCard: React.FC<AIFeedbackCardProps> = () => {
   const [feedback, setFeedback] = useState<DashboardFeedback | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // On mount, hydrate from cache if present but DO NOT auto-fetch
+  useEffect(() => {
+    const cached = getCachedFeedback();
+    if (cached) setFeedback(cached);
+  }, []);
 
   const fetchFeedback = async () => {
     setLoading(true);
@@ -51,37 +55,6 @@ const AIFeedbackCard: React.FC<AIFeedbackCardProps> = ({ hasApiKey }) => {
     }
   };
 
-  useEffect(() => {
-    if (!hasApiKey) return;
-    const cached = getCachedFeedback();
-    if (cached) {
-      setFeedback(cached);
-    } else {
-      fetchFeedback();
-    }
-  }, [hasApiKey]);
-
-  if (!hasApiKey) {
-    return (
-      <Card className="border-t-4" style={{ borderTopColor: '#8b5cf6' }}>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Brain className="h-4 w-4" style={{ color: '#8b5cf6' }} />
-            AI Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">
-            Get AI-powered weekly feedback on your progress.
-          </p>
-          <Button variant="outline" size="sm" onClick={() => navigate('/profile')}>
-            Configure API Key
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="border-t-4" style={{ borderTopColor: '#8b5cf6' }}>
       <CardHeader className="pb-2">
@@ -90,32 +63,43 @@ const AIFeedbackCard: React.FC<AIFeedbackCardProps> = ({ hasApiKey }) => {
             <Brain className="h-4 w-4" style={{ color: '#8b5cf6' }} />
             AI Insights
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={fetchFeedback}
-            disabled={loading}
-            title="Refresh AI feedback"
-          >
-            {loading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-          </Button>
+          {feedback && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={fetchFeedback}
+              disabled={loading}
+              title="Refresh AI feedback"
+            >
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {!feedback && !loading && (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Get an AI-powered review of your past 7 days.
+            </p>
+            <Button size="sm" onClick={fetchFeedback} disabled={loading}>
+              <Brain className="mr-2 h-4 w-4" />
+              Analyze my week
+            </Button>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+          </>
+        )}
+
         {loading && !feedback && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
             <Loader2 className="h-4 w-4 animate-spin" />
             Analyzing your week...
           </div>
-        )}
-
-        {error && !feedback && (
-          <p className="text-sm text-red-500">{error}</p>
         )}
 
         {feedback && (
@@ -150,6 +134,8 @@ const AIFeedbackCard: React.FC<AIFeedbackCardProps> = ({ hasApiKey }) => {
                 <span>{feedback.tip}</span>
               </div>
             )}
+
+            {error && <p className="text-sm text-red-500">{error}</p>}
           </>
         )}
       </CardContent>

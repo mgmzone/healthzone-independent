@@ -393,6 +393,7 @@ export type Database = {
           last_name: string | null
           measurement_unit: string | null
           starting_weight: number | null
+          surgery_date: string | null
           system_notification_emails: boolean | null
           target_meals_per_day: number | null
           target_weight: number | null
@@ -417,6 +418,7 @@ export type Database = {
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
+          surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null
@@ -441,6 +443,7 @@ export type Database = {
           last_name?: string | null
           measurement_unit?: string | null
           starting_weight?: number | null
+          surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null

@@ -12,6 +12,7 @@ import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import DashboardCards from './DashboardCards';
 import WeightForecastSection from './WeightForecastSection';
+import SurgeryCountdownBanner from './SurgeryCountdownBanner';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -149,6 +150,7 @@ const DashboardContent = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto">
+      <SurgeryCountdownBanner surgeryDate={profile?.surgeryDate} />
       {periods.length === 0 ? (
         <NoPeriodAlert onCreatePeriod={() => setIsPeriodModalOpen(true)} />
       ) : (

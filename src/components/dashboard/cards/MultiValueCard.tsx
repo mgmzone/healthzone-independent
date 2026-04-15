@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface MultiValueCardProps {
   title: string;
-  values: { label: string; value: string }[];
+  values: { label: string; value: string; trend?: ReactNode }[];
   icon: LucideIcon;
   color: string;
   footer?: ReactNode;
@@ -37,7 +37,10 @@ const MultiValueCard: React.FC<MultiValueCardProps> = ({
             {values.map((item, idx) => (
               <div key={idx} className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">{item.label}:</span>
-                <span className="text-sm font-medium">{item.value}</span>
+                <span className="text-sm font-medium flex items-center gap-2">
+                  {item.value}
+                  {item.trend}
+                </span>
               </div>
             ))}
           </div>

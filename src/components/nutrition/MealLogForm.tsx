@@ -11,17 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Brain, Loader2 } from 'lucide-react';
 import { MealLog, ProteinSource, DEFAULT_MEAL_NAMES } from '@/lib/types';
 import { evaluateMeal } from '@/lib/services/aiService';
-import { useAuth } from '@/lib/AuthContext';
 import DatePickerField from '@/components/weight/DatePickerField';
 
 interface MealLogFormProps {
@@ -37,70 +29,57 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   isOpen,
   onClose,
   onSave,
-  proteinSources,
   recentMealNames,
   initialData,
 }) => {
-  const { profile } = useAuth();
-  const hasApiKey = Boolean(profile?.claudeApiKey);
-
   const [date, setDate] = useState<Date>(new Date());
   const [mealSlot, setMealSlot] = useState('');
+  const [description, setDescription] = useState('');
   const [proteinGrams, setProteinGrams] = useState<string>('');
-  const [proteinSource, setProteinSource] = useState('');
+  const [proteinEdited, setProteinEdited] = useState(false);
   const [irritantViolation, setIrritantViolation] = useState(false);
   const [irritantNotes, setIrritantNotes] = useState('');
   const [antiInflammatory, setAntiInflammatory] = useState(false);
-  const [notes, setNotes] = useState('');
   const [aiAssessment, setAiAssessment] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
+  const [aiProteinFromAi, setAiProteinFromAi] = useState<number | null>(null);
 
-  // Build meal name suggestions from recent usage + defaults
   const mealNameSuggestions = [...new Set([...recentMealNames, ...DEFAULT_MEAL_NAMES])];
 
-  // Sync form state when dialog opens
   useEffect(() => {
     if (isOpen) {
       setDate(initialData?.date ? new Date(initialData.date) : new Date());
       setMealSlot(initialData?.mealSlot || '');
+      setDescription(initialData?.notes || initialData?.proteinSource || '');
       setProteinGrams(initialData?.proteinGrams?.toString() || '');
-      setProteinSource(initialData?.proteinSource || '');
+      setProteinEdited(false);
       setIrritantViolation(initialData?.irritantViolation || false);
       setIrritantNotes(initialData?.irritantNotes || '');
       setAntiInflammatory(initialData?.antiInflammatory || false);
-      setNotes(initialData?.notes || '');
       setAiAssessment(initialData?.aiAssessment || '');
+      setAiProteinFromAi(initialData?.aiProteinEstimate ?? null);
       setAiError('');
     }
   }, [isOpen, initialData]);
 
-  const handleProteinSourceSelect = (sourceId: string) => {
-    const source = proteinSources.find(s => s.id === sourceId);
-    if (source) {
-      setProteinSource(source.name);
-      if (source.typicalProteinGrams) {
-        setProteinGrams(source.typicalProteinGrams.toString());
-      }
-      if (source.isAntiInflammatory) {
-        setAntiInflammatory(true);
-      }
-    }
-  };
-
   const handleAskAI = async () => {
-    if (!proteinSource && !notes) return;
+    if (!description.trim()) {
+      setAiError('Enter a meal description first.');
+      return;
+    }
     setAiLoading(true);
     setAiError('');
     setAiAssessment('');
     try {
       const result = await evaluateMeal({
-        proteinSource,
-        notes,
+        notes: description,
         mealSlot: mealSlot || undefined,
       });
       if (result.proteinEstimate > 0) {
         setProteinGrams(result.proteinEstimate.toString());
+        setAiProteinFromAi(result.proteinEstimate);
+        setProteinEdited(false);
       }
       setAiAssessment(result.assessment);
     } catch (err: any) {
@@ -117,136 +96,69 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       date,
       mealSlot: mealSlot || 'Meal',
       proteinGrams: parsedGrams,
-      proteinSource: proteinSource || undefined,
+      proteinSource: description || undefined,
       irritantViolation,
       irritantNotes: irritantViolation ? irritantNotes : undefined,
       antiInflammatory,
-      notes: notes || undefined,
+      notes: description || undefined,
       aiAssessment: aiAssessment || undefined,
-      aiProteinEstimate: aiAssessment ? parsedGrams : undefined,
+      aiProteinEstimate: aiProteinFromAi ?? undefined,
     });
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>{initialData ? 'Edit Meal' : 'Log Meal'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <DatePickerField date={date} onChange={setDate} />
-            <div className="space-y-2">
-              <Label>Meal Name</Label>
-              <Input
-                value={mealSlot}
-                onChange={(e) => setMealSlot(e.target.value)}
-                placeholder="e.g. Lunch, OMAD, Snack..."
-                list="meal-name-suggestions"
-              />
-              <datalist id="meal-name-suggestions">
-                {mealNameSuggestions.map(name => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Protein Source</Label>
-            {proteinSources.length > 0 && (
-              <Select onValueChange={handleProteinSourceSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Quick pick from your foods..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {proteinSources.map(source => (
-                    <SelectItem key={source.id} value={source.id}>
-                      {source.name}
-                      {source.typicalProteinGrams && ` (${source.typicalProteinGrams}g)`}
-                    </SelectItem>
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <DatePickerField date={date} onChange={setDate} />
+              <div className="space-y-2">
+                <Label>Meal Name</Label>
+                <Input
+                  value={mealSlot}
+                  onChange={(e) => setMealSlot(e.target.value)}
+                  placeholder="e.g. Lunch, OMAD, Snack..."
+                  list="meal-name-suggestions"
+                />
+                <datalist id="meal-name-suggestions">
+                  {mealNameSuggestions.map(name => (
+                    <option key={name} value={name} />
                   ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Input
-              value={proteinSource}
-              onChange={(e) => setProteinSource(e.target.value)}
-              placeholder="Or type a protein source..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Protein (grams)</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="0"
-              value={proteinGrams}
-              onChange={(e) => setProteinGrams(e.target.value)}
-              placeholder="e.g. 30"
-            />
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="anti-inflammatory"
-                checked={antiInflammatory}
-                onCheckedChange={(checked) => setAntiInflammatory(checked === true)}
-              />
-              <Label htmlFor="anti-inflammatory" className="text-sm cursor-pointer">
-                Anti-inflammatory foods
-              </Label>
+                </datalist>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="irritant"
-                checked={irritantViolation}
-                onCheckedChange={(checked) => setIrritantViolation(checked === true)}
-              />
-              <Label htmlFor="irritant" className="text-sm cursor-pointer text-red-600">
-                Irritant violation
-              </Label>
-            </div>
-          </div>
 
-          {irritantViolation && (
             <div className="space-y-2">
-              <Label>What was the irritant?</Label>
-              <Input
-                value={irritantNotes}
-                onChange={(e) => setIrritantNotes(e.target.value)}
-                placeholder="e.g. tomato sauce, coffee"
+              <Label>What did you eat?</Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. grilled chicken breast with broccoli and rice, ~6oz chicken"
+                rows={3}
               />
+              <p className="text-xs text-muted-foreground">
+                Describe the meal in your own words — AI will estimate protein for you.
+              </p>
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label>Notes (optional)</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional notes..."
-              rows={2}
-            />
-          </div>
-
-          {hasApiKey && (
             <div className="space-y-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={handleAskAI}
-                disabled={aiLoading || (!proteinSource && !notes)}
+                disabled={aiLoading || !description.trim()}
                 className="w-full"
               >
                 {aiLoading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Evaluating...</>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
                 ) : (
-                  <><Brain className="mr-2 h-4 w-4" /> Ask AI to Evaluate</>
+                  <><Brain className="mr-2 h-4 w-4" /> Analyze with AI</>
                 )}
               </Button>
               {aiError && (
@@ -261,9 +173,63 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
                 </div>
               )}
             </div>
-          )}
 
-          <DialogFooter>
+            <div className="space-y-2">
+              <Label>Protein (grams)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                value={proteinGrams}
+                onChange={(e) => {
+                  setProteinGrams(e.target.value);
+                  setProteinEdited(true);
+                }}
+                placeholder="Run AI analyze, or enter manually"
+              />
+              {aiProteinFromAi !== null && proteinEdited && (
+                <p className="text-xs text-muted-foreground">
+                  AI estimated {aiProteinFromAi}g — you've overridden this.
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="anti-inflammatory"
+                  checked={antiInflammatory}
+                  onCheckedChange={(checked) => setAntiInflammatory(checked === true)}
+                />
+                <Label htmlFor="anti-inflammatory" className="text-sm cursor-pointer">
+                  Anti-inflammatory foods
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="irritant"
+                  checked={irritantViolation}
+                  onCheckedChange={(checked) => setIrritantViolation(checked === true)}
+                />
+                <Label htmlFor="irritant" className="text-sm cursor-pointer text-red-600">
+                  Irritant violation
+                </Label>
+              </div>
+            </div>
+
+            {irritantViolation && (
+              <div className="space-y-2">
+                <Label>What was the irritant?</Label>
+                <Input
+                  value={irritantNotes}
+                  onChange={(e) => setIrritantNotes(e.target.value)}
+                  placeholder="e.g. tomato sauce, coffee"
+                />
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="border-t px-6 py-4 bg-background">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit">{initialData ? 'Update' : 'Log Meal'}</Button>
           </DialogFooter>

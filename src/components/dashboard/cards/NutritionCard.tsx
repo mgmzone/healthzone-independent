@@ -3,6 +3,7 @@ import { Apple } from 'lucide-react';
 import { MealLog, PROTEIN_TARGET_MIN, PROTEIN_TARGET_MAX } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
 import ProgressCircle from '@/components/ProgressCircle';
+import TrendArrow from '../TrendArrow';
 import { toLocalDateString } from '@/lib/utils/dateUtils';
 
 interface NutritionCardProps {
@@ -50,10 +51,35 @@ const NutritionCard: React.FC<NutritionCardProps> = ({
     }
   }
 
+  // Weekly avg protein: last 7 days vs prior 7 days
+  const msDay = 86400000;
+  const now = Date.now();
+  let last7Protein = 0, last7Days = new Set<string>();
+  let prev7Protein = 0, prev7Days = new Set<string>();
+  mealLogs.forEach(log => {
+    const t = new Date(log.date).getTime();
+    const dateStr = toLocalDateString(new Date(log.date));
+    const ageDays = (now - t) / msDay;
+    if (ageDays >= 0 && ageDays < 7) {
+      last7Protein += log.proteinGrams || 0;
+      last7Days.add(dateStr);
+    } else if (ageDays >= 7 && ageDays < 14) {
+      prev7Protein += log.proteinGrams || 0;
+      prev7Days.add(dateStr);
+    }
+  });
+  const last7Avg = last7Days.size > 0 ? last7Protein / last7Days.size : 0;
+  const prev7Avg = prev7Days.size > 0 ? prev7Protein / prev7Days.size : 0;
+
   const values = [
     {
       label: "Today's Protein",
       value: `${todayProtein}g / ${PROTEIN_TARGET_MIN}-${PROTEIN_TARGET_MAX}g`,
+    },
+    {
+      label: "7-Day Avg",
+      value: `${Math.round(last7Avg)}g`,
+      trend: prev7Avg > 0 ? <TrendArrow current={last7Avg} previous={prev7Avg} unit="g" betterDirection="higher" /> : undefined,
     },
     {
       label: "Meals Logged",
