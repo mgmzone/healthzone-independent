@@ -8,7 +8,12 @@ export interface AIProfile {
   health_goals: string | null;
   target_weight?: number | null;
   current_weight?: number | null;
+  protein_target_min?: number | null;
+  protein_target_max?: number | null;
 }
+
+const DEFAULT_PROTEIN_MIN = 130;
+const DEFAULT_PROTEIN_MAX = 150;
 
 export interface WeeklyData {
   meals: any[];
@@ -38,13 +43,13 @@ export async function fetchWeeklyData(supabase: any, userId: string, daysBack = 
 
   const [mealsResult, weighInsResult, exerciseResult, fastingResult, goalsResult] = await Promise.all([
     supabase.from("meal_logs")
-      .select("date, meal_slot, protein_grams, protein_source, anti_inflammatory, irritant_violation, irritant_notes, notes, ai_assessment")
+      .select("date, meal_slot, protein_grams, carbs_grams, fat_grams, sodium_mg, calories, protein_source, anti_inflammatory, irritant_violation, irritant_notes, notes, ai_assessment")
       .eq("user_id", userId).gte("date", dateStr).order("date", { ascending: false }),
     supabase.from("weigh_ins")
       .select("date, weight")
       .eq("user_id", userId).gte("date", dateStr).order("date", { ascending: false }),
     supabase.from("exercise_logs")
-      .select("date, type, minutes, intensity")
+      .select("date, type, activity_name, minutes, intensity, calories_burned, distance")
       .eq("user_id", userId).gte("created_at", dateStr + "T00:00:00").order("created_at", { ascending: false }),
     supabase.from("fasting_logs")
       .select("start_time, end_time, fasting_hours")
@@ -66,12 +71,28 @@ export async function fetchWeeklyData(supabase: any, userId: string, daysBack = 
 export function buildDataSummary(data: WeeklyData, profile: AIProfile): string {
   const parts: string[] = [];
 
+  const proteinMin = profile.protein_target_min ?? DEFAULT_PROTEIN_MIN;
+  const proteinMax = profile.protein_target_max ?? DEFAULT_PROTEIN_MAX;
+
   const totalProtein = data.meals.reduce((sum: number, m: any) => sum + (m.protein_grams || 0), 0);
+  const totalCarbs = data.meals.reduce((sum: number, m: any) => sum + (m.carbs_grams || 0), 0);
+  const totalFat = data.meals.reduce((sum: number, m: any) => sum + (m.fat_grams || 0), 0);
+  const totalSodium = data.meals.reduce((sum: number, m: any) => sum + (m.sodium_mg || 0), 0);
+  const totalCalories = data.meals.reduce((sum: number, m: any) => sum + (m.calories || 0), 0);
+  const hasMacroData = totalCarbs > 0 || totalFat > 0 || totalCalories > 0;
+
   const daysWithMeals = new Set(data.meals.map((m: any) => m.date)).size;
   const avgDailyProtein = daysWithMeals > 0 ? Math.round(totalProtein / daysWithMeals) : 0;
+  const avgDailyCarbs = daysWithMeals > 0 ? Math.round(totalCarbs / daysWithMeals) : 0;
+  const avgDailyFat = daysWithMeals > 0 ? Math.round(totalFat / daysWithMeals) : 0;
+  const avgDailySodium = daysWithMeals > 0 ? Math.round(totalSodium / daysWithMeals) : 0;
+  const avgDailyCalories = daysWithMeals > 0 ? Math.round(totalCalories / daysWithMeals) : 0;
   const irritantCount = data.meals.filter((m: any) => m.irritant_violation).length;
   const antiInflamCount = data.meals.filter((m: any) => m.anti_inflammatory).length;
-  parts.push(`MEALS (last 7 days): ${data.meals.length} meals over ${daysWithMeals} days. Average daily protein: ${avgDailyProtein}g. Target: 130-150g/day. Anti-inflammatory meals: ${antiInflamCount}. Irritant violations: ${irritantCount}.`);
+  const macroLine = hasMacroData
+    ? ` Average daily carbs: ${avgDailyCarbs}g, fat: ${avgDailyFat}g, sodium: ${avgDailySodium}mg, calories: ${avgDailyCalories}.`
+    : "";
+  parts.push(`MEALS (last 7 days): ${data.meals.length} meals over ${daysWithMeals} days. Average daily protein: ${avgDailyProtein}g. Target: ${proteinMin}-${proteinMax}g/day.${macroLine} Anti-inflammatory meals: ${antiInflamCount}. Irritant violations: ${irritantCount}.`);
 
   if (data.meals.length > 0) {
     const mealDetails = data.meals.slice(0, 10).map((m: any) =>
@@ -91,7 +112,28 @@ export function buildDataSummary(data: WeeklyData, profile: AIProfile): string {
 
   if (data.exercises.length > 0) {
     const totalMinutes = data.exercises.reduce((sum: number, e: any) => sum + (e.minutes || 0), 0);
-    parts.push(`EXERCISE: ${data.exercises.length} sessions, ${totalMinutes} total minutes.`);
+    const totalCalories = data.exercises.reduce((sum: number, e: any) => sum + (e.calories_burned || 0), 0);
+
+    const byCategory = new Map<string, { count: number; minutes: number; calories: number; names: Set<string> }>();
+    for (const e of data.exercises) {
+      const cat = e.type || 'other';
+      const bucket = byCategory.get(cat) || { count: 0, minutes: 0, calories: 0, names: new Set<string>() };
+      bucket.count += 1;
+      bucket.minutes += e.minutes || 0;
+      bucket.calories += e.calories_burned || 0;
+      if (e.activity_name) bucket.names.add(e.activity_name);
+      byCategory.set(cat, bucket);
+    }
+    const categoryLines = Array.from(byCategory.entries())
+      .sort((a, b) => b[1].minutes - a[1].minutes)
+      .map(([cat, b]) => {
+        const names = b.names.size > 0 ? ` (${Array.from(b.names).slice(0, 3).join(', ')})` : '';
+        const cals = b.calories > 0 ? `, ~${b.calories} kcal` : '';
+        return `  ${cat}: ${b.count} session${b.count === 1 ? '' : 's'}, ${b.minutes} min${cals}${names}`;
+      })
+      .join("\n");
+    const caloriesLine = totalCalories > 0 ? `, ~${totalCalories} kcal burned` : "";
+    parts.push(`EXERCISE: ${data.exercises.length} sessions, ${totalMinutes} total minutes${caloriesLine}.\nBy category:\n${categoryLines}`);
   } else {
     parts.push("EXERCISE: No exercise logged this week.");
   }

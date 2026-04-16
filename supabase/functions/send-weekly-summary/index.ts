@@ -137,7 +137,7 @@ const handler = async (_req: Request): Promise<Response> => {
     // Get users who opted into weekly emails
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, claude_api_key, ai_prompt, health_goals")
+      .select("id, first_name, last_name, claude_api_key, ai_prompt, health_goals, target_weight, current_weight, protein_target_min, protein_target_max")
       .eq("weekly_summary_emails", true);
 
     if (profilesError) {
@@ -165,9 +165,9 @@ const handler = async (_req: Request): Promise<Response> => {
 
         // Fetch all weekly data in parallel
         const [mealsResult, weighInsResult, exerciseResult, fastingResult, goalsResult] = await Promise.all([
-          supabase.from("meal_logs").select("date, protein_grams, irritant_violation, protein_source, anti_inflammatory").eq("user_id", profile.id).gte("date", dateStr).order("date", { ascending: false }),
+          supabase.from("meal_logs").select("date, meal_slot, protein_grams, carbs_grams, fat_grams, sodium_mg, calories, irritant_violation, irritant_notes, protein_source, anti_inflammatory, notes, ai_assessment").eq("user_id", profile.id).gte("date", dateStr).order("date", { ascending: false }),
           supabase.from("weigh_ins").select("date, weight").eq("user_id", profile.id).gte("date", dateStr).order("date", { ascending: false }),
-          supabase.from("exercise_logs").select("date, type, minutes, intensity").eq("user_id", profile.id).gte("created_at", dateStr + "T00:00:00"),
+          supabase.from("exercise_logs").select("date, type, activity_name, minutes, intensity, calories_burned, distance").eq("user_id", profile.id).gte("created_at", dateStr + "T00:00:00"),
           supabase.from("fasting_logs").select("start_time, fasting_hours").eq("user_id", profile.id).gte("start_time", dateStr + "T00:00:00"),
           supabase.from("daily_goal_entries").select("date, met").eq("user_id", profile.id).gte("date", dateStr),
         ]);

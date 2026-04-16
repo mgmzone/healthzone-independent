@@ -53,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("claude_api_key, ai_prompt, health_goals, target_meals_per_day, target_weight, current_weight")
+      .select("claude_api_key, ai_prompt, health_goals, target_meals_per_day, target_weight, current_weight, protein_target_min, protein_target_max")
       .eq("id", userId)
       .single();
 
