@@ -19,12 +19,14 @@ import AdminRoute from './components/AdminRoute';
 import Admin from './pages/Admin';
 import Nutrition from './pages/Nutrition';
 import { AuthProvider } from './lib/auth';
+import { ThemeProvider } from './lib/ThemeContext';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -51,6 +53,7 @@ const App = () => {
         </Routes>
         <Toaster />
       </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

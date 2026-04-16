@@ -5,6 +5,7 @@ import { Menu, X, User, BarChart, Dumbbell, Clock, LogIn, LogOut, Calendar, Scal
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface HeaderProps {
   transparent?: boolean;
@@ -88,9 +89,10 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                   )}
                 </Link>
               ))}
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <ThemeToggle invert={transparent && !scrolled} />
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={signOut}
                 className={cn(
                   "flex items-center space-x-1",
@@ -156,9 +158,13 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                     )}
                   </Link>
                 ))}
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start p-3" 
+                <div className="flex items-center justify-between p-3">
+                  <span className="text-sm text-muted-foreground">Theme</span>
+                  <ThemeToggle />
+                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start p-3"
                   onClick={() => {
                     signOut();
                     setIsOpen(false);

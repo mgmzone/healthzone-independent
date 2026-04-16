@@ -103,6 +103,7 @@ const Periods = () => {
               currentPeriodId={currentPeriod?.id}
               latestWeight={latestWeight}
               weightUnit={weightUnit}
+              weighIns={weighIns}
               onUpdatePeriod={updatePeriod}
               onDeletePeriod={deletePeriod}
             />

@@ -10,6 +10,17 @@
     <meta name="description" content="HealthZone - Personal Health and Fitness Tracker" />
     <meta name="author" content="HealthZone" />
     <meta property="og:image" content="/og-image.png" />
+    <script>
+      // Apply theme before React mounts to avoid flash.
+      (function () {
+        try {
+          var stored = localStorage.getItem('healthzone-theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = stored === 'dark' || ((!stored || stored === 'system') && prefersDark);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Period } from '@/lib/types';
+import { Period, WeighIn } from '@/lib/types';
 import PeriodEntryModal from './PeriodEntryModal';
 import PeriodTableHeader from './PeriodTableHeader';
 import PeriodTableRow from './PeriodTableRow';
@@ -12,6 +12,7 @@ interface PeriodsTableProps {
   currentPeriodId?: string;
   latestWeight: number | null;
   weightUnit: string;
+  weighIns: WeighIn[];
   onUpdatePeriod: (period: Period) => void;
   onDeletePeriod: (id: string) => void;
 }
@@ -21,6 +22,7 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
   currentPeriodId,
   latestWeight,
   weightUnit,
+  weighIns,
   onUpdatePeriod,
   onDeletePeriod
 }) => {
@@ -59,6 +61,7 @@ const PeriodsTable: React.FC<PeriodsTableProps> = ({
                 isActive={currentPeriodId === period.id}
                 latestWeight={latestWeight}
                 weightUnit={weightUnit}
+                weighIns={weighIns}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />

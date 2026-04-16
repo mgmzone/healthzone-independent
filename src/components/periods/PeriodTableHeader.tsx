@@ -10,7 +10,10 @@ const PeriodTableHeader: React.FC = () => {
         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Start Weight</th>
         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Target Weight</th>
         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Target Loss/Week</th>
-        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Current Weight</th>
+        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Final Weight</th>
+        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Lowest Weight</th>
+        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Actual Loss</th>
+        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Actual Loss/Week</th>
         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Fasting Schedule</th>
         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Duration</th>
         <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Actions</th>
