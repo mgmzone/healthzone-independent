@@ -48,10 +48,10 @@ export function prepareChartData(logs: ExerciseLog[], timeFilter: TimeFilter, is
         name: format(date, 'EEE'),
         minutes: dayLogs.reduce((sum, log) => sum + log.minutes, 0),
         distance: totalDistance,
-        walk: dayLogs.filter(log => log.type === 'walk').reduce((sum, log) => sum + log.minutes, 0),
-        run: dayLogs.filter(log => log.type === 'run').reduce((sum, log) => sum + log.minutes, 0),
-        bike: dayLogs.filter(log => log.type === 'bike').reduce((sum, log) => sum + log.minutes, 0),
-        elliptical: dayLogs.filter(log => log.type === 'elliptical').reduce((sum, log) => sum + log.minutes, 0),
+        cardio: dayLogs.filter(log => log.type === 'cardio').reduce((sum, log) => sum + log.minutes, 0),
+        resistance: dayLogs.filter(log => log.type === 'resistance').reduce((sum, log) => sum + log.minutes, 0),
+        sports: dayLogs.filter(log => log.type === 'sports').reduce((sum, log) => sum + log.minutes, 0),
+        flexibility: dayLogs.filter(log => log.type === 'flexibility').reduce((sum, log) => sum + log.minutes, 0),
         other: dayLogs.filter(log => log.type === 'other').reduce((sum, log) => sum + log.minutes, 0),
       });
     }
@@ -83,10 +83,10 @@ export function prepareChartData(logs: ExerciseLog[], timeFilter: TimeFilter, is
         name: `Week ${i + 1}`,
         minutes: weekLogs.reduce((sum, log) => sum + log.minutes, 0),
         distance: totalDistance,
-        walk: weekLogs.filter(log => log.type === 'walk').reduce((sum, log) => sum + log.minutes, 0),
-        run: weekLogs.filter(log => log.type === 'run').reduce((sum, log) => sum + log.minutes, 0),
-        bike: weekLogs.filter(log => log.type === 'bike').reduce((sum, log) => sum + log.minutes, 0),
-        elliptical: weekLogs.filter(log => log.type === 'elliptical').reduce((sum, log) => sum + log.minutes, 0),
+        cardio: weekLogs.filter(log => log.type === 'cardio').reduce((sum, log) => sum + log.minutes, 0),
+        resistance: weekLogs.filter(log => log.type === 'resistance').reduce((sum, log) => sum + log.minutes, 0),
+        sports: weekLogs.filter(log => log.type === 'sports').reduce((sum, log) => sum + log.minutes, 0),
+        flexibility: weekLogs.filter(log => log.type === 'flexibility').reduce((sum, log) => sum + log.minutes, 0),
         other: weekLogs.filter(log => log.type === 'other').reduce((sum, log) => sum + log.minutes, 0),
       });
     }

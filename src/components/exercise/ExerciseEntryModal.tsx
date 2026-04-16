@@ -1,9 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Brain, Loader2 } from 'lucide-react';
 import { ExerciseLog } from '@/lib/types';
 import { useAuth } from '@/lib/AuthContext';
+import { analyzeExercise } from '@/lib/services/aiService';
 import ExerciseFormFields from './modal/ExerciseFormFields';
 
 interface ExerciseEntryModalProps {
@@ -17,114 +20,172 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  initialData
+  initialData,
 }) => {
   const { profile } = useAuth();
   const isImperial = profile?.measurementUnit === 'imperial';
 
-  // State for the raw input string of distance (before conversion)
   const [distanceInputValue, setDistanceInputValue] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [aiAssessment, setAiAssessment] = useState<string>('');
+  const [aiLoading, setAiLoading] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string>('');
 
   const [formData, setFormData] = useState<Partial<ExerciseLog>>(
     initialData || {
       date: new Date(),
-      type: 'walk',
+      type: 'cardio',
+      activityName: '',
       minutes: 30,
       intensity: 'medium',
       distance: undefined,
       steps: undefined,
+      caloriesBurned: undefined,
       lowestHeartRate: undefined,
       highestHeartRate: undefined,
-      averageHeartRate: undefined
+      averageHeartRate: undefined,
     }
   );
 
-  // Initialize the distance input value when the modal opens with initial data
   useEffect(() => {
-    if (initialData?.distance !== undefined) {
-      // If imperial, convert kilometers to miles for display
-      const displayValue = isImperial 
-        ? (initialData.distance * 0.621371).toFixed(2)
-        : initialData.distance.toFixed(2);
-      setDistanceInputValue(displayValue);
-    } else {
-      setDistanceInputValue('');
+    if (isOpen) {
+      setFormData(
+        initialData || {
+          date: new Date(),
+          type: 'cardio',
+          activityName: '',
+          minutes: 30,
+          intensity: 'medium',
+          distance: undefined,
+          steps: undefined,
+          caloriesBurned: undefined,
+          lowestHeartRate: undefined,
+          highestHeartRate: undefined,
+          averageHeartRate: undefined,
+        }
+      );
+      setDescription('');
+      setAiAssessment('');
+      setAiError('');
+
+      if (initialData?.distance !== undefined) {
+        const displayValue = isImperial
+          ? (initialData.distance * 0.621371).toFixed(2)
+          : initialData.distance.toFixed(2);
+        setDistanceInputValue(displayValue);
+      } else {
+        setDistanceInputValue('');
+      }
     }
-  }, [initialData, isImperial]);
+  }, [isOpen, initialData, isImperial]);
+
+  const handleAnalyze = async () => {
+    if (!description.trim()) {
+      setAiError('Describe your workout first.');
+      return;
+    }
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const res = await analyzeExercise({
+        description,
+        minutesHint: formData.minutes || undefined,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        type: res.category,
+        activityName: res.activityName || prev.activityName,
+        minutes: res.minutes > 0 ? res.minutes : prev.minutes,
+        intensity: res.intensity,
+        caloriesBurned: res.caloriesBurned > 0 ? res.caloriesBurned : prev.caloriesBurned,
+      }));
+      setAiAssessment(res.assessment);
+    } catch (err: any) {
+      setAiError(err.message || 'AI analysis failed');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // If using imperial, convert miles to km for storage
-    let dataToSave = {...formData};
-    
+    let dataToSave = { ...formData };
     if (isImperial && dataToSave.distance) {
-      // Convert miles to kilometers for storage
       const distanceInKm = dataToSave.distance / 0.621371;
-      dataToSave = {
-        ...dataToSave, 
-        distance: parseFloat(distanceInKm.toFixed(2))
-      };
+      dataToSave = { ...dataToSave, distance: parseFloat(distanceInKm.toFixed(2)) };
     }
-    
     onSave(dataToSave);
     onClose();
   };
 
   const handleDistanceChange = (value: string) => {
-    // Update the raw input value immediately for display
     setDistanceInputValue(value);
-    
-    // Handle empty input
     if (value === '') {
-      setFormData({
-        ...formData,
-        distance: undefined
-      });
+      setFormData({ ...formData, distance: undefined });
       return;
     }
-    
-    // Accept any valid number format including decimals
     if (/^(\d*\.?\d*|\.\d+)$/.test(value)) {
-      // Let users type a decimal point without immediately parsing it
-      if (value === '.') {
-        // Just update the display value, not the actual distance yet
-        return;
-      }
-      
-      const parsedValue = parseFloat(value);
-      
-      if (!isNaN(parsedValue)) {
-        // Store the value as entered by the user (in miles or km depending on preference)
-        // We'll convert it when submitting the form
-        setFormData({
-          ...formData,
-          distance: parsedValue
-        });
-      }
+      if (value === '.') return;
+      const parsed = parseFloat(value);
+      if (!isNaN(parsed)) setFormData({ ...formData, distance: parsed });
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Log Exercise Activity</DialogTitle>
+            <DialogTitle>{initialData ? 'Edit Activity' : 'Log Exercise Activity'}</DialogTitle>
           </DialogHeader>
-          
-          <ExerciseFormFields 
-            formData={formData}
-            setFormData={setFormData}
-            isImperial={isImperial}
-            displayDistance={distanceInputValue}
-            handleDistanceChange={handleDistanceChange}
-          />
-          
+
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="workout-description">Describe your workout (optional)</Label>
+              <Textarea
+                id="workout-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Jiu Jitsu class 90 min, hard rolling, felt wrecked"
+                rows={2}
+              />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAnalyze}
+                  disabled={aiLoading || !description.trim()}
+                >
+                  {aiLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
+                  ) : (
+                    <><Brain className="mr-2 h-4 w-4" /> Analyze with AI</>
+                  )}
+                </Button>
+                {aiError && <p className="text-xs text-red-500">{aiError}</p>}
+              </div>
+              {aiAssessment && (
+                <div className="rounded-md border bg-muted/50 p-2 text-xs">
+                  <p className="font-medium mb-1 flex items-center gap-1">
+                    <Brain className="h-3 w-3" /> AI Assessment
+                  </p>
+                  <p className="text-muted-foreground">{aiAssessment}</p>
+                </div>
+              )}
+            </div>
+
+            <ExerciseFormFields
+              formData={formData}
+              setFormData={setFormData}
+              isImperial={isImperial}
+              displayDistance={distanceInputValue}
+              handleDistanceChange={handleDistanceChange}
+            />
+          </div>
+
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
             <Button type="submit">Save Activity</Button>
           </DialogFooter>
         </form>

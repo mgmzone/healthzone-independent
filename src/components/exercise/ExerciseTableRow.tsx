@@ -33,7 +33,12 @@ const ExerciseTableRow: React.FC<ExerciseTableRowProps> = ({ log, onDelete, onEd
 
   return (
     <TableRow className="bg-background">
-      <TableCell><ExerciseActivityIcon type={log.type} /></TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <ExerciseActivityIcon type={log.type} />
+          <span className="text-sm">{log.activityName || '—'}</span>
+        </div>
+      </TableCell>
       <TableCell>{format(new Date(log.date), 'MMM dd, yyyy')}</TableCell>
       <TableCell>{log.minutes} min</TableCell>
       <TableCell>{formatDistance()}</TableCell>

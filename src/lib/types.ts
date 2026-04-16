@@ -61,15 +61,29 @@ export interface WeighIn {
   bodyWaterPercentage?: number;
 }
 
+export type ExerciseCategory = 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other';
+
+export const EXERCISE_CATEGORIES: ExerciseCategory[] = ['cardio', 'resistance', 'sports', 'flexibility', 'other'];
+
+export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
+  cardio: 'Cardio',
+  resistance: 'Resistance',
+  sports: 'Sports',
+  flexibility: 'Flexibility',
+  other: 'Other',
+};
+
 export interface ExerciseLog {
   id: string;
   userId: string;
   date: Date;
-  type: 'walk' | 'run' | 'bike' | 'elliptical' | 'other';
+  type: ExerciseCategory;
+  activityName?: string;
   minutes: number;
   intensity: 'low' | 'medium' | 'high';
   steps?: number;
   distance?: number;
+  caloriesBurned?: number;
   lowestHeartRate?: number;
   highestHeartRate?: number;
   averageHeartRate?: number;
@@ -185,13 +199,13 @@ export const mockWeighIns: WeighIn[] = [
 ];
 
 export const mockExerciseLogs: ExerciseLog[] = [
-  { id: '1', userId: '1', date: new Date(2023, 0, 1), type: 'walk', minutes: 30, intensity: 'medium', steps: 4500, distance: 3.2 },
-  { id: '2', userId: '1', date: new Date(2023, 0, 2), type: 'run', minutes: 20, intensity: 'high', steps: 3800, distance: 2.8 },
-  { id: '3', userId: '1', date: new Date(2023, 0, 3), type: 'bike', minutes: 45, intensity: 'medium', distance: 15 },
-  { id: '4', userId: '1', date: new Date(2023, 0, 5), type: 'elliptical', minutes: 30, intensity: 'medium', distance: 5 },
-  { id: '5', userId: '1', date: new Date(2023, 0, 6), type: 'walk', minutes: 40, intensity: 'low', steps: 5200, distance: 3.8 },
-  { id: '6', userId: '1', date: new Date(2023, 0, 8), type: 'run', minutes: 25, intensity: 'high', steps: 4200, distance: 3.2 },
-  { id: '7', userId: '1', date: new Date(2023, 0, 10), type: 'bike', minutes: 50, intensity: 'medium', distance: 18 },
+  { id: '1', userId: '1', date: new Date(2023, 0, 1), type: 'cardio', activityName: 'Walking', minutes: 30, intensity: 'medium', steps: 4500, distance: 3.2 },
+  { id: '2', userId: '1', date: new Date(2023, 0, 2), type: 'cardio', activityName: 'Running', minutes: 20, intensity: 'high', steps: 3800, distance: 2.8 },
+  { id: '3', userId: '1', date: new Date(2023, 0, 3), type: 'cardio', activityName: 'Cycling', minutes: 45, intensity: 'medium', distance: 15 },
+  { id: '4', userId: '1', date: new Date(2023, 0, 5), type: 'cardio', activityName: 'Elliptical', minutes: 30, intensity: 'medium', distance: 5 },
+  { id: '5', userId: '1', date: new Date(2023, 0, 6), type: 'cardio', activityName: 'Walking', minutes: 40, intensity: 'low', steps: 5200, distance: 3.8 },
+  { id: '6', userId: '1', date: new Date(2023, 0, 8), type: 'cardio', activityName: 'Running', minutes: 25, intensity: 'high', steps: 4200, distance: 3.2 },
+  { id: '7', userId: '1', date: new Date(2023, 0, 10), type: 'cardio', activityName: 'Cycling', minutes: 50, intensity: 'medium', distance: 18 },
 ];
 
 export const mockFastingLogs: FastingLog[] = [

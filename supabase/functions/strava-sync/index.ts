@@ -17,14 +17,44 @@ function buildCorsHeaders(req: Request) {
   } as Record<string, string>;
 }
 
-// Strava activity type → our enum
-function mapType(stravaType: string): 'walk' | 'run' | 'bike' | 'elliptical' | 'other' {
-  const t = (stravaType || '').toLowerCase();
-  if (t === 'walk' || t === 'hike') return 'walk';
-  if (t === 'run' || t === 'trailrun' || t === 'virtualrun') return 'run';
-  if (t === 'ride' || t === 'virtualride' || t === 'ebikeride' || t === 'mountainbikeride' || t === 'gravelride') return 'bike';
-  if (t === 'elliptical') return 'elliptical';
-  return 'other';
+// Maps a Strava sport_type/type to our (category, activityName) pair.
+function mapStravaActivity(stravaType: string): { category: 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other'; name: string } {
+  const raw = stravaType || '';
+  const t = raw.toLowerCase();
+
+  const cardio: Record<string, string> = {
+    walk: 'Walking', hike: 'Hiking',
+    run: 'Running', trailrun: 'Trail Running', virtualrun: 'Running',
+    ride: 'Cycling', virtualride: 'Cycling', ebikeride: 'E-Bike', mountainbikeride: 'Mountain Biking', gravelride: 'Gravel Cycling',
+    swim: 'Swimming', elliptical: 'Elliptical', rowing: 'Rowing', stairstepper: 'Stair Stepper',
+    canoeing: 'Canoeing', kayaking: 'Kayaking', kitesurf: 'Kitesurfing', windsurf: 'Windsurfing',
+    standuppaddling: 'Paddleboarding', nordicski: 'Nordic Skiing', backcountryski: 'Backcountry Skiing',
+    alpineski: 'Alpine Skiing', snowboard: 'Snowboarding', icetrail: 'Ice Skating', inlineskate: 'Inline Skating',
+    rollerski: 'Roller Skiing', snowshoe: 'Snowshoeing', velomobile: 'Cycling',
+  };
+  if (cardio[t]) return { category: 'cardio', name: cardio[t] };
+
+  const resistance: Record<string, string> = {
+    weighttraining: 'Weight Training', workout: 'Workout', crossfit: 'CrossFit',
+  };
+  if (resistance[t]) return { category: 'resistance', name: resistance[t] };
+
+  const flex: Record<string, string> = {
+    yoga: 'Yoga', pilates: 'Pilates', stretching: 'Stretching',
+  };
+  if (flex[t]) return { category: 'flexibility', name: flex[t] };
+
+  const sports: Record<string, string> = {
+    soccer: 'Soccer', tennis: 'Tennis', badminton: 'Badminton', pickleball: 'Pickleball',
+    squash: 'Squash', tablentennis: 'Table Tennis', racquetball: 'Racquetball',
+    golf: 'Golf', rockclimbing: 'Rock Climbing', surfing: 'Surfing', martialarts: 'Martial Arts',
+    skateboarding: 'Skateboarding',
+  };
+  if (sports[t]) return { category: 'sports', name: sports[t] };
+
+  // Unknown: keep the raw label (beautified) and bucket as other
+  const pretty = raw.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ').trim();
+  return { category: 'other', name: pretty || 'Other' };
 }
 
 // Rough intensity from HR + suffer score. Falls back to "medium".
@@ -192,13 +222,16 @@ const handler = async (req: Request): Promise<Response> => {
       const minutes = Math.round((act.moving_time || 0) / 60);
       if (minutes === 0) { skipped++; continue; }
 
+      const mapped = mapStravaActivity(act.sport_type || act.type);
       const row: any = {
         user_id: userId,
         date: rowDate,
-        type: mapType(act.type || act.sport_type),
+        type: mapped.category,
+        activity_name: mapped.name,
         minutes,
         intensity: mapIntensity(act.average_heartrate, act.suffer_score),
         distance: act.distance ? act.distance / 1000 : null, // meters → km
+        calories_burned: act.calories ? Math.round(act.calories) : null,
         average_heart_rate: act.average_heartrate ? Math.round(act.average_heartrate) : null,
         highest_heart_rate: act.max_heartrate ? Math.round(act.max_heartrate) : null,
         strava_activity_id: act.id,

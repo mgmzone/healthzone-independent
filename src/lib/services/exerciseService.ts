@@ -42,11 +42,13 @@ export async function getExerciseLogs(limit?: number) {
     id: item.id,
     userId: item.user_id,
     date: new Date(item.date),
-    type: item.type as 'walk' | 'run' | 'bike' | 'elliptical' | 'other',
+    type: item.type as 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other',
+    activityName: item.activity_name || undefined,
     minutes: item.minutes,
     intensity: item.intensity as 'low' | 'medium' | 'high',
     steps: item.steps || undefined,
     distance: item.distance || undefined,
+    caloriesBurned: item.calories_burned ?? undefined,
     lowestHeartRate: item.lowest_heart_rate || undefined,
     highestHeartRate: item.highest_heart_rate || undefined,
     averageHeartRate: item.average_heart_rate || undefined
@@ -65,11 +67,13 @@ export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
   const dbData = {
     user_id: session.user.id,
     date: exerciseData.date ? exerciseData.date.toISOString() : new Date().toISOString(),
-    type: exerciseData.type || 'walk',
+    type: exerciseData.type || 'cardio',
+    activity_name: exerciseData.activityName,
     minutes: exerciseData.minutes || 0,
     intensity: exerciseData.intensity || 'medium',
     steps: exerciseData.steps,
     distance: exerciseData.distance,
+    calories_burned: exerciseData.caloriesBurned,
     lowest_heart_rate: exerciseData.lowestHeartRate,
     highest_heart_rate: exerciseData.highestHeartRate,
     average_heart_rate: exerciseData.averageHeartRate
@@ -91,11 +95,13 @@ export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
     id: data.id,
     userId: data.user_id,
     date: new Date(data.date),
-    type: data.type as 'walk' | 'run' | 'bike' | 'elliptical' | 'other',
+    type: data.type as 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other',
+    activityName: data.activity_name || undefined,
     minutes: data.minutes,
     intensity: data.intensity as 'low' | 'medium' | 'high',
     steps: data.steps || undefined,
     distance: data.distance || undefined,
+    caloriesBurned: data.calories_burned ?? undefined,
     lowestHeartRate: data.lowest_heart_rate || undefined,
     highestHeartRate: data.highest_heart_rate || undefined,
     averageHeartRate: data.average_heart_rate || undefined
@@ -116,7 +122,15 @@ export async function updateExerciseLog(id: string, exerciseData: Partial<Exerci
   if (exerciseData.type) {
     dbData.type = exerciseData.type;
   }
-  
+
+  if (exerciseData.activityName !== undefined) {
+    dbData.activity_name = exerciseData.activityName || null;
+  }
+
+  if (exerciseData.caloriesBurned !== undefined) {
+    dbData.calories_burned = exerciseData.caloriesBurned;
+  }
+
   if (exerciseData.minutes !== undefined) {
     dbData.minutes = exerciseData.minutes;
   }
@@ -163,11 +177,13 @@ export async function updateExerciseLog(id: string, exerciseData: Partial<Exerci
     id: data.id,
     userId: data.user_id,
     date: new Date(data.date),
-    type: data.type as 'walk' | 'run' | 'bike' | 'elliptical' | 'other',
+    type: data.type as 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other',
+    activityName: data.activity_name || undefined,
     minutes: data.minutes,
     intensity: data.intensity as 'low' | 'medium' | 'high',
     steps: data.steps || undefined,
     distance: data.distance || undefined,
+    caloriesBurned: data.calories_burned ?? undefined,
     lowestHeartRate: data.lowest_heart_rate || undefined,
     highestHeartRate: data.highest_heart_rate || undefined,
     averageHeartRate: data.average_heart_rate || undefined

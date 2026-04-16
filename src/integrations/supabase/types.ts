@@ -151,7 +151,9 @@ export type Database = {
       }
       exercise_logs: {
         Row: {
+          activity_name: string | null
           average_heart_rate: number | null
+          calories_burned: number | null
           created_at: string
           date: string
           distance: number | null
@@ -166,7 +168,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          activity_name?: string | null
           average_heart_rate?: number | null
+          calories_burned?: number | null
           created_at?: string
           date?: string
           distance?: number | null
@@ -181,7 +185,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          activity_name?: string | null
           average_heart_rate?: number | null
+          calories_burned?: number | null
           created_at?: string
           date?: string
           distance?: number | null

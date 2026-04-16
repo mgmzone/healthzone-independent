@@ -24,6 +24,10 @@
     {
       "name": "strava-oauth-exchange",
       "verify_jwt": false
+    },
+    {
+      "name": "analyze-exercise",
+      "verify_jwt": false
     }
   ]
 }

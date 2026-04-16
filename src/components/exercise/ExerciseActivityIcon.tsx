@@ -1,20 +1,22 @@
-
 import React from 'react';
-import { Activity, Bike, Footprints } from 'lucide-react';
+import { Heart, Dumbbell, Trophy, Wind, Activity } from 'lucide-react';
+import { ExerciseCategory } from '@/lib/types';
 
 interface ExerciseActivityIconProps {
-  type: string;
+  type: ExerciseCategory | string;
   className?: string;
 }
 
-const ExerciseActivityIcon: React.FC<ExerciseActivityIconProps> = ({ type, className = "h-4 w-4" }) => {
+const ExerciseActivityIcon: React.FC<ExerciseActivityIconProps> = ({ type, className = 'h-4 w-4' }) => {
   switch (type) {
-    case 'walk':
-      return <Footprints className={`${className} text-blue-500`} />;
-    case 'run':
-      return <Activity className={`${className} text-orange-500`} />;
-    case 'bike':
-      return <Bike className={`${className} text-green-500`} />;
+    case 'cardio':
+      return <Heart className={`${className} text-rose-500`} />;
+    case 'resistance':
+      return <Dumbbell className={`${className} text-amber-500`} />;
+    case 'sports':
+      return <Trophy className={`${className} text-emerald-500`} />;
+    case 'flexibility':
+      return <Wind className={`${className} text-sky-500`} />;
     default:
       return <Activity className={`${className} text-purple-500`} />;
   }

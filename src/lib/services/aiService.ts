@@ -16,6 +16,39 @@ export interface DashboardFeedback {
   tip: string;
 }
 
+export interface ExerciseAnalysis {
+  category: 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other';
+  activityName: string;
+  minutes: number;
+  intensity: 'low' | 'medium' | 'high';
+  caloriesBurned: number;
+  assessment: string;
+}
+
+export async function analyzeExercise(data: {
+  description: string;
+  minutesHint?: number;
+}): Promise<ExerciseAnalysis> {
+  const { data: result, error } = await supabase.functions.invoke("analyze-exercise", {
+    body: {
+      description: data.description,
+      minutesHint: data.minutesHint,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+  if (!result?.success) throw new Error(result?.error || "Exercise analysis failed");
+
+  return {
+    category: result.category,
+    activityName: result.activityName,
+    minutes: result.minutes,
+    intensity: result.intensity,
+    caloriesBurned: result.caloriesBurned,
+    assessment: result.assessment,
+  };
+}
+
 export async function evaluateMeal(data: {
   proteinSource?: string;
   notes?: string;

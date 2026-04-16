@@ -8,7 +8,7 @@ interface ExerciseLog {
   id: string;
   user_id: string;
   date: Date | string;
-  type: 'walk' | 'run' | 'bike' | 'elliptical' | 'other';
+  type: 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other';
   minutes: number;
   intensity: 'low' | 'medium' | 'high';
   steps?: number;
@@ -139,16 +139,16 @@ const capitalizeFirstLetter = (string: string) => {
 
 const getExerciseColor = (type: string) => {
   switch (type) {
-    case 'walk':
-      return '#3B82F6'; // blue
-    case 'run':
+    case 'cardio':
+      return '#F43F5E'; // rose
+    case 'resistance':
       return '#F59E0B'; // amber
-    case 'bike':
+    case 'sports':
       return '#10B981'; // emerald
-    case 'elliptical':
-      return '#8B5CF6'; // violet
+    case 'flexibility':
+      return '#0EA5E9'; // sky
     default:
-      return '#6B7280'; // gray
+      return '#A855F7'; // purple (other)
   }
 };
 
