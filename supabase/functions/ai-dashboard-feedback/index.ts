@@ -6,6 +6,7 @@ import {
   fetchWeeklyData,
   resolveClaudeApiKey,
 } from "../_shared/aiFeedback.ts";
+import { logAiUsage } from "../_shared/aiUsage.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -64,7 +65,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    const userKey = (profile.claude_api_key && profile.claude_api_key.trim()) || "";
+    const fallbackKey = (Deno.env.get("CLAUDE_API_KEY_FALLBACK") || "").trim();
     const apiKey = resolveClaudeApiKey(profile.claude_api_key, Deno.env.get("CLAUDE_API_KEY_FALLBACK"));
+    const usedFallbackKey = !userKey && !!fallbackKey;
     if (!apiKey) {
       return new Response(JSON.stringify({ success: false, error: "No Claude API key configured" }), {
         status: 400,
@@ -76,12 +80,27 @@ const handler = async (req: Request): Promise<Response> => {
     const dataSummary = buildDataSummary(weeklyData, profile);
 
     try {
-      const result = await callClaudeForFeedback(apiKey, profile, dataSummary);
-      return new Response(JSON.stringify({ success: true, ...result }), {
+      const { feedback, model, usage } = await callClaudeForFeedback(apiKey, profile, dataSummary);
+      await logAiUsage(supabase, {
+        userId,
+        functionName: 'ai-dashboard-feedback',
+        model,
+        usage,
+        usedFallbackKey,
+      });
+      return new Response(JSON.stringify({ success: true, ...feedback }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
       });
     } catch (err: any) {
+      await logAiUsage(supabase, {
+        userId,
+        functionName: 'ai-dashboard-feedback',
+        model: 'claude-sonnet-4-20250514',
+        usedFallbackKey,
+        status: 'error',
+        error: err.message || 'Claude API error',
+      });
       return new Response(JSON.stringify({ success: false, error: err.message || "Claude API error" }), {
         status: 502,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },

@@ -165,7 +165,14 @@ export function buildSystemPrompt(profile: AIProfile): string {
   return systemParts.join("\n");
 }
 
-export async function callClaudeForFeedback(apiKey: string, profile: AIProfile, dataSummary: string): Promise<AIFeedback> {
+export interface FeedbackCallResult {
+  feedback: AIFeedback;
+  model: string;
+  usage: { input_tokens?: number; output_tokens?: number } | null;
+}
+
+export async function callClaudeForFeedback(apiKey: string, profile: AIProfile, dataSummary: string): Promise<FeedbackCallResult> {
+  const model = "claude-sonnet-4-20250514";
   const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -174,7 +181,7 @@ export async function callClaudeForFeedback(apiKey: string, profile: AIProfile, 
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model,
       max_tokens: 500,
       system: buildSystemPrompt(profile),
       messages: [{
@@ -192,17 +199,22 @@ export async function callClaudeForFeedback(apiKey: string, profile: AIProfile, 
 
   const claudeData = await claudeResponse.json();
   const responseText = claudeData.content?.[0]?.text || "";
+  const usage = claudeData.usage || null;
+  const actualModel = claudeData.model || model;
 
+  let feedback: AIFeedback;
   try {
     const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
     const parsed = JSON.parse(jsonStr);
-    return {
+    feedback = {
       summary: parsed.summary || "",
       highlights: Array.isArray(parsed.highlights) ? parsed.highlights : [],
       concerns: Array.isArray(parsed.concerns) ? parsed.concerns : [],
       tip: parsed.tip || "",
     };
   } catch {
-    return { summary: responseText, highlights: [], concerns: [], tip: "" };
+    feedback = { summary: responseText, highlights: [], concerns: [], tip: "" };
   }
+
+  return { feedback, model: actualModel, usage };
 }

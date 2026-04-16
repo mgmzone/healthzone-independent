@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { logAiUsage } from "../_shared/aiUsage.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -68,9 +69,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const apiKey = (profile.claude_api_key && profile.claude_api_key.trim())
-      || (Deno.env.get("CLAUDE_API_KEY_FALLBACK") || "").trim()
-      || null;
+    const userKey = (profile.claude_api_key && profile.claude_api_key.trim()) || "";
+    const fallbackKey = (Deno.env.get("CLAUDE_API_KEY_FALLBACK") || "").trim();
+    const apiKey = userKey || fallbackKey || null;
+    const usedFallbackKey = !userKey && !!fallbackKey;
     if (!apiKey) {
       return new Response(JSON.stringify({ success: false, error: "No Claude API key configured. Add one in Profile > Health > AI Settings." }), {
         status: 400,
@@ -129,6 +131,14 @@ const handler = async (req: Request): Promise<Response> => {
     if (!claudeResponse.ok) {
       const errorBody = await claudeResponse.text();
       console.error("Claude API error:", claudeResponse.status, errorBody);
+      await logAiUsage(supabase, {
+        userId,
+        functionName: 'evaluate-meal',
+        model: 'claude-sonnet-4-20250514',
+        usedFallbackKey,
+        status: 'error',
+        error: `Claude API ${claudeResponse.status}`,
+      });
       return new Response(JSON.stringify({ success: false, error: `Claude API error: ${claudeResponse.status}` }), {
         status: 502,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
@@ -137,6 +147,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     const claudeData = await claudeResponse.json();
     const responseText = claudeData.content?.[0]?.text || "";
+    await logAiUsage(supabase, {
+      userId,
+      functionName: 'evaluate-meal',
+      model: claudeData.model || 'claude-sonnet-4-20250514',
+      usage: claudeData.usage,
+      usedFallbackKey,
+    });
 
     // Parse the JSON response from Claude — strip markdown code fences if present
     let proteinEstimate = 0;

@@ -9,6 +9,7 @@ import {
   fetchWeeklyData,
   resolveClaudeApiKey,
 } from "../_shared/aiFeedback.ts";
+import { logAiUsage } from "../_shared/aiUsage.ts";
 
 // Initialize Resend with API key from environment variables
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -196,14 +197,33 @@ const handler = async (_req: Request): Promise<Response> => {
         const goalCompliance = goalEntries.length > 0 ? Math.round((goalsMet / goalEntries.length) * 100) : 0;
 
         // Get AI feedback — matches dashboard logic; falls back to server key when user has none
+        const userKey = (profile.claude_api_key && profile.claude_api_key.trim()) || "";
+        const fallbackKey = (Deno.env.get("CLAUDE_API_KEY_FALLBACK") || "").trim();
         const apiKey = resolveClaudeApiKey(profile.claude_api_key, Deno.env.get("CLAUDE_API_KEY_FALLBACK"));
+        const usedFallbackKey = !userKey && !!fallbackKey;
         let aiFeedback = EMPTY_FEEDBACK;
         if (apiKey) {
           try {
             const dataSummary = buildDataSummary({ meals, weighIns, exercises, fasting, goalEntries }, profile);
-            aiFeedback = await callClaudeForFeedback(apiKey, profile, dataSummary);
-          } catch (err) {
+            const { feedback, model, usage } = await callClaudeForFeedback(apiKey, profile, dataSummary);
+            aiFeedback = feedback;
+            await logAiUsage(supabase, {
+              userId: profile.id,
+              functionName: 'send-weekly-summary',
+              model,
+              usage,
+              usedFallbackKey,
+            });
+          } catch (err: any) {
             console.error(`AI feedback failed for user ${profile.id}:`, err);
+            await logAiUsage(supabase, {
+              userId: profile.id,
+              functionName: 'send-weekly-summary',
+              model: 'claude-sonnet-4-20250514',
+              usedFallbackKey,
+              status: 'error',
+              error: err?.message || 'Claude API error',
+            });
           }
         }
 
