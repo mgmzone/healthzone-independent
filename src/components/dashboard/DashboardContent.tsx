@@ -13,6 +13,7 @@ import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import DashboardCards from './DashboardCards';
 import WeightForecastSection from './WeightForecastSection';
 import PriorityMilestoneBanner from './PriorityMilestoneBanner';
+import TodayStatusStrip from './TodayStatusStrip';
 import { useMilestones } from '@/hooks/useMilestones';
 import { 
   getTimeProgressPercentage,
@@ -161,6 +162,17 @@ const DashboardContent = () => {
           {!currentPeriod && <NoActivePeriodAlert />}
           {currentPeriod && currentMetrics && (
             <>
+              <TodayStatusStrip
+                weighIns={weighIns}
+                mealLogs={mealLogs}
+                fastingLogs={fastingLogs}
+                exerciseLogs={exerciseLogs}
+                activeGoals={activeGoals}
+                goalEntries={goalEntries}
+                targetMealsPerDay={profile?.targetMealsPerDay || 3}
+                weightUnit={weightUnit}
+                isImperial={isImperial}
+              />
               <DashboardCards
                 latestWeight={latestWeight}
                 weightUnit={weightUnit}
