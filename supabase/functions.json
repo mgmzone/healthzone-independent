@@ -16,6 +16,14 @@
     {
       "name": "ai-dashboard-feedback",
       "verify_jwt": false
+    },
+    {
+      "name": "strava-sync",
+      "verify_jwt": false
+    },
+    {
+      "name": "strava-oauth-exchange",
+      "verify_jwt": false
     }
   ]
 }

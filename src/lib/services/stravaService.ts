@@ -37,17 +37,30 @@ export async function saveStravaCredentials(params: {
   if (error) throw error;
 }
 
-export async function getStravaStatus(): Promise<{ connected: boolean; lastSyncAt: string | null }> {
+export async function getStravaStatus(): Promise<{ connected: boolean; hasCredentials: boolean; lastSyncAt: string | null }> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { connected: false, lastSyncAt: null };
+  if (!session) return { connected: false, hasCredentials: false, lastSyncAt: null };
   const { data, error } = await supabase
     .from("profiles")
-    .select("strava_client_id, strava_refresh_token, strava_last_sync_at")
+    .select("strava_client_id, strava_client_secret, strava_refresh_token, strava_last_sync_at")
     .eq("id", session.user.id)
     .single();
-  if (error || !data) return { connected: false, lastSyncAt: null };
+  if (error || !data) return { connected: false, hasCredentials: false, lastSyncAt: null };
   return {
-    connected: Boolean(data.strava_client_id && data.strava_refresh_token),
+    connected: Boolean(data.strava_client_id && data.strava_client_secret && data.strava_refresh_token),
+    hasCredentials: Boolean(data.strava_client_id && data.strava_client_secret),
     lastSyncAt: data.strava_last_sync_at,
+  };
+}
+
+export async function exchangeStravaCode(code: string): Promise<{ scope: string | null; athleteId: number | null }> {
+  const { data, error } = await supabase.functions.invoke("strava-oauth-exchange", {
+    body: { code },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || "Strava OAuth exchange failed");
+  return {
+    scope: data.scope,
+    athleteId: data.athleteId,
   };
 }

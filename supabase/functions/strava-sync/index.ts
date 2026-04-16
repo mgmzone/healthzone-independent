@@ -42,20 +42,32 @@ function mapIntensity(avgHr: number | null | undefined, sufferScore: number | nu
   return 'medium';
 }
 
+class StravaAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StravaAuthError";
+  }
+}
+
 async function refreshAccessToken(clientId: string, clientSecret: string, refreshToken: string): Promise<{ accessToken: string; newRefreshToken: string }> {
-  const res = await fetch("https://www.strava.com/api/v3/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-    }),
+  const body = new URLSearchParams({
+    client_id: String(clientId),
+    client_secret: clientSecret,
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
   });
+  const res = await fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+  if (res.status === 401 || res.status === 400) {
+    const responseBody = await res.text();
+    throw new StravaAuthError(`Strava rejected the refresh token: ${responseBody}`);
+  }
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Strava token refresh failed: ${res.status} ${body}`);
+    const responseBody = await res.text();
+    throw new Error(`Strava token refresh failed: ${res.status} ${responseBody}`);
   }
   const json = await res.json();
   return {
@@ -113,12 +125,32 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Refresh access token
-    const { accessToken, newRefreshToken } = await refreshAccessToken(
-      profile.strava_client_id,
-      profile.strava_client_secret,
-      profile.strava_refresh_token,
-    );
+    // Refresh access token. If Strava rejects the credentials, clear the stored
+    // refresh_token so the UI reflects a disconnected state and prompts reconnect.
+    let accessToken: string;
+    let newRefreshToken: string;
+    try {
+      const refreshed = await refreshAccessToken(
+        profile.strava_client_id,
+        profile.strava_client_secret,
+        profile.strava_refresh_token,
+      );
+      accessToken = refreshed.accessToken;
+      newRefreshToken = refreshed.newRefreshToken;
+    } catch (err) {
+      if (err instanceof StravaAuthError) {
+        await supabase.from("profiles").update({ strava_refresh_token: null }).eq("id", userId);
+        return new Response(JSON.stringify({
+          success: false,
+          error: "Strava refresh token is invalid. Reconnect Strava in Profile > Integrations.",
+          reconnectRequired: true,
+        }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
+        });
+      }
+      throw err;
+    }
 
     // Persist new refresh token if Strava rotated it
     if (newRefreshToken !== profile.strava_refresh_token) {
