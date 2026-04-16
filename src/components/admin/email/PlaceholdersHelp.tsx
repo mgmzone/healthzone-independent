@@ -30,7 +30,9 @@ const PlaceholdersHelp: React.FC<{ type: EmailType }> = ({ type }) => {
       { name: 'aiTip', description: "AI coach tip (empty if user has no Claude key)" },
     ],
     'profile_completion': [],
-    'inactivity_reminder': []
+    'inactivity_reminder': [
+      { name: 'daysInactive', description: 'Number of days since the user last logged anything' },
+    ]
   };
 
   const placeholders = [...commonPlaceholders, ...(specificPlaceholders[type] || [])];

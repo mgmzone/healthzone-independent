@@ -40,6 +40,10 @@
     {
       "name": "admin-delete-user",
       "verify_jwt": false
+    },
+    {
+      "name": "send-system-emails",
+      "verify_jwt": false
     }
   ]
 }
