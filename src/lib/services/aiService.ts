@@ -28,11 +28,13 @@ export interface ExerciseAnalysis {
 export async function analyzeExercise(data: {
   description: string;
   minutesHint?: number;
+  avgHeartRate?: number;
 }): Promise<ExerciseAnalysis> {
   const { data: result, error } = await supabase.functions.invoke("analyze-exercise", {
     body: {
       description: data.description,
       minutesHint: data.minutesHint,
+      avgHeartRate: data.avgHeartRate,
     },
   });
 

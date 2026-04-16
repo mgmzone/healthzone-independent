@@ -90,6 +90,7 @@ const ExerciseEntryModal: React.FC<ExerciseEntryModalProps> = ({
       const res = await analyzeExercise({
         description,
         minutesHint: formData.minutes || undefined,
+        avgHeartRate: formData.averageHeartRate || undefined,
       });
       setFormData((prev) => ({
         ...prev,

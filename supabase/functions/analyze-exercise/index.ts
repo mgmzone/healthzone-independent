@@ -20,6 +20,7 @@ function buildCorsHeaders(req: Request) {
 interface AnalyzeExerciseRequest {
   description?: string;
   minutesHint?: number;
+  avgHeartRate?: number;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -48,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { description, minutesHint }: AnalyzeExerciseRequest = await req.json();
+    const { description, minutesHint, avgHeartRate }: AnalyzeExerciseRequest = await req.json();
     if (!description || !description.trim()) {
       return new Response(JSON.stringify({ success: false, error: "Describe your workout first." }), {
         status: 400,
@@ -58,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("claude_api_key, ai_prompt, health_goals, current_weight")
+      .select("claude_api_key, ai_prompt, health_goals, current_weight, birth_date, gender, fitness_level")
       .eq("id", user.id)
       .single();
 
@@ -79,19 +80,42 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Derive age from birth_date so Claude can scale MET and compute max HR
+    let ageYears: number | null = null;
+    if (profile.birth_date) {
+      const birth = new Date(profile.birth_date);
+      if (!isNaN(birth.getTime())) {
+        const diffMs = Date.now() - birth.getTime();
+        ageYears = Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000));
+      }
+    }
+
     const systemParts: string[] = [
       "You are an exercise analyst for a health tracking app. The user describes a workout in free text; you extract structured fields.",
       "Always respond with valid JSON in this exact format: {\"category\": <string>, \"activityName\": <string>, \"minutes\": <number>, \"intensity\": <string>, \"caloriesBurned\": <number>, \"assessment\": \"<string>\"}",
       "category must be exactly one of: \"cardio\", \"resistance\", \"sports\", \"flexibility\", \"other\".",
       "activityName: the specific activity as the user named it (e.g. \"Jiu Jitsu\", \"Deadlift session\", \"Trail run\"). Title Case. If the user was vague, pick a short sensible label.",
       "minutes: duration in minutes if mentioned or implied; 0 if truly unknown.",
-      "intensity must be exactly one of: \"low\", \"medium\", \"high\". Infer from effort words (chill/easy → low; steady/moderate → medium; hard/intense/max/wrecked → high).",
-      "caloriesBurned: estimate using MET values for the activity at the inferred intensity. If the user's weight is available, use it; else assume ~75 kg. Round to the nearest 10. Return 0 if minutes is 0.",
-      "assessment: 2-3 sentences. Start with the key assumptions (category choice, intensity inference, weight used). Then add a brief comment on the session — recovery considerations, balance, or a note aligned with the user's goals.",
+      "intensity must be exactly one of: \"low\", \"medium\", \"high\". Infer from effort words, calibrated by the user's fitness level (\"hard\" for a sedentary user ≈ \"moderate\" for an active one).",
+      "caloriesBurned estimation rules:",
+      "  - Preferred: if avgHeartRate is provided AND age, weight, and gender are known, use the Keytel formula.",
+      "    Men:   kcal/min = ((age × 0.2017) − (weight_kg × 0.09036) + (HR × 0.6309) − 55.0969) / 4.184",
+      "    Women: kcal/min = ((age × 0.074)  − (weight_kg × 0.05741) + (HR × 0.4472) − 20.4022) / 4.184",
+      "    Multiply by minutes; clamp to >= 0.",
+      "  - Fallback: MET × weight_kg × (minutes / 60). Scale MET by intensity. If weight unknown, use 75 kg.",
+      "  - Adjust final estimate ±5-10% for gender (men typically burn ~10% more at same weight/HR) and fitness level (trained athletes are slightly more efficient at the same effort).",
+      "  - Round to the nearest 10. Return 0 if minutes is 0.",
+      "assessment: 2-3 sentences. Start with the key assumptions (category, intensity, which formula you used and inputs). Then a brief comment on the session against the user's goals — recovery, intensity balance, or alignment.",
     ];
 
-    if (profile.current_weight) {
-      systemParts.push(`\nUser's current weight: ${profile.current_weight} kg`);
+    const userContext: string[] = [];
+    if (profile.current_weight) userContext.push(`Current weight: ${profile.current_weight} kg`);
+    if (ageYears !== null) userContext.push(`Age: ${ageYears} years`);
+    if (profile.gender) userContext.push(`Gender: ${profile.gender}`);
+    if (profile.fitness_level) userContext.push(`Fitness level: ${profile.fitness_level}`);
+    if (ageYears !== null) userContext.push(`Estimated max HR (220 - age): ${220 - ageYears} bpm`);
+    if (userContext.length > 0) {
+      systemParts.push(`\nUser profile:\n${userContext.map(l => `  - ${l}`).join("\n")}`);
     }
     if (profile.health_goals) {
       systemParts.push(`\nUser's health goals: ${profile.health_goals}`);
@@ -102,6 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const userParts: string[] = [];
     if (minutesHint) userParts.push(`Duration hint: ${minutesHint} minutes`);
+    if (avgHeartRate && avgHeartRate > 0) userParts.push(`Average heart rate: ${avgHeartRate} bpm`);
     userParts.push(`Workout description: ${description.trim()}`);
 
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
