@@ -97,7 +97,7 @@ export async function addMealLog(mealData: Partial<MealLog>) {
   return {
     id: data.id,
     userId: data.user_id,
-    date: new Date(data.date),
+    date: new Date(data.date + 'T12:00:00'),
     mealSlot: data.meal_slot as 'noon' | 'afternoon' | 'evening',
     proteinGrams: data.protein_grams ?? undefined,
     carbsGrams: data.carbs_grams ?? undefined,
@@ -153,7 +153,7 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
   return {
     id: data.id,
     userId: data.user_id,
-    date: new Date(data.date),
+    date: new Date(data.date + 'T12:00:00'),
     mealSlot: data.meal_slot as 'noon' | 'afternoon' | 'evening',
     proteinGrams: data.protein_grams ?? undefined,
     carbsGrams: data.carbs_grams ?? undefined,
