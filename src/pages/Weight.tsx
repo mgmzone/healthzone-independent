@@ -11,6 +11,7 @@ import WeightEmptyState from '@/components/weight/WeightEmptyState';
 import ChartSection from '@/components/weight/ChartSection';
 import TableSection from '@/components/weight/TableSection';
 import WeightTimeFilter from '@/components/weight/WeightTimeFilter';
+import PeriodProgressBar from '@/components/weight/PeriodProgressBar';
 import { TimeFilter } from '@/lib/types';
 
 const Weight = () => {
@@ -56,6 +57,40 @@ const Weight = () => {
   const filteredChange = calculateFilteredWeightChange(timeFilter);
   const totalChange = Number(filteredChange.value || "0.0");
   const isWeightLoss = totalChange <= 0;
+
+  // Target weight / start weight from the active period, in the user's display units.
+  const targetDisplay = currentPeriod
+    ? (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight)
+    : undefined;
+  const periodStartDisplay = currentPeriod
+    ? (isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight)
+    : undefined;
+
+  // Projected completion: use the current weekly rate to extrapolate when the user will hit target.
+  const projectedCompletion = React.useMemo(() => {
+    if (!currentPeriod || !targetDisplay || !latestWeight) return null;
+    const currentDisplay = isImperial ? latestWeight.weight * 2.20462 : latestWeight.weight;
+    const startDate = new Date(currentPeriod.startDate);
+    const weeks = Math.max(0.1, (Date.now() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    const lostSoFar = periodStartDisplay ? (periodStartDisplay - currentDisplay) : 0;
+    if (lostSoFar <= 0) return null;
+    const rate = lostSoFar / weeks;
+    const remaining = currentDisplay - targetDisplay;
+    if (remaining <= 0) return new Date();
+    const weeksNeeded = remaining / rate;
+    const proj = new Date();
+    proj.setDate(proj.getDate() + Math.round(weeksNeeded * 7));
+    return proj;
+  }, [currentPeriod, targetDisplay, periodStartDisplay, latestWeight, isImperial]);
+
+  // Flag "new low" when the most recent weigh-in is the period minimum.
+  const isNewLow = React.useMemo(() => {
+    if (!periodWeighIns || periodWeighIns.length < 2) return false;
+    const sorted = [...periodWeighIns].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const latest = sorted[0];
+    const min = periodWeighIns.reduce((acc, w) => (w.weight < acc ? w.weight : acc), Infinity);
+    return latest.weight <= min + 1e-6;
+  }, [periodWeighIns]);
 
   const onAddWeight = (
     weight: number, 
@@ -112,17 +147,22 @@ const Weight = () => {
           />
         ) : (
           <>
-            <WeightTimeFilter 
+            <WeightTimeFilter
               selectedFilter={timeFilter}
               onFilterChange={setTimeFilter}
             />
-            
+
+            {currentPeriod && <PeriodProgressBar period={currentPeriod} />}
+
             <WeightPeriodStats
               periodStartWeight={periodStartWeight}
               currentWeight={currentWeight}
               totalPeriodChange={filteredChange.value}
               isWeightLoss={isWeightLoss}
               weightUnit={weightUnit}
+              targetWeight={targetDisplay}
+              projectedCompletion={projectedCompletion}
+              startDate={currentPeriod ? new Date(currentPeriod.startDate) : undefined}
             />
 
             <ChartSection
@@ -130,6 +170,9 @@ const Weight = () => {
               isImperial={isImperial}
               selectedMetric={selectedMetric}
               onSelectMetric={setSelectedMetric}
+              targetValue={targetDisplay}
+              startValue={periodStartDisplay}
+              isNewLow={isNewLow}
             />
 
             <TableSection
