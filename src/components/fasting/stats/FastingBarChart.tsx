@@ -1,16 +1,13 @@
-
 import React from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   Legend,
-  ReferenceLine,
-  Cell
 } from 'recharts';
 import { ChartDataItem } from './chartData';
 
@@ -19,7 +16,6 @@ interface FastingBarChartProps {
 }
 
 const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
-  // Helper to format hours and minutes
   const formatHoursMinutes = (hours: number) => {
     const absHours = Math.abs(hours);
     const wholeHours = Math.floor(absHours);
@@ -27,14 +23,12 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // Customize tooltip display
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      // Get values for fasting and eating (use absolute values for calculations)
-      const fastingValue = payload.find(p => p.dataKey === 'fasting')?.value || 0;
-      const eatingValue = Math.abs(payload.find(p => p.dataKey === 'eating')?.value || 0);
+      const fastingValue = payload.find((p: any) => p.dataKey === 'fasting')?.value || 0;
+      const eatingValue = payload.find((p: any) => p.dataKey === 'eating')?.value || 0;
       const total = fastingValue + eatingValue;
-      
+
       return (
         <div className="bg-card border border-border p-3 rounded-md shadow-md">
           <p className="text-sm font-medium">{label}</p>
@@ -53,27 +47,21 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
     return null;
   };
 
-  // Define colors explicitly - using hex values for more reliable rendering
-  const fastingColor = "#0EA5E9"; // Blue
-  const eatingColor = "#F43F5E"; // Red
-  
-  console.log('FastingBarChart - Input data:', JSON.stringify(chartData, null, 2));
-  console.log('FastingBarChart - Colors being used:', { fastingColor, eatingColor });
-  
-  // Make sure eating values are negative for proper display
-  const processedChartData = chartData.map(item => ({
-    ...item,
-    eating: item.eating < 0 ? item.eating : -Math.abs(item.eating)
+  const fastingColor = "#0EA5E9";
+  const eatingColor = "#F43F5E";
+
+  // Normalize: legacy data pipes eating as negative (from the old
+  // left-of-zero stacking). We want both positive so the two bars stack
+  // cleanly on a 0-24h axis, keeping tiny eating windows visible.
+  const normalized = chartData.map((item) => ({
+    day: item.day,
+    fasting: Math.max(0, item.fasting || 0),
+    eating: Math.abs(item.eating || 0),
   }));
-  
-  // Filter out entries where BOTH fasting and eating are 0 or undefined
-  const filteredChartData = processedChartData.filter(item => 
-    item && (Math.abs(item.fasting || 0) > 0.01 || Math.abs(item.eating || 0) > 0.01)
+
+  const filteredChartData = normalized.filter(
+    (item) => (item.fasting || 0) > 0.01 || (item.eating || 0) > 0.01
   );
-  
-  console.log('FastingBarChart - Processed data:', JSON.stringify(processedChartData, null, 2));
-  console.log('FastingBarChart - Filtered data:', JSON.stringify(filteredChartData, null, 2));
-  console.log('FastingBarChart - Has data:', filteredChartData.length > 0);
 
   if (filteredChartData.length === 0) {
     return (
@@ -87,26 +75,27 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="h-full w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={filteredChartData}
           margin={{ top: 20, right: 30, left: 30, bottom: 5 }}
-          layout="vertical" // Vertical layout for horizontal bars
-          barSize={20} // Control bar thickness
+          layout="vertical"
+          barSize={20}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={true} />
-          <XAxis 
+          <XAxis
             type="number"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => `${Math.abs(Math.round(value))}h`}
+            domain={[0, 24]}
+            ticks={[0, 6, 12, 18, 24]}
+            tickFormatter={(value) => `${value}h`}
             tickLine={false}
             axisLine={true}
             fontSize={12}
           />
-          <YAxis 
+          <YAxis
             type="category"
             dataKey="day"
             tickLine={false}
@@ -115,33 +104,29 @@ const FastingBarChart: React.FC<FastingBarChartProps> = ({ chartData }) => {
             width={40}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            verticalAlign="top" 
+          <Legend
+            verticalAlign="top"
             height={36}
-            formatter={(value) => value === 'eating' ? 'Eating Time' : 'Fasting Time'} 
+            formatter={(value) => (value === 'eating' ? 'Eating Time' : 'Fasting Time')}
             iconType="square"
             iconSize={10}
           />
-          <ReferenceLine x={0} stroke="#666" />
-          
-          {/* Eating bar (negative values) */}
-          <Bar 
-            dataKey="eating" 
+
+          <Bar
+            dataKey="eating"
             name="eating"
             fill={eatingColor}
             stroke={eatingColor}
-            stackId="a" // Same stackId for both bars to align them
-            radius={[4, 0, 0, 4]} // Left side rounded corners
+            stackId="a"
+            radius={[4, 0, 0, 4]}
           />
-          
-          {/* Fasting bar (positive values) */}
-          <Bar 
-            dataKey="fasting" 
+          <Bar
+            dataKey="fasting"
             name="fasting"
-            fill={fastingColor} 
+            fill={fastingColor}
             stroke={fastingColor}
-            stackId="a" // Same stackId for both bars to align them
-            radius={[0, 4, 4, 0]} // Right side rounded corners
+            stackId="a"
+            radius={[0, 4, 4, 0]}
           />
         </BarChart>
       </ResponsiveContainer>
