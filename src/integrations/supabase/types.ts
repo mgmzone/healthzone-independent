@@ -232,8 +232,11 @@ export type Database = {
           ai_assessment: string | null
           ai_protein_estimate: number | null
           anti_inflammatory: boolean
+          calories: number | null
+          carbs_grams: number | null
           created_at: string
           date: string
+          fat_grams: number | null
           id: string
           irritant_notes: string | null
           irritant_violation: boolean
@@ -241,14 +244,18 @@ export type Database = {
           notes: string | null
           protein_grams: number | null
           protein_source: string | null
+          sodium_mg: number | null
           user_id: string
         }
         Insert: {
           ai_assessment?: string | null
           ai_protein_estimate?: number | null
           anti_inflammatory?: boolean
+          calories?: number | null
+          carbs_grams?: number | null
           created_at?: string
           date: string
+          fat_grams?: number | null
           id?: string
           irritant_notes?: string | null
           irritant_violation?: boolean
@@ -256,14 +263,18 @@ export type Database = {
           notes?: string | null
           protein_grams?: number | null
           protein_source?: string | null
+          sodium_mg?: number | null
           user_id: string
         }
         Update: {
           ai_assessment?: string | null
           ai_protein_estimate?: number | null
           anti_inflammatory?: boolean
+          calories?: number | null
+          carbs_grams?: number | null
           created_at?: string
           date?: string
+          fat_grams?: number | null
           id?: string
           irritant_notes?: string | null
           irritant_violation?: boolean
@@ -271,6 +282,7 @@ export type Database = {
           notes?: string | null
           protein_grams?: number | null
           protein_source?: string | null
+          sodium_mg?: number | null
           user_id?: string
         }
         Relationships: []

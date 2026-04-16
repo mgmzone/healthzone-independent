@@ -87,6 +87,10 @@ export interface MealLog {
   date: Date;
   mealSlot: string;
   proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
+  sodiumMg?: number;
+  calories?: number;
   proteinSource?: string;
   irritantViolation: boolean;
   irritantNotes?: string;

@@ -2,6 +2,10 @@ import { supabase } from "@/lib/supabase";
 
 export interface MealEvaluation {
   proteinEstimate: number;
+  carbsEstimate?: number;
+  fatEstimate?: number;
+  sodiumEstimate?: number;
+  caloriesEstimate?: number;
   assessment: string;
 }
 
@@ -30,6 +34,10 @@ export async function evaluateMeal(data: {
 
   return {
     proteinEstimate: result.proteinEstimate,
+    carbsEstimate: result.carbsEstimate,
+    fatEstimate: result.fatEstimate,
+    sodiumEstimate: result.sodiumEstimate,
+    caloriesEstimate: result.caloriesEstimate,
     assessment: result.assessment,
   };
 }

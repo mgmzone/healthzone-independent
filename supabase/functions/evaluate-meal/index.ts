@@ -87,9 +87,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build system prompt with user context
     const systemParts: string[] = [
-      "You are a nutrition evaluator for a health tracking app. Your job is to evaluate meals and estimate protein content.",
-      "Always respond with valid JSON in this exact format: {\"proteinEstimate\": <number>, \"assessment\": \"<string>\"}",
-      "proteinEstimate should be your best estimate of grams of protein in the described meal (a number, no units).",
+      "You are a nutrition evaluator for a health tracking app. Your job is to evaluate meals and estimate their nutritional content.",
+      "Always respond with valid JSON in this exact format: {\"proteinEstimate\": <number>, \"carbsEstimate\": <number>, \"fatEstimate\": <number>, \"sodiumEstimate\": <number>, \"caloriesEstimate\": <number>, \"assessment\": \"<string>\"}",
+      "proteinEstimate, carbsEstimate, fatEstimate: grams of each macronutrient (numbers, no units).",
+      "sodiumEstimate: milligrams of sodium (number, no units).",
+      "caloriesEstimate: total kilocalories (number, no units).",
+      "Use 0 for any value you truly cannot estimate, but give a best-effort number for typical foods.",
       "assessment should be 2-3 sentences evaluating the meal: is it a good choice given the user's goals? Any concerns or praise?",
     ];
 
@@ -110,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 300,
+        max_tokens: 400,
         system: systemParts.join("\n"),
         messages: [
           {
@@ -135,18 +138,34 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Parse the JSON response from Claude — strip markdown code fences if present
     let proteinEstimate = 0;
+    let carbsEstimate = 0;
+    let fatEstimate = 0;
+    let sodiumEstimate = 0;
+    let caloriesEstimate = 0;
     let assessment = "";
     try {
       const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
       const parsed = JSON.parse(jsonStr);
       proteinEstimate = typeof parsed.proteinEstimate === "number" ? parsed.proteinEstimate : 0;
+      carbsEstimate = typeof parsed.carbsEstimate === "number" ? parsed.carbsEstimate : 0;
+      fatEstimate = typeof parsed.fatEstimate === "number" ? parsed.fatEstimate : 0;
+      sodiumEstimate = typeof parsed.sodiumEstimate === "number" ? parsed.sodiumEstimate : 0;
+      caloriesEstimate = typeof parsed.caloriesEstimate === "number" ? parsed.caloriesEstimate : 0;
       assessment = parsed.assessment || "";
     } catch {
       // If Claude didn't return valid JSON, use the raw text as assessment
       assessment = responseText;
     }
 
-    return new Response(JSON.stringify({ success: true, proteinEstimate, assessment }), {
+    return new Response(JSON.stringify({
+      success: true,
+      proteinEstimate,
+      carbsEstimate,
+      fatEstimate,
+      sodiumEstimate,
+      caloriesEstimate,
+      assessment,
+    }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
     });

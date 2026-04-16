@@ -15,6 +15,9 @@ import { Brain, Loader2 } from 'lucide-react';
 import { MealLog, ProteinSource, DEFAULT_MEAL_NAMES } from '@/lib/types';
 import { evaluateMeal } from '@/lib/services/aiService';
 import DatePickerField from '@/components/weight/DatePickerField';
+import AdditionalNutritionSection from '@/components/nutrition/AdditionalNutritionSection';
+
+const NUTRITION_EXPANDED_KEY = 'healthzone.mealForm.additionalNutritionExpanded';
 
 interface MealLogFormProps {
   isOpen: boolean;
@@ -37,6 +40,14 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   const [description, setDescription] = useState('');
   const [proteinGrams, setProteinGrams] = useState<string>('');
   const [proteinEdited, setProteinEdited] = useState(false);
+  const [carbsGrams, setCarbsGrams] = useState<string>('');
+  const [fatGrams, setFatGrams] = useState<string>('');
+  const [sodiumMg, setSodiumMg] = useState<string>('');
+  const [calories, setCalories] = useState<string>('');
+  const [nutritionExpanded, setNutritionExpanded] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(NUTRITION_EXPANDED_KEY) === 'true';
+  });
   const [irritantViolation, setIrritantViolation] = useState(false);
   const [irritantNotes, setIrritantNotes] = useState('');
   const [antiInflammatory, setAntiInflammatory] = useState(false);
@@ -54,6 +65,18 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       setDescription(initialData?.notes || initialData?.proteinSource || '');
       setProteinGrams(initialData?.proteinGrams?.toString() || '');
       setProteinEdited(false);
+      setCarbsGrams(initialData?.carbsGrams?.toString() || '');
+      setFatGrams(initialData?.fatGrams?.toString() || '');
+      setSodiumMg(initialData?.sodiumMg?.toString() || '');
+      setCalories(initialData?.calories?.toString() || '');
+      if (
+        initialData?.carbsGrams !== undefined ||
+        initialData?.fatGrams !== undefined ||
+        initialData?.sodiumMg !== undefined ||
+        initialData?.calories !== undefined
+      ) {
+        setNutritionExpanded(true);
+      }
       setIrritantViolation(initialData?.irritantViolation || false);
       setIrritantNotes(initialData?.irritantNotes || '');
       setAntiInflammatory(initialData?.antiInflammatory || false);
@@ -81,6 +104,20 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
         setAiProteinFromAi(result.proteinEstimate);
         setProteinEdited(false);
       }
+      if (nutritionExpanded) {
+        if (result.carbsEstimate !== undefined && result.carbsEstimate > 0) {
+          setCarbsGrams(result.carbsEstimate.toString());
+        }
+        if (result.fatEstimate !== undefined && result.fatEstimate > 0) {
+          setFatGrams(result.fatEstimate.toString());
+        }
+        if (result.sodiumEstimate !== undefined && result.sodiumEstimate > 0) {
+          setSodiumMg(result.sodiumEstimate.toString());
+        }
+        if (result.caloriesEstimate !== undefined && result.caloriesEstimate > 0) {
+          setCalories(result.caloriesEstimate.toString());
+        }
+      }
       setAiAssessment(result.assessment);
     } catch (err: any) {
       setAiError(err.message || 'AI evaluation failed');
@@ -89,13 +126,29 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
     }
   };
 
+  const handleNutritionExpandedChange = (open: boolean) => {
+    setNutritionExpanded(open);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(NUTRITION_EXPANDED_KEY, open ? 'true' : 'false');
+    }
+  };
+
+  const parseOptionalNumber = (value: string): number | undefined => {
+    if (!value) return undefined;
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const parsedGrams = proteinGrams ? parseFloat(proteinGrams) : undefined;
     await onSave({
       date,
       mealSlot: mealSlot || 'Meal',
-      proteinGrams: parsedGrams,
+      proteinGrams: parseOptionalNumber(proteinGrams),
+      carbsGrams: parseOptionalNumber(carbsGrams),
+      fatGrams: parseOptionalNumber(fatGrams),
+      sodiumMg: parseOptionalNumber(sodiumMg),
+      calories: parseOptionalNumber(calories),
       proteinSource: description || undefined,
       irritantViolation,
       irritantNotes: irritantViolation ? irritantNotes : undefined,
@@ -193,6 +246,19 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
                 </p>
               )}
             </div>
+
+            <AdditionalNutritionSection
+              open={nutritionExpanded}
+              onOpenChange={handleNutritionExpandedChange}
+              carbsGrams={carbsGrams}
+              setCarbsGrams={setCarbsGrams}
+              fatGrams={fatGrams}
+              setFatGrams={setFatGrams}
+              sodiumMg={sodiumMg}
+              setSodiumMg={setSodiumMg}
+              calories={calories}
+              setCalories={setCalories}
+            />
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">

@@ -39,7 +39,11 @@ export async function getMealLogs() {
     userId: item.user_id,
     date: new Date(item.date + 'T12:00:00'),
     mealSlot: item.meal_slot,
-    proteinGrams: item.protein_grams || undefined,
+    proteinGrams: item.protein_grams ?? undefined,
+    carbsGrams: item.carbs_grams ?? undefined,
+    fatGrams: item.fat_grams ?? undefined,
+    sodiumMg: item.sodium_mg ?? undefined,
+    calories: item.calories ?? undefined,
     proteinSource: item.protein_source || undefined,
     irritantViolation: item.irritant_violation,
     irritantNotes: item.irritant_notes || undefined,
@@ -66,6 +70,10 @@ export async function addMealLog(mealData: Partial<MealLog>) {
     date: dateStr,
     meal_slot: mealData.mealSlot || 'noon',
     protein_grams: mealData.proteinGrams,
+    carbs_grams: mealData.carbsGrams,
+    fat_grams: mealData.fatGrams,
+    sodium_mg: mealData.sodiumMg,
+    calories: mealData.calories,
     protein_source: mealData.proteinSource,
     irritant_violation: mealData.irritantViolation || false,
     irritant_notes: mealData.irritantNotes,
@@ -91,7 +99,11 @@ export async function addMealLog(mealData: Partial<MealLog>) {
     userId: data.user_id,
     date: new Date(data.date),
     mealSlot: data.meal_slot as 'noon' | 'afternoon' | 'evening',
-    proteinGrams: data.protein_grams || undefined,
+    proteinGrams: data.protein_grams ?? undefined,
+    carbsGrams: data.carbs_grams ?? undefined,
+    fatGrams: data.fat_grams ?? undefined,
+    sodiumMg: data.sodium_mg ?? undefined,
+    calories: data.calories ?? undefined,
     proteinSource: data.protein_source || undefined,
     irritantViolation: data.irritant_violation,
     irritantNotes: data.irritant_notes || undefined,
@@ -113,6 +125,10 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
   }
   if (mealData.mealSlot !== undefined) dbData.meal_slot = mealData.mealSlot;
   if (mealData.proteinGrams !== undefined) dbData.protein_grams = mealData.proteinGrams;
+  if (mealData.carbsGrams !== undefined) dbData.carbs_grams = mealData.carbsGrams;
+  if (mealData.fatGrams !== undefined) dbData.fat_grams = mealData.fatGrams;
+  if (mealData.sodiumMg !== undefined) dbData.sodium_mg = mealData.sodiumMg;
+  if (mealData.calories !== undefined) dbData.calories = mealData.calories;
   if (mealData.proteinSource !== undefined) dbData.protein_source = mealData.proteinSource;
   if (mealData.irritantViolation !== undefined) dbData.irritant_violation = mealData.irritantViolation;
   if (mealData.irritantNotes !== undefined) dbData.irritant_notes = mealData.irritantNotes;
@@ -139,7 +155,11 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
     userId: data.user_id,
     date: new Date(data.date),
     mealSlot: data.meal_slot as 'noon' | 'afternoon' | 'evening',
-    proteinGrams: data.protein_grams || undefined,
+    proteinGrams: data.protein_grams ?? undefined,
+    carbsGrams: data.carbs_grams ?? undefined,
+    fatGrams: data.fat_grams ?? undefined,
+    sodiumMg: data.sodium_mg ?? undefined,
+    calories: data.calories ?? undefined,
     proteinSource: data.protein_source || undefined,
     irritantViolation: data.irritant_violation,
     irritantNotes: data.irritant_notes || undefined,
