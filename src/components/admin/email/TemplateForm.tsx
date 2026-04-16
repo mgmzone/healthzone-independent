@@ -36,18 +36,22 @@ const TemplateForm: React.FC<TemplateFormProps> = ({
 }) => {
   const getTemplateTitle = (type: EmailType) => {
     switch (type) {
+      case 'welcome': return 'Welcome Email';
       case 'weekly_summary': return 'Weekly Summary Email';
       case 'profile_completion': return 'Profile Completion Reminder';
       case 'inactivity_reminder': return 'Inactivity Reminder Email';
+      case 'milestone_reminder': return 'Milestone Countdown Email';
       default: return 'Email Template';
     }
   };
 
   const getTemplateDescription = (type: EmailType) => {
     switch (type) {
+      case 'welcome': return 'Sent once when a user completes signup.';
       case 'weekly_summary': return 'Customize the weekly summary email sent to users.';
-      case 'profile_completion': return 'Edit the reminder email sent to users with incomplete profiles.';
-      case 'inactivity_reminder': return 'Edit the reminder email sent to inactive users.';
+      case 'profile_completion': return 'Sent to users with incomplete profiles (rate-limited).';
+      case 'inactivity_reminder': return 'Sent to users who have been inactive for 14+ days.';
+      case 'milestone_reminder': return 'Sent 7 days and 1 day before a priority milestone date.';
       default: return 'Edit email template';
     }
   };

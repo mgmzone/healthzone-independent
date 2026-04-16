@@ -2,10 +2,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/lib/types";
 
-export type EmailType = 
-  | "profile_completion" 
-  | "inactivity_reminder" 
-  | "weekly_summary";
+export type EmailType =
+  | "profile_completion"
+  | "inactivity_reminder"
+  | "weekly_summary"
+  | "welcome"
+  | "milestone_reminder";
 
 export interface EmailRequest {
   type: EmailType;

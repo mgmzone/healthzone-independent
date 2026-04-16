@@ -69,7 +69,7 @@ async function getLastActivityAt(userId: string): Promise<Date | null> {
 }
 
 async function sendEmailFromTemplate(opts: {
-  type: "profile_completion" | "inactivity_reminder";
+  type: "profile_completion" | "inactivity_reminder" | "milestone_reminder";
   to: string;
   placeholders: Record<string, string>;
 }): Promise<void> {
@@ -78,6 +78,78 @@ async function sendEmailFromTemplate(opts: {
   const subject = replaceAll(template.subject, opts.placeholders);
   const html = replaceAll(template.html_content, opts.placeholders);
   await resend.emails.send({ from: FROM_EMAIL, to: [opts.to], subject, html });
+}
+
+async function processMilestoneReminders(): Promise<{ sent: number; skipped: number }> {
+  // Fetch every priority milestone whose date falls in the next 7 days and whose
+  // user hasn't opted out of system emails.
+  const today = new Date();
+  const in8Days = new Date(today);
+  in8Days.setDate(today.getDate() + 8);
+
+  const { data: milestones, error } = await supabase
+    .from("period_milestones")
+    .select(`
+      id, user_id, name, date, reminder_sent_7d_at, reminder_sent_1d_at,
+      profiles:user_id (
+        first_name, email_unsubscribe_token, system_notification_emails
+      )
+    `)
+    .eq("is_priority", true)
+    .gte("date", today.toISOString().split("T")[0])
+    .lte("date", in8Days.toISOString().split("T")[0]);
+
+  if (error) {
+    console.error("Milestone fetch error:", error);
+    return { sent: 0, skipped: 0 };
+  }
+
+  let sent = 0, skipped = 0;
+  for (const m of milestones || []) {
+    try {
+      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+      if (!p || p.system_notification_emails === false) { skipped++; continue; }
+
+      const milestoneDate = new Date(`${m.date}T12:00:00`);
+      const daysUntil = Math.round((milestoneDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+      const marker: "7d" | "1d" | null = daysUntil === 7 ? "7d" : daysUntil === 1 ? "1d" : null;
+      if (!marker) { skipped++; continue; }
+      const alreadySent = marker === "7d" ? m.reminder_sent_7d_at : m.reminder_sent_1d_at;
+      if (alreadySent) { skipped++; continue; }
+
+      const { data: authUser } = await supabase.auth.admin.getUserById(m.user_id);
+      const email = authUser?.user?.email;
+      if (!email) { skipped++; continue; }
+
+      const label = marker === "7d" ? "1 week until" : "Tomorrow:";
+      const dateFormatted = milestoneDate.toLocaleDateString("en-US", {
+        weekday: "long", month: "long", day: "numeric", year: "numeric",
+      });
+      await sendEmailFromTemplate({
+        type: "milestone_reminder",
+        to: email,
+        placeholders: {
+          name: p.first_name || "there",
+          appUrl: APP_URL,
+          unsubscribeUrl: unsubscribeUrl(p.email_unsubscribe_token || ""),
+          milestoneName: m.name,
+          milestoneDateFormatted: dateFormatted,
+          countdownLabel: label,
+          daysUntil: String(daysUntil),
+        },
+      });
+
+      const update = marker === "7d"
+        ? { reminder_sent_7d_at: new Date().toISOString() }
+        : { reminder_sent_1d_at: new Date().toISOString() };
+      await supabase.from("period_milestones").update(update).eq("id", m.id);
+      sent++;
+    } catch (err) {
+      console.error("Milestone reminder failed for", m.id, err);
+      skipped++;
+    }
+  }
+  return { sent, skipped };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -156,11 +228,15 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    const milestoneResult = await processMilestoneReminders();
+
     return new Response(JSON.stringify({
       success: true,
       sent_profile_completion: sentProfileCompletion,
       sent_inactivity: sentInactivity,
+      sent_milestone_reminder: milestoneResult.sent,
       skipped,
+      milestone_skipped: milestoneResult.skipped,
       considered: profiles?.length || 0,
     }), { status: 200, headers: { "Content-Type": "application/json" } });
   } catch (error: any) {

@@ -38,10 +38,12 @@ const EmailTemplatesManager: React.FC = () => {
         onValueChange={(value) => setActiveTemplate(value as EmailType)} 
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="welcome">Welcome</TabsTrigger>
           <TabsTrigger value="weekly_summary">Weekly Summary</TabsTrigger>
           <TabsTrigger value="profile_completion">Profile Completion</TabsTrigger>
           <TabsTrigger value="inactivity_reminder">Inactivity Reminder</TabsTrigger>
+          <TabsTrigger value="milestone_reminder">Milestone Reminder</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTemplate}>

@@ -32,6 +32,13 @@ const PlaceholdersHelp: React.FC<{ type: EmailType }> = ({ type }) => {
     'profile_completion': [],
     'inactivity_reminder': [
       { name: 'daysInactive', description: 'Number of days since the user last logged anything' },
+    ],
+    'welcome': [],
+    'milestone_reminder': [
+      { name: 'milestoneName', description: 'The milestone name (e.g. "Surgery", "Race day")' },
+      { name: 'milestoneDateFormatted', description: 'Full formatted date of the milestone' },
+      { name: 'countdownLabel', description: 'Short label ("1 week until" or "Tomorrow:")' },
+      { name: 'daysUntil', description: 'Number of days until the milestone (7 or 1)' },
     ]
   };
 
