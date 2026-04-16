@@ -182,7 +182,13 @@ const handler = async (req: Request): Promise<Response> => {
     let skipped = 0;
 
     for (const act of activities) {
-      const rowDate = new Date(act.start_date_local || act.start_date).toISOString().split("T")[0];
+      // Extract the activity's local calendar date. start_date_local is a Strava quirk:
+      // the string ends in "Z" but represents the athlete's local time. Parsing as UTC
+      // and reading the date portion gives us the local YYYY-MM-DD.
+      const localDate = new Date(act.start_date_local || act.start_date).toISOString().split("T")[0];
+      // Store at noon UTC so the date is stable when rendered in any UTC±11 timezone —
+      // avoids the midnight-UTC→previous-day shift in the Americas.
+      const rowDate = `${localDate}T12:00:00+00:00`;
       const minutes = Math.round((act.moving_time || 0) / 60);
       if (minutes === 0) { skipped++; continue; }
 
