@@ -14,6 +14,7 @@ import DashboardCards from './DashboardCards';
 import WeightForecastSection from './WeightForecastSection';
 import PriorityMilestoneBanner from './PriorityMilestoneBanner';
 import TodayStatusStrip from './TodayStatusStrip';
+import StreaksHero from './StreaksHero';
 import { useMilestones } from '@/hooks/useMilestones';
 import { 
   getTimeProgressPercentage,
@@ -172,6 +173,15 @@ const DashboardContent = () => {
                 targetMealsPerDay={profile?.targetMealsPerDay || 3}
                 weightUnit={weightUnit}
                 isImperial={isImperial}
+              />
+
+              <StreaksHero
+                mealLogs={mealLogs}
+                fastingLogs={fastingLogs}
+                weighIns={weighIns}
+                activeGoals={activeGoals}
+                goalEntries={goalEntries}
+                proteinTargetMin={profile?.proteinTargetMin}
               />
               <DashboardCards
                 latestWeight={latestWeight}
