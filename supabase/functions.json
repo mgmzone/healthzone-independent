@@ -32,6 +32,10 @@
     {
       "name": "admin-set-user-ban",
       "verify_jwt": false
+    },
+    {
+      "name": "unsubscribe-email",
+      "verify_jwt": false
     }
   ]
 }

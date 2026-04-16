@@ -28,93 +28,169 @@ interface UserWeeklyData {
   exercises: number;
   mealsLogged: number;
   avgDailyProtein: number;
+  avgDailyCarbs: number;
+  avgDailyFat: number;
+  avgDailySodium: number;
+  avgDailyCalories: number;
+  hasMacroData: boolean;
   irritantViolations: number;
   goalCompliance: number;
+  unsubscribeToken: string;
   aiSummary: string;
   aiHighlights: string[];
   aiConcerns: string[];
   aiTip: string;
 }
 
-// Generate HTML email
-function generateEmailHtml(data: UserWeeklyData, appUrl: string): { subject: string; html: string } {
-  const aiSection = data.aiSummary ? `
+interface EmailTemplate {
+  subject: string;
+  html_content: string;
+}
+
+// Pull the active DB template for this type; null if none configured.
+async function loadTemplate(type: string): Promise<EmailTemplate | null> {
+  const { data, error } = await supabase
+    .from("email_templates")
+    .select("subject, html_content")
+    .eq("type", type)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error) {
+    console.error("Template load error:", error);
+    return null;
+  }
+  return data;
+}
+
+function replaceAll(input: string, placeholders: Record<string, string>): string {
+  let out = input;
+  for (const [key, value] of Object.entries(placeholders)) {
+    out = out.split(`{{${key}}}`).join(value ?? "");
+  }
+  return out;
+}
+
+function buildStatsGridHtml(data: UserWeeklyData): string {
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 20px;">
+      <tr>
+        <td width="33%" style="padding: 12px; background: #f0f9ff; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #2563eb;">${data.weighIns}</div>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Weigh-ins</div>
+        </td>
+        <td width="4"></td>
+        <td width="33%" style="padding: 12px; background: #f0fdf4; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${data.exercises}</div>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Workouts</div>
+        </td>
+        <td width="4"></td>
+        <td width="33%" style="padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #d97706;">${data.fastingDays}</div>
+          <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Fasting Days</div>
+        </td>
+      </tr>
+    </table>`;
+}
+
+function buildNutritionHtml(data: UserWeeklyData): string {
+  const macroLine = data.hasMacroData
+    ? `<p style="margin: 4px 0 0; font-size: 13px; color: #6b7280;">Macros: ~${data.avgDailyCarbs}g carbs &bull; ~${data.avgDailyFat}g fat &bull; ~${data.avgDailySodium}mg sodium &bull; ~${data.avgDailyCalories} kcal / day</p>`
+    : "";
+  const violationLine = data.irritantViolations > 0
+    ? `<span style="color: #dc2626;">${data.irritantViolations} irritant violation${data.irritantViolations > 1 ? 's' : ''}</span>`
+    : `<span style="color: #059669;">No irritant violations</span>`;
+  const complianceLine = data.goalCompliance > 0
+    ? `<p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Daily goal compliance: <strong>${data.goalCompliance}%</strong></p>`
+    : "";
+  return `
+    <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
+      <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">Nutrition</h3>
+      <p style="margin: 0; font-size: 14px; color: #6b7280;">
+        ${data.mealsLogged} meals logged &bull;
+        ${data.avgDailyProtein}g avg daily protein &bull;
+        ${violationLine}
+      </p>
+      ${macroLine}
+      ${complianceLine}
+    </div>`;
+}
+
+function buildAiSectionHtml(data: UserWeeklyData): string {
+  if (!data.aiSummary) return "";
+  const highlights = data.aiHighlights.length > 0
+    ? `<div style="margin-bottom: 8px;">${data.aiHighlights.map(h => `<div style="color: #059669; font-size: 13px; margin-bottom: 4px;">&#10003; ${h}</div>`).join("")}</div>`
+    : "";
+  const concerns = data.aiConcerns.length > 0
+    ? `<div style="margin-bottom: 8px;">${data.aiConcerns.map(c => `<div style="color: #d97706; font-size: 13px; margin-bottom: 4px;">&#9888; ${c}</div>`).join("")}</div>`
+    : "";
+  const tip = data.aiTip
+    ? `<div style="margin-top: 8px; padding: 8px 12px; background-color: #fef9c3; border-radius: 4px; font-size: 13px; color: #854d0e;">&#128161; <strong>Tip:</strong> ${data.aiTip}</div>`
+    : "";
+  return `
     <div style="margin: 20px 0; padding: 15px; background-color: #f3f0ff; border-left: 4px solid #8b5cf6; border-radius: 4px;">
       <h3 style="margin: 0 0 8px 0; color: #6d28d9; font-size: 14px;">AI Coach Insights</h3>
       <p style="margin: 0 0 12px 0; color: #374151; font-size: 14px;">${data.aiSummary}</p>
-      ${data.aiHighlights.length > 0 ? `
-        <div style="margin-bottom: 8px;">
-          ${data.aiHighlights.map(h => `<div style="color: #059669; font-size: 13px; margin-bottom: 4px;">&#10003; ${h}</div>`).join("")}
-        </div>
-      ` : ""}
-      ${data.aiConcerns.length > 0 ? `
-        <div style="margin-bottom: 8px;">
-          ${data.aiConcerns.map(c => `<div style="color: #d97706; font-size: 13px; margin-bottom: 4px;">&#9888; ${c}</div>`).join("")}
-        </div>
-      ` : ""}
-      ${data.aiTip ? `
-        <div style="margin-top: 8px; padding: 8px 12px; background-color: #fef9c3; border-radius: 4px; font-size: 13px; color: #854d0e;">
-          &#128161; <strong>Tip:</strong> ${data.aiTip}
-        </div>
-      ` : ""}
+      ${highlights}${concerns}${tip}
+    </div>`;
+}
+
+function defaultWeeklyHtml(): string {
+  // Fallback shell if no DB template is active. Matches the previous inline
+  // design so existing deployments don't regress.
+  return `
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937;">
+  <div style="background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); padding: 24px; border-radius: 8px 8px 0 0;">
+    <h1 style="margin: 0; color: white; font-size: 22px;">Weekly Summary</h1>
+    <p style="margin: 4px 0 0; color: #dbeafe; font-size: 14px;">Hello {{name}}, here's your week in review</p>
+  </div>
+  <div style="padding: 24px; background: white; border: 1px solid #e5e7eb; border-top: none;">
+    {{statsGridHtml}}
+    {{nutritionHtml}}
+    {{aiSectionHtml}}
+    <div style="text-align: center; margin-top: 24px;">
+      <a href="{{appUrl}}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">View Dashboard</a>
     </div>
-  ` : "";
+  </div>
+  <div style="padding: 16px; text-align: center; font-size: 12px; color: #9ca3af;">
+    <p style="margin: 0 0 6px;">HealthZone</p>
+    <p style="margin: 0;"><a href="{{unsubscribeUrl}}" style="color: #9ca3af;">Unsubscribe from weekly summaries</a> &bull; <a href="{{appUrl}}/profile" style="color: #9ca3af;">Manage email preferences</a></p>
+  </div>
+</div>`;
+}
 
+function unsubscribeUrlFor(token: string): string {
+  const base = Deno.env.get("SUPABASE_URL") || "";
+  return `${base}/functions/v1/unsubscribe-email?token=${encodeURIComponent(token)}&type=weekly`;
+}
+
+async function generateEmailHtml(data: UserWeeklyData, appUrl: string): Promise<{ subject: string; html: string }> {
+  const template = await loadTemplate("weekly_summary");
+  const subjectTpl = template?.subject || "Your Weekly HealthZone Summary";
+  const htmlTpl = template?.html_content || defaultWeeklyHtml();
+  const placeholders: Record<string, string> = {
+    name: data.name,
+    appUrl,
+    unsubscribeUrl: unsubscribeUrlFor(data.unsubscribeToken),
+    weighIns: String(data.weighIns),
+    fastingDays: String(data.fastingDays),
+    exercises: String(data.exercises),
+    mealsLogged: String(data.mealsLogged),
+    avgDailyProtein: String(data.avgDailyProtein),
+    avgDailyCarbs: String(data.avgDailyCarbs),
+    avgDailyFat: String(data.avgDailyFat),
+    avgDailySodium: String(data.avgDailySodium),
+    avgDailyCalories: String(data.avgDailyCalories),
+    irritantViolations: String(data.irritantViolations),
+    goalCompliance: String(data.goalCompliance),
+    aiSummary: data.aiSummary,
+    aiTip: data.aiTip,
+    statsGridHtml: buildStatsGridHtml(data),
+    nutritionHtml: buildNutritionHtml(data),
+    aiSectionHtml: buildAiSectionHtml(data),
+  };
   return {
-    subject: "Your Weekly HealthZone Summary",
-    html: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937;">
-        <div style="background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); padding: 24px; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; color: white; font-size: 22px;">Weekly Summary</h1>
-          <p style="margin: 4px 0 0; color: #dbeafe; font-size: 14px;">Hello ${data.name}, here's your week in review</p>
-        </div>
-
-        <div style="padding: 24px; background: white; border: 1px solid #e5e7eb; border-top: none;">
-          <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-              <tr>
-                <td width="33%" style="padding: 12px; background: #f0f9ff; border-radius: 8px; text-align: center;">
-                  <div style="font-size: 24px; font-weight: bold; color: #2563eb;">${data.weighIns}</div>
-                  <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Weigh-ins</div>
-                </td>
-                <td width="4"></td>
-                <td width="33%" style="padding: 12px; background: #f0fdf4; border-radius: 8px; text-align: center;">
-                  <div style="font-size: 24px; font-weight: bold; color: #16a34a;">${data.exercises}</div>
-                  <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Workouts</div>
-                </td>
-                <td width="4"></td>
-                <td width="33%" style="padding: 12px; background: #fef3c7; border-radius: 8px; text-align: center;">
-                  <div style="font-size: 24px; font-weight: bold; color: #d97706;">${data.fastingDays}</div>
-                  <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Fasting Days</div>
-                </td>
-              </tr>
-            </table>
-          </div>
-
-          <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #374151;">Nutrition</h3>
-            <p style="margin: 0; font-size: 14px; color: #6b7280;">
-              ${data.mealsLogged} meals logged &bull;
-              ${data.avgDailyProtein}g avg daily protein &bull;
-              ${data.irritantViolations > 0 ? `<span style="color: #dc2626;">${data.irritantViolations} irritant violation${data.irritantViolations > 1 ? 's' : ''}</span>` : '<span style="color: #059669;">No irritant violations</span>'}
-            </p>
-            ${data.goalCompliance > 0 ? `<p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Daily goal compliance: <strong>${data.goalCompliance}%</strong></p>` : ""}
-          </div>
-
-          ${aiSection}
-
-          <div style="text-align: center; margin-top: 24px;">
-            <a href="${appUrl}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px;">
-              View Dashboard
-            </a>
-          </div>
-        </div>
-
-        <div style="padding: 16px; text-align: center; font-size: 12px; color: #9ca3af;">
-          <p style="margin: 0;">HealthZone &bull; <a href="${appUrl}/profile" style="color: #9ca3af;">Manage email preferences</a></p>
-        </div>
-      </div>
-    `,
+    subject: replaceAll(subjectTpl, placeholders),
+    html: replaceAll(htmlTpl, placeholders),
   };
 }
 
@@ -147,7 +223,7 @@ const handler = async (_req: Request): Promise<Response> => {
     // Get users who opted into weekly emails
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, claude_api_key, ai_prompt, health_goals, target_weight, current_weight, protein_target_min, protein_target_max")
+      .select("id, first_name, last_name, claude_api_key, ai_prompt, health_goals, target_weight, current_weight, protein_target_min, protein_target_max, email_unsubscribe_token")
       .eq("weekly_summary_emails", true);
 
     if (profilesError) {
@@ -190,8 +266,17 @@ const handler = async (_req: Request): Promise<Response> => {
 
         // Calculate stats
         const totalProtein = meals.reduce((sum, m) => sum + (m.protein_grams || 0), 0);
+        const totalCarbs = meals.reduce((sum, m) => sum + (m.carbs_grams || 0), 0);
+        const totalFat = meals.reduce((sum, m) => sum + (m.fat_grams || 0), 0);
+        const totalSodium = meals.reduce((sum, m) => sum + (m.sodium_mg || 0), 0);
+        const totalCalories = meals.reduce((sum, m) => sum + (m.calories || 0), 0);
+        const hasMacroData = meals.some(m => m.carbs_grams != null || m.fat_grams != null || m.calories != null);
         const daysWithMeals = new Set(meals.map(m => m.date)).size;
         const avgDailyProtein = daysWithMeals > 0 ? Math.round(totalProtein / daysWithMeals) : 0;
+        const avgDailyCarbs = daysWithMeals > 0 ? Math.round(totalCarbs / daysWithMeals) : 0;
+        const avgDailyFat = daysWithMeals > 0 ? Math.round(totalFat / daysWithMeals) : 0;
+        const avgDailySodium = daysWithMeals > 0 ? Math.round(totalSodium / daysWithMeals) : 0;
+        const avgDailyCalories = daysWithMeals > 0 ? Math.round(totalCalories / daysWithMeals) : 0;
         const irritantViolations = meals.filter(m => m.irritant_violation).length;
         const goalsMet = goalEntries.filter(g => g.met).length;
         const goalCompliance = goalEntries.length > 0 ? Math.round((goalsMet / goalEntries.length) * 100) : 0;
@@ -238,8 +323,14 @@ const handler = async (_req: Request): Promise<Response> => {
           exercises: exercises.length,
           mealsLogged: meals.length,
           avgDailyProtein,
+          avgDailyCarbs,
+          avgDailyFat,
+          avgDailySodium,
+          avgDailyCalories,
+          hasMacroData,
           irritantViolations,
           goalCompliance,
+          unsubscribeToken: profile.email_unsubscribe_token || "",
           aiSummary: aiFeedback.summary,
           aiHighlights: aiFeedback.highlights,
           aiConcerns: aiFeedback.concerns,
@@ -247,7 +338,7 @@ const handler = async (_req: Request): Promise<Response> => {
         };
 
         // Generate and send email
-        const emailContent = generateEmailHtml(weeklyData, appUrl);
+        const emailContent = await generateEmailHtml(weeklyData, appUrl);
         const fromEmail = Deno.env.get("FROM_EMAIL") || "HealthZone <healthzone@mgm.zone>";
 
         await resend.emails.send({
