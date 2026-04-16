@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -27,7 +27,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
   );
 
-  useEffect(() => {
+  // useLayoutEffect so the class is flushed before paint — prevents a flash
+  // of the previous theme if HTML arrived with a stale class.
+  useLayoutEffect(() => {
     setResolvedTheme(applyTheme(theme));
   }, [theme]);
 
