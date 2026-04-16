@@ -18,6 +18,9 @@ export interface SystemStats {
   totalWeighIns: number;
   totalFasts: number;
   totalExercises: number;
+  totalMeals: number;
+  aiCalls30d: number;
+  aiFallbackCost30d: number;
 }
 
 export interface ActivityLogItem {

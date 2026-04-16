@@ -52,6 +52,9 @@ export interface SystemStats {
   totalWeighIns: number;
   totalFasts: number;
   totalExercises: number;
+  totalMeals: number;
+  aiCalls30d: number;
+  aiFallbackCost30d: number;
 }
 
 export const useAdminData = () => {
@@ -130,10 +133,13 @@ export const useAdminData = () => {
             activePeriods: Number(statsData.active_periods) || 0,
             totalWeighIns: Number(statsData.total_weigh_ins) || 0,
             totalFasts: Number(statsData.total_fasts) || 0,
-            totalExercises: Number(statsData.total_exercises) || 0
+            totalExercises: Number(statsData.total_exercises) || 0,
+            totalMeals: Number(statsData.total_meals) || 0,
+            aiCalls30d: Number(statsData.ai_calls_30d) || 0,
+            aiFallbackCost30d: Number(statsData.ai_fallback_cost_30d) || 0,
           };
         }
-        
+
         throw new Error('No stats data returned');
       } catch (error) {
         console.error('Error in useAdminData fetching stats:', error);
@@ -151,7 +157,10 @@ export const useAdminData = () => {
           activePeriods: 0,
           totalWeighIns: 0,
           totalFasts: 0,
-          totalExercises: 0
+          totalExercises: 0,
+          totalMeals: 0,
+          aiCalls30d: 0,
+          aiFallbackCost30d: 0,
         };
       }
     },
@@ -165,7 +174,10 @@ export const useAdminData = () => {
       activePeriods: 0,
       totalWeighIns: 0,
       totalFasts: 0,
-      totalExercises: 0
+      totalExercises: 0,
+      totalMeals: 0,
+      aiCalls30d: 0,
+      aiFallbackCost30d: 0,
     },
     isLoading: isUsersLoading || isStatsLoading,
     error: usersError || statsError
