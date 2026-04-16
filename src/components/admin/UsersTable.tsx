@@ -20,12 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CheckCircle, XCircle, Key, Activity, Flame, Brain, MoreVertical, Ban, UserCheck } from 'lucide-react';
+import { CheckCircle, XCircle, Key, Activity, Flame, Brain, MoreVertical, Ban, UserCheck, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { setUserBan } from '@/lib/services/admin';
+import { setUserBan, adminDeleteUser } from '@/lib/services/admin';
 import { useAuth } from '@/lib/AuthContext';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface UsersTableProps {
   users: AdminUserStats[];
@@ -38,12 +40,20 @@ interface PendingBanAction {
   action: 'suspend' | 'reactivate';
 }
 
+interface PendingDelete {
+  userId: string;
+  userEmail: string;
+  userName: string;
+}
+
 const formatCost = (usd?: number) => (usd && usd > 0 ? `$${usd.toFixed(4)}` : '—');
 
 const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<PendingBanAction | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
 
   const runBan = async () => {
@@ -58,6 +68,23 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
     } finally {
       setBusyUserId(null);
       setPending(null);
+    }
+  };
+
+  const runDelete = async () => {
+    if (!pendingDelete) return;
+    setBusyUserId(pendingDelete.userId);
+    try {
+      await adminDeleteUser(pendingDelete.userId, deleteConfirmText);
+      toast.success(`${pendingDelete.userName || pendingDelete.userEmail} deleted`);
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete user');
+    } finally {
+      setBusyUserId(null);
+      setPendingDelete(null);
+      setDeleteConfirmText('');
     }
   };
 
@@ -217,6 +244,19 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
                             <Ban className="mr-2 h-4 w-4" /> Suspend
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setPendingDelete({
+                              userId: user.user_id,
+                              userEmail: user.email,
+                              userName: `${user.firstname} ${user.lastname}`.trim(),
+                            });
+                            setDeleteConfirmText('');
+                          }}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete user…
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
@@ -226,6 +266,51 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
           })}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null);
+            setDeleteConfirmText('');
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user and all their data?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{pendingDelete?.userName || pendingDelete?.userEmail}</strong> and every associated record (meals, weigh-ins, exercises, periods, milestones, AI logs, etc.).
+              <br /><br />
+              Type their email <code className="bg-muted px-1 rounded">{pendingDelete?.userEmail}</code> to confirm.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="delete-confirm-email">Confirm email</Label>
+            <Input
+              id="delete-confirm-email"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={pendingDelete?.userEmail}
+              autoComplete="off"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={runDelete}
+              disabled={
+                !pendingDelete ||
+                deleteConfirmText.trim().toLowerCase() !== pendingDelete.userEmail.toLowerCase() ||
+                busyUserId === pendingDelete.userId
+              }
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
         <AlertDialogContent>
