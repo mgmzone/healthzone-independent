@@ -42,6 +42,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setTheme = (t: Theme) => {
     localStorage.setItem(STORAGE_KEY, t);
+    setResolvedTheme(applyTheme(t));
     setThemeState(t);
   };
 

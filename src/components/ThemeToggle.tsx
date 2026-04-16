@@ -5,8 +5,8 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from '@/lib/ThemeContext';
 import { cn } from '@/lib/utils';
@@ -33,15 +33,17 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ invert }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuCheckboxItem checked={theme === 'light'} onCheckedChange={() => setTheme('light')}>
-          <Sun className="mr-2 h-4 w-4" /> Light
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem checked={theme === 'dark'} onCheckedChange={() => setTheme('dark')}>
-          <Moon className="mr-2 h-4 w-4" /> Dark
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem checked={theme === 'system'} onCheckedChange={() => setTheme('system')}>
-          <Monitor className="mr-2 h-4 w-4" /> System
-        </DropdownMenuCheckboxItem>
+        <DropdownMenuRadioGroup value={theme} onValueChange={(v) => setTheme(v as 'light' | 'dark' | 'system')}>
+          <DropdownMenuRadioItem value="light">
+            <Sun className="mr-2 h-4 w-4" /> Light
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="dark">
+            <Moon className="mr-2 h-4 w-4" /> Dark
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="system">
+            <Monitor className="mr-2 h-4 w-4" /> System
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
