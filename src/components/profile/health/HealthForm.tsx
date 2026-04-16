@@ -160,7 +160,7 @@ const HealthForm: React.FC<HealthFormProps> = ({
             name="aiPrompt"
             value={formData.aiPrompt || ''}
             onChange={handleInputChange}
-            placeholder="Tell AI about your dietary goals, restrictions, surgery prep requirements... e.g. 'I am preparing for bariatric surgery. I need high protein (130-150g/day), low carb meals. Flag any irritants like tomato, citrus, caffeine.'"
+            placeholder="Tell AI about your dietary goals, restrictions, or prep context... e.g. 'Pre-surgery protein emphasis, low-carb meals. Flag irritants like tomato, citrus, caffeine.' Your protein target is set above — no need to repeat it here."
             rows={4}
           />
           <p className="text-sm text-muted-foreground">
