@@ -10,6 +10,7 @@ import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodsTable from '@/components/periods/PeriodsTable';
+import MilestonesManager from '@/components/periods/MilestonesManager';
 import { convertToMetric } from '@/lib/weight/convertWeight';
 
 const Periods = () => {
@@ -107,6 +108,10 @@ const Periods = () => {
               onUpdatePeriod={updatePeriod}
               onDeletePeriod={deletePeriod}
             />
+
+            <div className="mt-8">
+              <MilestonesManager periodId={currentPeriod?.id} />
+            </div>
           </>
         )}
       </div>

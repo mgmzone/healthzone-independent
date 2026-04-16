@@ -18,7 +18,6 @@ interface HealthFormProps {
     measurementUnit?: string;
     claudeApiKey?: string;
     aiPrompt?: string;
-    surgeryDate?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -106,20 +105,6 @@ const HealthForm: React.FC<HealthFormProps> = ({
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="surgeryDate" className="text-left block">Surgery Date (optional)</Label>
-        <Input
-          id="surgeryDate"
-          name="surgeryDate"
-          type="date"
-          value={formData.surgeryDate || ''}
-          onChange={handleInputChange}
-        />
-        <p className="text-sm text-muted-foreground">
-          If set, a countdown appears on your dashboard.
-        </p>
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="healthGoals" className="text-left block">Health Goals</Label>
         <Textarea

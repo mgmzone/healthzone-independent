@@ -19,7 +19,17 @@ export interface User {
   isAdmin: boolean;
   claudeApiKey?: string;
   aiPrompt?: string;
-  surgeryDate?: string; // YYYY-MM-DD
+}
+
+export interface PeriodMilestone {
+  id: string;
+  periodId: string;
+  userId: string;
+  name: string;
+  date: string; // YYYY-MM-DD
+  isPriority: boolean;
+  notes?: string;
+  sortOrder: number;
 }
 
 export interface Period {

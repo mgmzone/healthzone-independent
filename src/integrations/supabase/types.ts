@@ -389,6 +389,42 @@ export type Database = {
         }
         Relationships: []
       }
+      period_milestones: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_priority: boolean
+          name: string
+          notes: string | null
+          period_id: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_priority?: boolean
+          name: string
+          notes?: string | null
+          period_id: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_priority?: boolean
+          name?: string
+          notes?: string | null
+          period_id?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_prompt: string | null
@@ -412,7 +448,6 @@ export type Database = {
           strava_client_secret: string | null
           strava_last_sync_at: string | null
           strava_refresh_token: string | null
-          surgery_date: string | null
           system_notification_emails: boolean | null
           target_meals_per_day: number | null
           target_weight: number | null
@@ -441,7 +476,6 @@ export type Database = {
           strava_client_secret?: string | null
           strava_last_sync_at?: string | null
           strava_refresh_token?: string | null
-          surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null
@@ -470,7 +504,6 @@ export type Database = {
           strava_client_secret?: string | null
           strava_last_sync_at?: string | null
           strava_refresh_token?: string | null
-          surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null

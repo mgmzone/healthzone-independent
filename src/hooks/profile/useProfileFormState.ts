@@ -30,7 +30,6 @@ export const useProfileFormState = () => {
     startingWeight: 0,
     claudeApiKey: '',
     aiPrompt: '',
-    surgeryDate: '',
   });
 
   // Only set form data once when profile loads or changes
@@ -56,7 +55,6 @@ export const useProfileFormState = () => {
         measurementUnit: profile.measurementUnit || 'imperial',
         claudeApiKey: profile.claudeApiKey || '',
         aiPrompt: profile.aiPrompt || '',
-        surgeryDate: profile.surgeryDate || '',
       };
       
       setFormData(newFormData);

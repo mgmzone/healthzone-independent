@@ -12,7 +12,8 @@ import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import DashboardCards from './DashboardCards';
 import WeightForecastSection from './WeightForecastSection';
-import SurgeryCountdownBanner from './SurgeryCountdownBanner';
+import PriorityMilestoneBanner from './PriorityMilestoneBanner';
+import { useMilestones } from '@/hooks/useMilestones';
 import { 
   getTimeProgressPercentage,
   getRemainingTimePercentage,
@@ -36,6 +37,8 @@ const DashboardContent = () => {
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
   const currentPeriod = getCurrentPeriod();
+  const { milestones } = useMilestones(currentPeriod?.id);
+  const priorityMilestone = milestones.find((m) => m.isPriority);
 
   const getLatestWeight = () => {
     if (weighIns.length === 0) return null;
@@ -150,7 +153,7 @@ const DashboardContent = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto">
-      <SurgeryCountdownBanner surgeryDate={profile?.surgeryDate} />
+      <PriorityMilestoneBanner name={priorityMilestone?.name} date={priorityMilestone?.date} />
       {periods.length === 0 ? (
         <NoPeriodAlert onCreatePeriod={() => setIsPeriodModalOpen(true)} />
       ) : (

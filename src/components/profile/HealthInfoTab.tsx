@@ -20,7 +20,6 @@ interface HealthInfoTabProps {
     healthGoals?: string;
     claudeApiKey?: string;
     aiPrompt?: string;
-    surgeryDate?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
