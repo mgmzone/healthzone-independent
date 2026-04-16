@@ -93,7 +93,9 @@ const handler = async (req: Request): Promise<Response> => {
       "sodiumEstimate: milligrams of sodium (number, no units).",
       "caloriesEstimate: total kilocalories (number, no units).",
       "Use 0 for any value you truly cannot estimate, but give a best-effort number for typical foods.",
-      "assessment should be 2-3 sentences evaluating the meal: is it a good choice given the user's goals? Any concerns or praise?",
+      "Weight interpretation: unless the user explicitly says 'dry', 'raw', or 'uncooked', assume weights refer to COOKED/PREPARED/AS-SERVED weight. This matters a lot for pasta, rice, grains, legumes, and starchy vegetables — cooked weight can be 2-3x the dry weight, with correspondingly lower carbs per gram.",
+      "In the assessment, briefly state the key assumptions you made (e.g. 'Assuming 100g pasta is cooked weight...', 'Assuming ground beef is ~85% lean...') so the user can correct you by rephrasing if needed.",
+      "Then add 1-2 sentences evaluating the meal against the user's goals: good choice? Concerns? Praise?",
     ];
 
     if (profile.health_goals) {

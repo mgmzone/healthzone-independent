@@ -191,11 +191,11 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g. grilled chicken breast with broccoli and rice, ~6oz chicken"
+                placeholder="e.g. 6oz grilled chicken, 1 cup cooked rice, 1 cup broccoli"
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Describe the meal in your own words — AI will estimate protein for you.
+                Describe the meal in your own words — AI will estimate macros. Tip: specify <em>cooked</em> vs <em>dry</em> for pasta, rice, and grains (100g dry pasta ≠ 100g cooked pasta).
               </p>
             </div>
 
