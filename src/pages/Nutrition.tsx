@@ -127,7 +127,12 @@ const Nutrition = () => {
                 getGoalStreak={getGoalStreak}
                 getPerfectDayStreak={getPerfectDayStreak}
               />
-              <ProteinSummary mealLogs={mealLogs} targetMealsPerDay={profile?.targetMealsPerDay || 3} />
+              <ProteinSummary
+                mealLogs={mealLogs}
+                targetMealsPerDay={profile?.targetMealsPerDay || 3}
+                proteinTargetMin={profile?.proteinTargetMin}
+                proteinTargetMax={profile?.proteinTargetMax}
+              />
             </div>
           </TabsContent>
 

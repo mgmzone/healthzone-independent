@@ -19,6 +19,8 @@ export interface User {
   isAdmin: boolean;
   claudeApiKey?: string;
   aiPrompt?: string;
+  proteinTargetMin?: number;
+  proteinTargetMax?: number;
 }
 
 export interface PeriodMilestone {

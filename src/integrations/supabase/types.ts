@@ -443,6 +443,8 @@ export type Database = {
           is_admin: boolean
           last_name: string | null
           measurement_unit: string | null
+          protein_target_max: number | null
+          protein_target_min: number | null
           starting_weight: number | null
           strava_client_id: string | null
           strava_client_secret: string | null
@@ -471,6 +473,8 @@ export type Database = {
           is_admin?: boolean
           last_name?: string | null
           measurement_unit?: string | null
+          protein_target_max?: number | null
+          protein_target_min?: number | null
           starting_weight?: number | null
           strava_client_id?: string | null
           strava_client_secret?: string | null
@@ -499,6 +503,8 @@ export type Database = {
           is_admin?: boolean
           last_name?: string | null
           measurement_unit?: string | null
+          protein_target_max?: number | null
+          protein_target_min?: number | null
           starting_weight?: number | null
           strava_client_id?: string | null
           strava_client_secret?: string | null

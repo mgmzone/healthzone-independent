@@ -1,6 +1,6 @@
 import React from 'react';
 import { Apple } from 'lucide-react';
-import { MealLog, PROTEIN_TARGET_MIN, PROTEIN_TARGET_MAX } from '@/lib/types';
+import { MealLog, PROTEIN_TARGET_MIN as DEFAULT_MIN, PROTEIN_TARGET_MAX as DEFAULT_MAX } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
 import ProgressCircle from '@/components/ProgressCircle';
 import TrendArrow from '../TrendArrow';
@@ -9,6 +9,8 @@ import { toLocalDateString } from '@/lib/utils/dateUtils';
 interface NutritionCardProps {
   mealLogs: MealLog[];
   targetMealsPerDay: number;
+  proteinTargetMin?: number;
+  proteinTargetMax?: number;
   cardClassName?: string;
   cardStyle?: React.CSSProperties;
 }
@@ -16,9 +18,13 @@ interface NutritionCardProps {
 const NutritionCard: React.FC<NutritionCardProps> = ({
   mealLogs,
   targetMealsPerDay,
+  proteinTargetMin,
+  proteinTargetMax,
   cardClassName,
   cardStyle,
 }) => {
+  const PROTEIN_TARGET_MIN = proteinTargetMin ?? DEFAULT_MIN;
+  const PROTEIN_TARGET_MAX = proteinTargetMax ?? DEFAULT_MAX;
   const todayStr = toLocalDateString(new Date());
   const todayMeals = mealLogs.filter(
     log => toLocalDateString(new Date(log.date)) === todayStr

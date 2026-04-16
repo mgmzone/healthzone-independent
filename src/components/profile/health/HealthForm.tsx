@@ -18,6 +18,8 @@ interface HealthFormProps {
     measurementUnit?: string;
     claudeApiKey?: string;
     aiPrompt?: string;
+    proteinTargetMin?: number;
+    proteinTargetMax?: number;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -104,7 +106,38 @@ const HealthForm: React.FC<HealthFormProps> = ({
           </Select>
         </div>
       </div>
-      
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="proteinTargetMin" className="text-left block">Daily Protein Min (g)</Label>
+          <Input
+            id="proteinTargetMin"
+            name="proteinTargetMin"
+            type="number"
+            inputMode="numeric"
+            value={formData.proteinTargetMin ?? ''}
+            onChange={(e) => handleNumberChange('proteinTargetMin', e.target.value)}
+            placeholder="130 (default)"
+            step="1"
+            min="0"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="proteinTargetMax" className="text-left block">Daily Protein Max (g)</Label>
+          <Input
+            id="proteinTargetMax"
+            name="proteinTargetMax"
+            type="number"
+            inputMode="numeric"
+            value={formData.proteinTargetMax ?? ''}
+            onChange={(e) => handleNumberChange('proteinTargetMax', e.target.value)}
+            placeholder="150 (default)"
+            step="1"
+            min="0"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="healthGoals" className="text-left block">Health Goals</Label>
         <Textarea

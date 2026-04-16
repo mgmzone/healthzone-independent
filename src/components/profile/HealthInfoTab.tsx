@@ -20,6 +20,8 @@ interface HealthInfoTabProps {
     healthGoals?: string;
     claudeApiKey?: string;
     aiPrompt?: string;
+    proteinTargetMin?: number;
+    proteinTargetMax?: number;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;

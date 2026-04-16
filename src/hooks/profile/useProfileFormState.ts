@@ -30,6 +30,8 @@ export const useProfileFormState = () => {
     startingWeight: 0,
     claudeApiKey: '',
     aiPrompt: '',
+    proteinTargetMin: undefined,
+    proteinTargetMax: undefined,
   });
 
   // Only set form data once when profile loads or changes
@@ -55,6 +57,8 @@ export const useProfileFormState = () => {
         measurementUnit: profile.measurementUnit || 'imperial',
         claudeApiKey: profile.claudeApiKey || '',
         aiPrompt: profile.aiPrompt || '',
+        proteinTargetMin: profile.proteinTargetMin,
+        proteinTargetMax: profile.proteinTargetMax,
       };
       
       setFormData(newFormData);

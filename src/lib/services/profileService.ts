@@ -69,6 +69,8 @@ export async function getProfile() {
       isAdmin: data.is_admin || false,
       claudeApiKey: data.claude_api_key || '',
       aiPrompt: data.ai_prompt || '',
+      proteinTargetMin: data.protein_target_min ?? undefined,
+      proteinTargetMax: data.protein_target_max ?? undefined,
     };
     return transformedData;
   }
@@ -107,6 +109,8 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.targetMealsPerDay !== undefined) dbProfileData.target_meals_per_day = profileData.targetMealsPerDay;
   if (profileData.claudeApiKey !== undefined) dbProfileData.claude_api_key = profileData.claudeApiKey;
   if (profileData.aiPrompt !== undefined) dbProfileData.ai_prompt = profileData.aiPrompt;
+  if (profileData.proteinTargetMin !== undefined) dbProfileData.protein_target_min = profileData.proteinTargetMin || null;
+  if (profileData.proteinTargetMax !== undefined) dbProfileData.protein_target_max = profileData.proteinTargetMax || null;
 
   const { data, error } = await supabase
     .from('profiles')

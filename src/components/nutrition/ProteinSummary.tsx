@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { MealLog, PROTEIN_TARGET_MIN, PROTEIN_TARGET_MAX } from '@/lib/types';
+import { MealLog, PROTEIN_TARGET_MIN as DEFAULT_MIN, PROTEIN_TARGET_MAX as DEFAULT_MAX } from '@/lib/types';
 import { format, subDays } from 'date-fns';
 import { toLocalDateString } from '@/lib/utils/dateUtils';
 import {
@@ -19,9 +19,18 @@ import {
 interface ProteinSummaryProps {
   mealLogs: MealLog[];
   targetMealsPerDay: number;
+  proteinTargetMin?: number;
+  proteinTargetMax?: number;
 }
 
-const ProteinSummary: React.FC<ProteinSummaryProps> = ({ mealLogs, targetMealsPerDay }) => {
+const ProteinSummary: React.FC<ProteinSummaryProps> = ({
+  mealLogs,
+  targetMealsPerDay,
+  proteinTargetMin,
+  proteinTargetMax,
+}) => {
+  const PROTEIN_TARGET_MIN = proteinTargetMin ?? DEFAULT_MIN;
+  const PROTEIN_TARGET_MAX = proteinTargetMax ?? DEFAULT_MAX;
   // Today's totals
   const todayStr = toLocalDateString(new Date());
   const todayMeals = mealLogs.filter(

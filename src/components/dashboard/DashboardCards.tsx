@@ -73,7 +73,12 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
           showProgressCircle={true}
         />
 
-        <NutritionCard mealLogs={mealLogs} targetMealsPerDay={targetMealsPerDay} />
+        <NutritionCard
+          mealLogs={mealLogs}
+          targetMealsPerDay={targetMealsPerDay}
+          proteinTargetMin={profile?.proteinTargetMin}
+          proteinTargetMax={profile?.proteinTargetMax}
+        />
 
         <GoalsCard activeGoals={activeGoals} entries={goalEntries} />
       </div>
