@@ -37,11 +37,11 @@ const ActivityCharts: React.FC<ActivityChartsProps> = ({
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="walk" stackId="a" fill="#4287f5" name="Walking" />
-                <Bar dataKey="run" stackId="a" fill="#f5a742" name="Running" />
-                <Bar dataKey="bike" stackId="a" fill="#42f5ad" name="Cycling" />
-                <Bar dataKey="elliptical" stackId="a" fill="#a442f5" name="Elliptical" />
-                <Bar dataKey="other" stackId="a" fill="#9c9c9c" name="Other" />
+                <Bar dataKey="cardio" stackId="a" fill="#f43f5e" name="Cardio" />
+                <Bar dataKey="resistance" stackId="a" fill="#f59e0b" name="Resistance" />
+                <Bar dataKey="sports" stackId="a" fill="#10b981" name="Sports" />
+                <Bar dataKey="flexibility" stackId="a" fill="#0ea5e9" name="Flexibility" />
+                <Bar dataKey="other" stackId="a" fill="#a855f7" name="Other" />
               </BarChart>
             </ResponsiveContainer>
           </div>
