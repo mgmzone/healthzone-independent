@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Period, ExerciseLog, FastingLog, MealLog, DailyGoal, DailyGoalEntry, User } from '@/lib/types';
+import { Period, ExerciseLog, FastingLog, MealLog, DailyGoal, DailyGoalEntry, User, WeighIn } from '@/lib/types';
 import WeightCard from './cards/WeightCard';
-import PeriodCard from './cards/PeriodCard';
+import JourneyCard from './cards/JourneyCard';
 import ExerciseCard from './cards/ExerciseCard';
 import FastingCard from './cards/FastingCard';
 import NutritionCard from './cards/NutritionCard';
@@ -16,6 +16,7 @@ interface DashboardCardsProps {
   exerciseLogs: ExerciseLog[];
   fastingLogs: FastingLog[];
   mealLogs: MealLog[];
+  weighIns: WeighIn[];
   targetMealsPerDay: number;
   activeGoals: DailyGoal[];
   goalEntries: DailyGoalEntry[];
@@ -36,6 +37,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
   exerciseLogs,
   fastingLogs,
   mealLogs,
+  weighIns,
   targetMealsPerDay,
   activeGoals,
   goalEntries,
@@ -53,14 +55,16 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
           weightChange={currentMetrics.weightChange}
           weightDirection={currentMetrics.weightDirection}
           showProgressCircle={true}
+          weighIns={weighIns}
         />
 
-        <PeriodCard
+        <JourneyCard
           currentPeriod={currentPeriod}
-          getDaysRemaining={(date) => currentMetrics.daysRemaining}
-          timeProgress={currentMetrics.timeProgress}
+          latestWeight={latestWeight}
+          weightUnit={weightUnit}
+          weightProgress={currentMetrics.weightProgress}
           daysRemaining={currentMetrics.daysRemaining}
-          showProgressCircle={true}
+          timeProgress={currentMetrics.timeProgress}
         />
 
         <ExerciseCard

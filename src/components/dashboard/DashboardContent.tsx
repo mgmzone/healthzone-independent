@@ -180,6 +180,7 @@ const DashboardContent = () => {
                 exerciseLogs={exerciseLogs}
                 fastingLogs={fastingLogs}
                 mealLogs={mealLogs}
+                weighIns={weighIns}
                 targetMealsPerDay={profile?.targetMealsPerDay || 3}
                 activeGoals={activeGoals}
                 goalEntries={goalEntries}
