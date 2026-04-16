@@ -1,6 +1,11 @@
 -- Migration: Welcome + milestone_reminder email types, trigger update, and
 -- per-milestone reminder tracking.
 -- Date: 2026-04-16
+--
+-- The bearer token used for authenticating the pg_net callback to
+-- send-welcome-email is fetched at runtime from Supabase Vault via
+-- public.get_cron_secret() (defined in migration 20260430). No secret is
+-- embedded in this file.
 
 alter table public.email_templates drop constraint if exists valid_template_type;
 alter table public.email_templates drop constraint if exists email_templates_type_check;
@@ -33,7 +38,10 @@ begin
   begin
     perform net.http_post(
       url := 'https://kvmvekesxdzwodnfabdr.supabase.co/functions/v1/send-welcome-email',
-      headers := '{"Content-Type": "application/json", "Authorization": "Bearer d48dcc847d4c93fc9ee90523e5878a97d4ca839187fd0399fa3dfdf81ac36407"}'::jsonb,
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || public.get_cron_secret()
+      ),
       body := json_build_object('userId', new.id)::jsonb
     );
   exception when others then
