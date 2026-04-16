@@ -28,6 +28,10 @@
     {
       "name": "analyze-exercise",
       "verify_jwt": false
+    },
+    {
+      "name": "admin-set-user-ban",
+      "verify_jwt": false
     }
   ]
 }

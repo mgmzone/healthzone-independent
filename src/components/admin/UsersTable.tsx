@@ -1,19 +1,66 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { AdminUserStats } from '@/hooks/admin/useAdminData';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Key, Activity, Flame, Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { CheckCircle, XCircle, Key, Activity, Flame, Brain, MoreVertical, Ban, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { setUserBan } from '@/lib/services/admin';
+import { useAuth } from '@/lib/AuthContext';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface UsersTableProps {
   users: AdminUserStats[];
   isLoading: boolean;
 }
 
+interface PendingBanAction {
+  userId: string;
+  userName: string;
+  action: 'suspend' | 'reactivate';
+}
+
 const formatCost = (usd?: number) => (usd && usd > 0 ? `$${usd.toFixed(4)}` : '—');
 
 const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
+  const { user: currentUser } = useAuth();
+  const queryClient = useQueryClient();
+  const [pending, setPending] = useState<PendingBanAction | null>(null);
+  const [busyUserId, setBusyUserId] = useState<string | null>(null);
+
+  const runBan = async () => {
+    if (!pending) return;
+    setBusyUserId(pending.userId);
+    try {
+      await setUserBan(pending.userId, pending.action);
+      toast.success(pending.action === 'suspend' ? 'User suspended' : 'User reactivated');
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update user');
+    } finally {
+      setBusyUserId(null);
+      setPending(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -48,6 +95,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
             <TableHead colSpan={2} className="text-center">Fasting</TableHead>
             <TableHead className="text-center">AI Calls (7d)</TableHead>
             <TableHead className="text-center">AI Cost (7d)</TableHead>
+            <TableHead></TableHead>
           </TableRow>
           <TableRow>
             <TableHead></TableHead>
@@ -64,6 +112,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
             <TableHead className="text-center">Total</TableHead>
             <TableHead className="text-center">Total / On Us</TableHead>
             <TableHead></TableHead>
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,9 +121,14 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
             return (
               <TableRow key={user.user_id}>
                 <TableCell className="font-medium">
-                  <div>
-                    {user.firstname} {user.lastname}
-                    <div className="text-xs text-muted-foreground">{user.email}</div>
+                  <div className="flex items-center gap-2">
+                    <div>
+                      {user.firstname} {user.lastname}
+                      <div className="text-xs text-muted-foreground">{user.email}</div>
+                    </div>
+                    {user.is_banned && (
+                      <Badge variant="destructive" className="text-[10px]">Suspended</Badge>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
@@ -140,11 +194,62 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, isLoading }) => {
                   </div>
                 </TableCell>
                 <TableCell className="text-center text-sm font-mono">{formatCost(user.ai_cost_7d)}</TableCell>
+                <TableCell className="text-right">
+                  {currentUser?.id !== user.user_id && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" disabled={busyUserId === user.user_id} className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {user.is_banned ? (
+                          <DropdownMenuItem
+                            onClick={() => setPending({ userId: user.user_id, userName: `${user.firstname} ${user.lastname}`.trim() || user.email, action: 'reactivate' })}
+                          >
+                            <UserCheck className="mr-2 h-4 w-4" /> Reactivate
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            onClick={() => setPending({ userId: user.user_id, userName: `${user.firstname} ${user.lastname}`.trim() || user.email, action: 'suspend' })}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Ban className="mr-2 h-4 w-4" /> Suspend
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+
+      <AlertDialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.action === 'suspend' ? 'Suspend user?' : 'Reactivate user?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending?.action === 'suspend'
+                ? `${pending?.userName} will be immediately signed out and unable to log in. Their data is preserved.`
+                : `${pending?.userName} will be able to log in again.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={runBan}
+              className={cn(pending?.action === 'suspend' && 'bg-destructive text-destructive-foreground hover:bg-destructive/90')}
+            >
+              {pending?.action === 'suspend' ? 'Suspend' : 'Reactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

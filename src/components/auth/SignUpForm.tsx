@@ -58,6 +58,9 @@ const SignUpForm = ({ onSubmit, isLoading }: SignUpFormProps) => {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Loading...' : 'Create Account'}
       </Button>
+      <p className="text-xs text-muted-foreground text-center leading-relaxed">
+        HealthZone is currently free to use. We reserve the right to introduce a nominal subscription fee in the future — if that happens, you'll be notified in advance.
+      </p>
     </form>
   );
 };

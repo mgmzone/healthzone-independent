@@ -19,6 +19,7 @@ export interface AdminUserStats {
   last_sign_in_at: string | null;
   // Extras from get_admin_user_extras (merged in the hook)
   signup_at?: string | null;
+  is_banned?: boolean;
   has_strava_connected?: boolean;
   has_custom_protein_target?: boolean;
   has_ai_context?: boolean;
@@ -33,6 +34,7 @@ export interface AdminUserStats {
 interface AdminUserExtrasRow {
   user_id: string;
   signup_at: string | null;
+  is_banned: boolean;
   has_strava_connected: boolean;
   has_custom_protein_target: boolean;
   has_ai_context: boolean;
@@ -78,6 +80,7 @@ export const useAdminData = () => {
           return {
             ...u,
             signup_at: e.signup_at,
+            is_banned: e.is_banned,
             has_strava_connected: e.has_strava_connected,
             has_custom_protein_target: e.has_custom_protein_target,
             has_ai_context: e.has_ai_context,
