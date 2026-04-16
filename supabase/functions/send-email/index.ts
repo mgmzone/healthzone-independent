@@ -48,15 +48,16 @@ function sanitizeHtml(input: string): string {
     .replace(/'/g, '&#039;');
 }
 
-// Replace placeholders in a string with actual values
+// Replace placeholders in a string with actual values. Keys ending in "Html"
+// or equal to known-safe URL slots bypass the HTML escaper because they are
+// pre-rendered HTML or URLs that must not be double-escaped.
+const RAW_HTML_KEYS = new Set(["unsubscribeUrl", "appUrl"]);
 function replacePlaceholders(template: string, data: Record<string, any>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    if (data[key] !== undefined) {
-      // Sanitize the replacement value to prevent XSS
-      const value = String(data[key]);
-      return sanitizeHtml(value);
-    }
-    return match;
+    if (data[key] === undefined) return match;
+    const value = String(data[key]);
+    if (key.endsWith("Html") || RAW_HTML_KEYS.has(key)) return value;
+    return sanitizeHtml(value);
   });
 }
 

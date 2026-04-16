@@ -143,7 +143,7 @@ function defaultWeeklyHtml(): string {
     <h1 style="margin: 0; color: white; font-size: 22px;">Weekly Summary</h1>
     <p style="margin: 4px 0 0; color: #dbeafe; font-size: 14px;">Hello {{name}}, here's your week in review</p>
   </div>
-  <div style="padding: 24px; background: white; border: 1px solid #e5e7eb; border-top: none;">
+  <div style="padding: 24px; background: white; border: 1px solid #e5e7eb;">
     {{statsGridHtml}}
     {{nutritionHtml}}
     {{aiSectionHtml}}
