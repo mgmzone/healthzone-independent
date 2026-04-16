@@ -7,7 +7,7 @@ import { ShieldCheck, Users, BarChart, Mail } from 'lucide-react';
 import { useAdminData } from '@/hooks/admin/useAdminData';
 import UsersTable from '@/components/admin/UsersTable';
 import SystemStatsCards from '@/components/admin/SystemStatsCards';
-import ActivityStatsChart from '@/components/admin/ActivityStatsChart';
+import AdminAnalytics from '@/components/admin/AdminAnalytics';
 import EmailTemplatesManager from '@/components/admin/EmailTemplatesManager';
 
 const Admin = () => {
@@ -64,17 +64,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Analytics</CardTitle>
-                <CardDescription>
-                  View system usage analytics and statistics.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-8">
-                <ActivityStatsChart stats={stats} isLoading={isLoading} />
-              </CardContent>
-            </Card>
+            <AdminAnalytics />
           </TabsContent>
 
           <TabsContent value="emails" className="space-y-4">
