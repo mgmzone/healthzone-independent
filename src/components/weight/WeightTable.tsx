@@ -93,16 +93,33 @@ const WeightTable: React.FC<WeightTableProps> = ({
     setDeleteConfirmId(null);
   };
 
+  // Progressive disclosure: only show a body-composition column if at least
+  // one weigh-in has a value for it. Avoids a table of dashes when the user
+  // only tracks weight.
+  const hasBmi = weighIns.some((w) => w.bmi != null);
+  const hasBodyFat = weighIns.some((w) => w.bodyFatPercentage != null);
+  const hasMuscle = weighIns.some((w) => w.skeletalMuscleMass != null);
+  const hasBone = weighIns.some((w) => w.boneMass != null);
+  const hasWater = weighIns.some((w) => w.bodyWaterPercentage != null);
+  const anyBodyComp = hasBmi || hasBodyFat || hasMuscle || hasBone || hasWater;
+
+  // Entries arrive sorted newest-first; the "previous" entry for delta
+  // purposes is the next index (i.e. older weigh-in).
   return (
     <>
       <div className="overflow-x-auto rounded-lg border">
-        <table className="min-w-full divide-y divide-gray-200">
-          <WeightTableHeader 
-            isImperial={isImperial} 
-            showActions={!!(onUpdateWeighIn || onDeleteWeighIn)} 
+        <table className="min-w-full divide-y divide-border">
+          <WeightTableHeader
+            isImperial={isImperial}
+            showActions={!!(onUpdateWeighIn || onDeleteWeighIn)}
+            hasBmi={hasBmi}
+            hasBodyFat={hasBodyFat}
+            hasMuscle={hasMuscle}
+            hasBone={hasBone}
+            hasWater={hasWater}
           />
-          <tbody className="bg-white divide-y divide-gray-200">
-            {weighIns.map((entry) => (
+          <tbody className="bg-card divide-y divide-border">
+            {weighIns.map((entry, i) => (
               editingId === entry.id ? (
                 <WeightTableEditRow
                   key={entry.id}
@@ -112,11 +129,17 @@ const WeightTable: React.FC<WeightTableProps> = ({
                   onEditValueChange={setEditValues}
                   onSave={handleSave}
                   onCancel={handleCancel}
+                  hasBmi={hasBmi}
+                  hasBodyFat={hasBodyFat}
+                  hasMuscle={hasMuscle}
+                  hasBone={hasBone}
+                  hasWater={hasWater}
                 />
               ) : (
                 <WeightTableRow
                   key={entry.id}
                   entry={entry}
+                  previousEntry={weighIns[i + 1]}
                   isImperial={isImperial}
                   onEdit={handleEdit}
                   onDelete={(id) => setDeleteConfirmId(id)}
@@ -125,13 +148,24 @@ const WeightTable: React.FC<WeightTableProps> = ({
                   formatPercentage={formatPercentage}
                   canEdit={!!onUpdateWeighIn}
                   canDelete={!!onDeleteWeighIn}
+                  hasBmi={hasBmi}
+                  hasBodyFat={hasBodyFat}
+                  hasMuscle={hasMuscle}
+                  hasBone={hasBone}
+                  hasWater={hasWater}
                 />
               )
             ))}
           </tbody>
         </table>
       </div>
-      
+
+      {!anyBodyComp && weighIns.length > 0 && (
+        <p className="text-xs text-muted-foreground mt-2">
+          Tip: tap the pencil on any row (or the Add Weight button) to also log BMI, body fat, muscle, bone mass, and body water.
+        </p>
+      )}
+
       <DeleteWeightConfirmDialog
         isOpen={!!deleteConfirmId}
         onOpenChange={(open) => !open && setDeleteConfirmId(null)}
