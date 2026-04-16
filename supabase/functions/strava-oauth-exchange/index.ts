@@ -86,9 +86,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const tokenBody = await tokenRes.text();
     if (!tokenRes.ok) {
+      // Log the upstream detail server-side; return a fixed message to the client
+      // so we don't leak whatever Strava decides to include in error payloads.
+      console.error("Strava token exchange failed:", tokenRes.status, tokenBody);
       return new Response(JSON.stringify({
         success: false,
-        error: `Strava rejected the authorization code: ${tokenBody}`,
+        error: "Strava rejected the authorization code. Click Connect Strava again — codes are single-use and expire quickly.",
       }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },

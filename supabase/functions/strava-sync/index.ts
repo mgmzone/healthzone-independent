@@ -93,11 +93,13 @@ async function refreshAccessToken(clientId: string, clientSecret: string, refres
   });
   if (res.status === 401 || res.status === 400) {
     const responseBody = await res.text();
-    throw new StravaAuthError(`Strava rejected the refresh token: ${responseBody}`);
+    console.error("Strava refresh token rejected:", res.status, responseBody);
+    throw new StravaAuthError("Strava rejected the refresh token");
   }
   if (!res.ok) {
     const responseBody = await res.text();
-    throw new Error(`Strava token refresh failed: ${res.status} ${responseBody}`);
+    console.error("Strava token refresh failed:", res.status, responseBody);
+    throw new Error(`Strava token refresh failed: ${res.status}`);
   }
   const json = await res.json();
   return {
@@ -201,7 +203,8 @@ const handler = async (req: Request): Promise<Response> => {
     );
     if (!activitiesRes.ok) {
       const body = await activitiesRes.text();
-      return new Response(JSON.stringify({ success: false, error: `Strava API error: ${activitiesRes.status} ${body}` }), {
+      console.error("Strava activities fetch failed:", activitiesRes.status, body);
+      return new Response(JSON.stringify({ success: false, error: `Strava API error (${activitiesRes.status}). Try again in a minute.` }), {
         status: 502,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
       });

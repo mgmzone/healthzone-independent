@@ -118,6 +118,15 @@ function generateEmailHtml(data: UserWeeklyData, appUrl: string): { subject: str
 }
 
 // Main handler
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 const handler = async (_req: Request): Promise<Response> => {
   try {
     // Verify cron secret to prevent unauthorized invocations
@@ -125,7 +134,7 @@ const handler = async (_req: Request): Promise<Response> => {
     const authHeader = _req.headers.get("Authorization") || "";
     const providedSecret = authHeader.replace("Bearer ", "");
 
-    if (!cronSecret || providedSecret !== cronSecret) {
+    if (!cronSecret || !timingSafeEqual(providedSecret, cronSecret)) {
       return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },

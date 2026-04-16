@@ -12,6 +12,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 const STRAVA_REDIRECT_URI = `${window.location.origin}/profile`;
+const STRAVA_STATE_KEY = 'healthzone.stravaOAuthState';
+
+// Cryptographically-random state for CSRF protection on the Strava OAuth flow.
+function generateOAuthState(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 const IntegrationsTab: React.FC = () => {
   const { toast } = useToast();
@@ -55,21 +63,37 @@ const IntegrationsTab: React.FC = () => {
     loadStoredClientId();
   }, []);
 
-  // Handle OAuth callback: if URL has ?code=... from Strava, exchange it
+  // Handle OAuth callback: if URL has ?code=... from Strava, exchange it.
+  // The `state` param must match what we stored in sessionStorage before the
+  // redirect — prevents an attacker from binding their Strava account to the
+  // user's session via a crafted link.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const scope = params.get('scope');
+    const returnedState = params.get('state');
     const error = params.get('error');
 
     if (error) {
       toast({ title: 'Strava authorization failed', description: error, variant: 'destructive' });
-      // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
       return;
     }
 
     if (code && scope) {
+      const expectedState = sessionStorage.getItem(STRAVA_STATE_KEY);
+      sessionStorage.removeItem(STRAVA_STATE_KEY);
+
+      if (!expectedState || !returnedState || expectedState !== returnedState) {
+        toast({
+          title: 'Strava connection blocked',
+          description: 'Authorization state mismatch. Please click Connect Strava again.',
+          variant: 'destructive',
+        });
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+
       setExchanging(true);
       exchangeStravaCode(code)
         .then(() => {
@@ -106,12 +130,15 @@ const IntegrationsTab: React.FC = () => {
       toast({ title: 'Save Client ID first', variant: 'destructive' });
       return;
     }
+    const state = generateOAuthState();
+    sessionStorage.setItem(STRAVA_STATE_KEY, state);
     const url = new URL('https://www.strava.com/oauth/authorize');
     url.searchParams.set('client_id', id);
     url.searchParams.set('redirect_uri', STRAVA_REDIRECT_URI);
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('scope', 'activity:read_all');
     url.searchParams.set('approval_prompt', 'force');
+    url.searchParams.set('state', state);
     window.location.href = url.toString();
   };
 
