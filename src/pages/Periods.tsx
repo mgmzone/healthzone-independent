@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useAuth } from '@/lib/AuthContext';
 import { usePeriodsData } from '@/hooks/usePeriodsData';
-import { useWeightData } from '@/hooks/useWeightData';
+import { useAllWeighIns } from '@/hooks/weight/useAllWeighIns';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
@@ -16,7 +16,7 @@ import { convertToMetric } from '@/lib/weight/convertWeight';
 const Periods = () => {
   const { profile } = useAuth();
   const { periods, isLoading: periodsLoading, addPeriod, getCurrentPeriod, updatePeriod, deletePeriod } = usePeriodsData();
-  const { weighIns, isLoading: weighInsLoading } = useWeightData();
+  const { weighIns, isLoading: weighInsLoading } = useAllWeighIns();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [needsFirstPeriod, setNeedsFirstPeriod] = useState(false);
 
