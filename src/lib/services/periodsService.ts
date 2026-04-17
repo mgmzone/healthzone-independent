@@ -26,7 +26,9 @@ export async function getCurrentPeriodRange(): Promise<PeriodRange> {
   if (!data) return null;
 
   return {
-    start: data.start_date,
+    // Truncate to date-only so filtering uses day granularity, not the exact
+    // period creation timestamp (which would exclude same-day entries logged earlier).
+    start: data.start_date.split('T')[0],
     end: data.end_date || undefined,
   };
 }
@@ -58,7 +60,7 @@ export async function getCurrentPeriodInfo(): Promise<PeriodInfo> {
 
   return {
     id: data.id,
-    start: data.start_date,
+    start: data.start_date.split('T')[0],
     end: data.end_date || undefined,
   };
 }
