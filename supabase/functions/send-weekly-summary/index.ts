@@ -9,7 +9,7 @@ import {
   fetchWeeklyData,
   resolveClaudeApiKey,
 } from "../_shared/aiFeedback.ts";
-import { logAiUsage } from "../_shared/aiUsage.ts";
+import { checkFallbackDailyCap, logAiUsage } from "../_shared/aiUsage.ts";
 import { MODEL_COACH } from "../_shared/models.ts";
 
 // Initialize Resend with API key from environment variables
@@ -288,7 +288,18 @@ const handler = async (_req: Request): Promise<Response> => {
         const apiKey = resolveClaudeApiKey(profile.claude_api_key, Deno.env.get("CLAUDE_API_KEY_FALLBACK"));
         const usedFallbackKey = !userKey && !!fallbackKey;
         let aiFeedback = EMPTY_FEEDBACK;
-        if (apiKey) {
+        // If this user is on the shared fallback key and has already burned
+        // through the daily cap, skip the AI section and send the summary
+        // without it — don't block the email entirely.
+        let capSkip = false;
+        if (apiKey && usedFallbackKey) {
+          const cap = await checkFallbackDailyCap(supabase, profile.id);
+          if (cap.capped) {
+            capSkip = true;
+            console.log(`Skipping AI section for user ${profile.id}: fallback cap reached ($${cap.spentUsd.toFixed(2)} of $${cap.capUsd.toFixed(2)})`);
+          }
+        }
+        if (apiKey && !capSkip) {
           try {
             const dataSummary = buildDataSummary({ meals, weighIns, exercises, fasting, goalEntries }, profile);
             const { feedback, model, usage } = await callClaudeForFeedback(apiKey, profile, dataSummary);

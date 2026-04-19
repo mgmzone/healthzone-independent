@@ -1,21 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, serviceKey);
-
-function buildCorsHeaders(req: Request) {
-  const allowed = (Deno.env.get("ALLOWED_ORIGIN") || "http://localhost:8080,http://localhost:5173,http://localhost:8081").split(",").map(s => s.trim());
-  const reqOrigin = req.headers.get("Origin") || "";
-  const originToUse = allowed.includes(reqOrigin) ? reqOrigin : allowed[0] || "*";
-  return {
-    "Access-Control-Allow-Origin": originToUse,
-    "Vary": "Origin",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  } as Record<string, string>;
-}
 
 // Maps a Strava sport_type/type to our (category, activityName) pair.
 function mapStravaActivity(stravaType: string): { category: 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other'; name: string } {

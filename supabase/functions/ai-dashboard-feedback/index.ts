@@ -6,24 +6,13 @@ import {
   fetchWeeklyData,
   resolveClaudeApiKey,
 } from "../_shared/aiFeedback.ts";
-import { logAiUsage } from "../_shared/aiUsage.ts";
+import { checkFallbackDailyCap, logAiUsage } from "../_shared/aiUsage.ts";
+import { buildCorsHeaders } from "../_shared/cors.ts";
 import { MODEL_COACH } from "../_shared/models.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
-
-function buildCorsHeaders(req: Request) {
-  const allowed = (Deno.env.get("ALLOWED_ORIGIN") || "http://localhost:8080,http://localhost:5173,http://localhost:8081").split(",").map(s => s.trim());
-  const reqOrigin = req.headers.get("Origin") || "";
-  const originToUse = allowed.includes(reqOrigin) ? reqOrigin : allowed[0] || "*";
-  return {
-    "Access-Control-Allow-Origin": originToUse,
-    "Vary": "Origin",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  } as Record<string, string>;
-}
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -75,6 +64,19 @@ const handler = async (req: Request): Promise<Response> => {
         status: 400,
         headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
       });
+    }
+
+    if (usedFallbackKey) {
+      const cap = await checkFallbackDailyCap(supabase, userId);
+      if (cap.capped) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: `Daily AI usage limit reached ($${cap.spentUsd.toFixed(2)} of $${cap.capUsd.toFixed(2)}). Add your own Claude API key in Profile > Health > AI Settings to continue.`,
+        }), {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
+        });
+      }
     }
 
     const weeklyData = await fetchWeeklyData(supabase, userId, 7);

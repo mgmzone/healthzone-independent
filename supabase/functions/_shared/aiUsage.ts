@@ -35,6 +35,45 @@ export function estimateCostUsd(model: string | null | undefined, inTokens: numb
   return (inTokens / 1_000_000) * p.inUsdPerMil + (outTokens / 1_000_000) * p.outUsdPerMil;
 }
 
+// Per-user daily spending cap on the shared server-side Claude API key.
+// When a user doesn't have their own key and the fallback is used, they're
+// effectively spending Mark's money — cap the damage. Configurable via the
+// CLAUDE_FALLBACK_DAILY_CAP_USD env var; default is $0.25/day which covers a
+// comfortable number of meal evals + dashboard summaries at Sonnet pricing.
+const DEFAULT_DAILY_CAP_USD = 0.25;
+
+export interface FallbackCapResult {
+  capped: boolean;
+  spentUsd: number;
+  capUsd: number;
+}
+
+export async function checkFallbackDailyCap(
+  supabase: any,
+  userId: string
+): Promise<FallbackCapResult> {
+  const capUsd = Number(Deno.env.get('CLAUDE_FALLBACK_DAILY_CAP_USD') || DEFAULT_DAILY_CAP_USD);
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from('ai_usage_logs')
+    .select('cost_usd')
+    .eq('user_id', userId)
+    .eq('used_fallback_key', true)
+    .gte('created_at', since);
+
+  if (error) {
+    console.error('Failed to check fallback cap:', error);
+    // Fail open on infra errors — don't brick legitimate users when the
+    // logging table is temporarily unreadable. The usage still gets logged on
+    // the way out so a later check will catch them.
+    return { capped: false, spentUsd: 0, capUsd };
+  }
+
+  const spentUsd = (data || []).reduce((sum: number, row: any) => sum + Number(row.cost_usd || 0), 0);
+  return { capped: spentUsd >= capUsd, spentUsd, capUsd };
+}
+
 export async function logAiUsage(supabase: any, input: LogAiUsageInput): Promise<void> {
   const inputTokens = input.usage?.input_tokens ?? null;
   const outputTokens = input.usage?.output_tokens ?? null;
