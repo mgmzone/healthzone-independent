@@ -1,7 +1,7 @@
 # HealthZone Deployment Guide
 
 ## Overview
-This guide covers deploying the HealthZone application from Lovable to your own infrastructure.
+This guide covers deploying the HealthZone application to your own infrastructure — Vercel, Netlify, a static host, or a Docker-based homelab.
 
 ## Prerequisites
 

@@ -1,82 +1,63 @@
+# HealthZone
 
-# Welcome to your Lovable project
+A weight-loss tracking app built around hitting a specific target by a specific date. Combines weight, meal, fasting, and exercise logging with smart forecasts (regression + exponential decay, not straight-line), an AI coach powered by Claude, a daily-compliance goal system, a personal journal, and period-based milestone planning.
 
-## Project info
+**Live:** [https://healthzone.mgm.zone](https://healthzone.mgm.zone) · **Built for:** pre-surgical weight optimization, serious intermittent fasters, medically-guided eaters, and anyone who wants health numbers that tell the truth.
 
-**URL**: https://lovable.dev/projects/b16e0e3d-eb20-49b9-9725-3df916f24ef0
+## Stack
 
-## How can I edit this code?
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Charts:** Recharts
+- **State:** TanStack React Query + local component state
+- **Backend:** Supabase (PostgreSQL + Auth + Edge Functions + Storage)
+- **AI:** Anthropic Claude (Sonnet 4.6 for coaching / nutrition reasoning, Haiku 4.5 for exercise parsing) via direct HTTP from edge functions
+- **Email:** Resend
+- **Deploy:** Docker container behind nginx, exposed via Cloudflare Tunnel on a homelab
 
-There are several ways of editing your application.
+## Local development
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/b16e0e3d-eb20-49b9-9725-3df916f24ef0) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Requirements: Node.js 18+, npm, a Supabase project (free tier works).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+git clone git@github.com:mgmzone/healthzone-independent.git
+cd healthzone-independent
+npm install
+cp .env.example .env.local    # then edit with your Supabase URL + anon key
+npm run dev                   # http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+Useful scripts:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npm run dev         # dev server with HMR
+npm run build       # production build → dist/
+npm run lint        # eslint
+npx tsc --noEmit    # type check without emitting
+```
 
-**Use GitHub Codespaces**
+## Database + edge functions
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Database schema and RLS policies live in `supabase/migrations/`. Push with:
 
-## What technologies are used for this project?
+```sh
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
 
-This project is built with:
+Edge functions live in `supabase/functions/`. Deploy with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```sh
+supabase functions deploy <function-name> --no-verify-jwt
+```
 
-## How can I deploy this project with Netlify?
+Functions include `evaluate-meal`, `analyze-exercise`, `ai-dashboard-feedback`, `send-weekly-summary`, `send-email`, and admin/Strava helpers. Each verifies the caller's JWT internally and reads from shared helpers under `supabase/functions/_shared/` for CORS, model IDs, and usage/cost tracking.
 
-1. Create a Netlify account at [netlify.com](https://www.netlify.com/)
-2. Connect your GitHub repository to Netlify
-3. Configure the build settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-4. Deploy your site
-5. Set up your custom domain in the Netlify dashboard
+## Production deployment
 
-## Using a custom domain
+See [`DEPLOYMENT.md`](./DEPLOYMENT.md) for environment-variable requirements and generic deploy targets (Vercel, Netlify, static host), or [`HOMELAB-SETUP.md`](./HOMELAB-SETUP.md) for the Docker + Cloudflare Tunnel setup this project actually runs on.
 
-After deploying to Netlify, you can configure your custom domain:
+## Project docs
 
-1. In the Netlify dashboard, go to "Domain management"
-2. Click "Add custom domain"
-3. Enter your domain name
-4. Follow the instructions to update your DNS settings
-
+- [`CLAUDE.md`](./CLAUDE.md) — architecture conventions, the 9-step "add a new feature" playbook, key gotchas (timezone handling, model routing, etc.)
+- [`DEPLOYMENT.md`](./DEPLOYMENT.md) — production deployment and env vars
+- [`HOMELAB-SETUP.md`](./HOMELAB-SETUP.md) — homelab-specific setup guide

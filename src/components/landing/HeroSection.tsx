@@ -54,7 +54,7 @@ const HeroSection = () => {
             <div className="absolute top-0 left-0 md:left-[5%] w-[85%] md:w-[60%] transform hover:scale-105 transition-transform duration-300 z-30">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
                 <img 
-                  src="/lovable-uploads/7b18d2b6-0817-4015-afa4-f01258d4834d.png" 
+                  src="/screenshots/7b18d2b6-0817-4015-afa4-f01258d4834d.png" 
                   alt="HealthZone Dashboard" 
                   className="w-full h-auto"
                   decoding="async"
@@ -66,7 +66,7 @@ const HeroSection = () => {
             <div className="absolute top-[15%] right-0 md:right-[5%] w-[80%] md:w-[55%] transform hover:scale-105 transition-transform duration-300 z-20">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
                 <img 
-                  src="/lovable-uploads/7f41436f-32b9-4195-91c5-f74ebe845cef.png" 
+                  src="/screenshots/7f41436f-32b9-4195-91c5-f74ebe845cef.png" 
                   alt="HealthZone Weight Tracker" 
                   className="w-full h-auto"
                   decoding="async"
@@ -78,7 +78,7 @@ const HeroSection = () => {
             <div className="absolute top-[35%] left-[10%] md:left-[15%] w-[80%] md:w-[55%] transform hover:scale-105 transition-transform duration-300 z-10">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
                 <img 
-                  src="/lovable-uploads/99799d8c-1a79-4982-9c46-22e3fbe44e9f.png" 
+                  src="/screenshots/99799d8c-1a79-4982-9c46-22e3fbe44e9f.png" 
                   alt="HealthZone Fasting Tracker" 
                   className="w-full h-auto"
                   decoding="async"
@@ -90,7 +90,7 @@ const HeroSection = () => {
             <div className="absolute top-[50%] right-[5%] md:right-[10%] w-[75%] md:w-[50%] transform hover:scale-105 transition-transform duration-300 z-0">
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
                 <img 
-                  src="/lovable-uploads/6b224319-b5c3-413e-9c54-f33b93b52bbc.png" 
+                  src="/screenshots/6b224319-b5c3-413e-9c54-f33b93b52bbc.png" 
                   alt="HealthZone Exercise Tracker" 
                   className="w-full h-auto"
                   decoding="async"

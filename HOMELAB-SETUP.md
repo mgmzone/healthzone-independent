@@ -32,14 +32,11 @@ ssh username@your-docker-server-ip
 # Navigate to your preferred directory (e.g., /opt, /home/user, etc.)
 cd /opt
 
-# Clone your forked repository
+# Clone the repository
 git clone https://github.com/mgmzone/healthzone-independent.git
 
 # Enter the directory
 cd healthzone-independent
-
-# Switch to the migration branch (with all improvements)
-git checkout migration/from-lovable-to-independent
 ```
 
 ### Step 3: Configure Environment Variables
