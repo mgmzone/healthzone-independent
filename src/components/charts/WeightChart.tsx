@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { WeighIn } from '@/lib/types';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface WeightChartProps {
   data: WeighIn[];
@@ -50,19 +51,15 @@ const WeightChart: React.FC<WeightChartProps> = ({
   const convertValue = (entry: WeighIn) => {
     switch (metricKey) {
       case 'weight':
-        return isImperial ? entry.weight * 2.20462 : entry.weight;
+        return convertWeight(entry.weight, isImperial);
       case 'bmi':
         return entry.bmi || null;
       case 'bodyFatPercentage':
         return entry.bodyFatPercentage || null;
       case 'skeletalMuscleMass':
-        return entry.skeletalMuscleMass
-          ? isImperial ? entry.skeletalMuscleMass * 2.20462 : entry.skeletalMuscleMass
-          : null;
+        return entry.skeletalMuscleMass ? convertWeight(entry.skeletalMuscleMass, isImperial) : null;
       case 'boneMass':
-        return entry.boneMass
-          ? isImperial ? entry.boneMass * 2.20462 : entry.boneMass
-          : null;
+        return entry.boneMass ? convertWeight(entry.boneMass, isImperial) : null;
       case 'bodyWaterPercentage':
         return entry.bodyWaterPercentage || null;
       default:

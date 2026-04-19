@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Period, WeighIn } from '@/lib/types';
 import { getWeeksInPeriod, getMonthsInPeriod, ensureDate } from '@/lib/utils/dateUtils';
 import { Pencil, Trash2 } from "lucide-react";
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface PeriodTableRowProps {
   period: Period;
@@ -43,11 +44,10 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
   const months = getMonthsInPeriod(period.startDate, endDateForDuration);
 
   const isImperial = weightUnit === 'lbs';
-  const toDisplayUnit = (kg: number) => isImperial ? kg * 2.20462 : kg;
 
-  const displayStartWeight = toDisplayUnit(period.startWeight);
-  const displayTargetWeight = toDisplayUnit(period.targetWeight);
-  const displayWeightLossPerWeek = toDisplayUnit(period.weightLossPerWeek);
+  const displayStartWeight = convertWeight(period.startWeight, isImperial);
+  const displayTargetWeight = convertWeight(period.targetWeight, isImperial);
+  const displayWeightLossPerWeek = convertWeight(period.weightLossPerWeek, isImperial);
 
   // Scope weigh-ins to this period's date range. For active periods with no end,
   // include everything since startDate.

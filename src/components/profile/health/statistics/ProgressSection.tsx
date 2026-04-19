@@ -2,6 +2,7 @@
 import React from 'react';
 import StatisticInput from './StatisticInput';
 import { formatWeightWithUnit } from '@/lib/weight/formatWeight';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface ProgressSectionProps {
   weightLossPerWeek?: number;
@@ -18,24 +19,16 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
   currentWeight,
   isImperial
 }) => {
-  // Format the target loss per week with exactly one decimal place
+  const unit = isImperial ? 'lbs' : 'kg';
   const formattedTargetLoss = weightLossPerWeek !== undefined
-    ? `${isImperial ? (weightLossPerWeek * 2.20462).toFixed(1) : weightLossPerWeek.toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
+    ? `${convertWeight(weightLossPerWeek, isImperial).toFixed(1)} ${unit}/week`
     : '';
-    
-  // Format the actual loss per week with exactly one decimal place
+
   const formattedActualLoss = currentAvgWeightLoss !== undefined
-    ? `${Math.abs(isImperial ? (currentAvgWeightLoss * 2.20462) : currentAvgWeightLoss).toFixed(1)} ${isImperial ? 'lbs' : 'kg'}/week`
+    ? `${Math.abs(convertWeight(currentAvgWeightLoss, isImperial)).toFixed(1)} ${unit}/week`
     : 'Not enough data';
-    
-  console.log("ProgressSection values:", {
-    progressPercentage,
-    currentWeight,
-    weightLossPerWeek,
-    currentAvgWeightLoss,
-    isImperial
-  });
-  
+
+
   return (
     <>
       <StatisticInput

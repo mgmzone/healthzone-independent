@@ -3,6 +3,7 @@ import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
 import { calculateWeightRange } from '../weightForecastUtils';
 import { generateForecastPoints } from '../utils/forecast/forecastGenerator';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface UseWeightForecastDataProps {
   weighIns: WeighIn[];
@@ -23,7 +24,7 @@ export const useWeightForecastData = ({
     return weighIns
       .map((w) => ({
         date: new Date(w.date),
-        weight: isImperial ? w.weight * 2.20462 : w.weight,
+        weight: convertWeight(w.weight, isImperial),
         isActual: true as const,
         isForecast: false as const,
         formattedDate: format(new Date(w.date), 'MMM d'),
@@ -34,7 +35,7 @@ export const useWeightForecastData = ({
   const displayTargetWeight = useMemo(() => {
     if (targetWeight !== undefined) return targetWeight;
     if (!currentPeriod.targetWeight) return undefined;
-    return isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
+    return convertWeight(currentPeriod.targetWeight, isImperial);
   }, [targetWeight, currentPeriod.targetWeight, isImperial]);
 
   // Run the forecast. The generator owns the end-date calculation via

@@ -13,6 +13,7 @@ import TableSection from '@/components/weight/TableSection';
 import WeightTimeFilter from '@/components/weight/WeightTimeFilter';
 import PeriodProgressBar from '@/components/weight/PeriodProgressBar';
 import { TimeFilter } from '@/lib/types';
+import { convertWeight as kgToDisplay, convertToMetric as displayToKg } from '@/lib/weight/convertWeight';
 
 const Weight = () => {
   const { profile } = useAuth();
@@ -60,16 +61,16 @@ const Weight = () => {
 
   // Target weight / start weight from the active period, in the user's display units.
   const targetDisplay = currentPeriod
-    ? (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight)
+    ? kgToDisplay(currentPeriod.targetWeight, isImperial)
     : undefined;
   const periodStartDisplay = currentPeriod
-    ? (isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight)
+    ? kgToDisplay(currentPeriod.startWeight, isImperial)
     : undefined;
 
   // Projected completion: use the current weekly rate to extrapolate when the user will hit target.
   const projectedCompletion = React.useMemo(() => {
     if (!currentPeriod || !targetDisplay || !latestWeight) return null;
-    const currentDisplay = isImperial ? latestWeight.weight * 2.20462 : latestWeight.weight;
+    const currentDisplay = kgToDisplay(latestWeight.weight, isImperial);
     const startDate = new Date(currentPeriod.startDate);
     const weeks = Math.max(0.1, (Date.now() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
     const lostSoFar = periodStartDisplay ? (periodStartDisplay - currentDisplay) : 0;
@@ -103,17 +104,17 @@ const Weight = () => {
       bodyWaterPercentage?: number;
     }
   ) => {
-    const weightInKg = isImperial ? weight / 2.20462 : weight;
-    
+    const weightInKg = displayToKg(weight, isImperial);
+
     let convertedMetrics = additionalMetrics;
     if (isImperial && additionalMetrics) {
       convertedMetrics = {
         ...additionalMetrics,
-        skeletalMuscleMass: additionalMetrics.skeletalMuscleMass 
-          ? additionalMetrics.skeletalMuscleMass / 2.20462 
+        skeletalMuscleMass: additionalMetrics.skeletalMuscleMass
+          ? displayToKg(additionalMetrics.skeletalMuscleMass, true)
           : undefined,
-        boneMass: additionalMetrics.boneMass 
-          ? additionalMetrics.boneMass / 2.20462 
+        boneMass: additionalMetrics.boneMass
+          ? displayToKg(additionalMetrics.boneMass, true)
           : undefined
       };
     }

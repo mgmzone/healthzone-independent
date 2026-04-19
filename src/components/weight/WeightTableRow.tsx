@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Trash, Pencil, ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { WeighIn } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface WeightTableRowProps {
   entry: WeighIn;
@@ -46,7 +47,7 @@ const WeightTableRow: React.FC<WeightTableRowProps> = ({
   let delta: React.ReactNode = <span className="text-muted-foreground">—</span>;
   if (previousEntry) {
     const diffKg = entry.weight - previousEntry.weight;
-    const diffDisplay = isImperial ? diffKg * 2.20462 : diffKg;
+    const diffDisplay = convertWeight(diffKg, isImperial);
     if (Math.abs(diffDisplay) < 0.05) {
       delta = (
         <span className="inline-flex items-center text-xs text-muted-foreground">

@@ -25,6 +25,7 @@ import {
   getMonthsInPeriod,
 } from '@/lib/utils/dateUtils';
 import { getProgressPercentage } from '@/lib/types';
+import { convertWeight, convertToMetric } from '@/lib/weight/convertWeight';
 
 const DashboardContent = () => {
   const { profile } = useAuth();
@@ -54,8 +55,7 @@ const DashboardContent = () => {
         })
       : weighIns;
     if (scoped.length === 0) return null;
-    const weightInKg = scoped[0].weight;
-    return isImperial ? weightInKg * 2.20462 : weightInKg;
+    return convertWeight(scoped[0].weight, isImperial);
   };
 
   const latestWeight = getLatestWeight();
@@ -88,7 +88,7 @@ const DashboardContent = () => {
     if (weeksDiff < 0.5) return null; // Need at least half a week of data
     
     const avgWeeklyLoss = totalLoss / weeksDiff;
-    return isImperial ? avgWeeklyLoss * 2.20462 : avgWeeklyLoss;
+    return convertWeight(avgWeeklyLoss, isImperial);
   };
 
   const currentAvgWeightLoss = calculateAverageWeightLoss();
@@ -102,8 +102,8 @@ const DashboardContent = () => {
     fastingSchedule: string,
     weightLossPerWeek: number
   }) => {
-    const startWeight = isImperial ? periodData.startWeight / 2.20462 : periodData.startWeight;
-    const targetWeight = isImperial ? periodData.targetWeight / 2.20462 : periodData.targetWeight;
+    const startWeight = convertToMetric(periodData.startWeight, isImperial);
+    const targetWeight = convertToMetric(periodData.targetWeight, isImperial);
     
     addPeriod({
       ...periodData,
@@ -126,8 +126,8 @@ const DashboardContent = () => {
     weightProgress: latestWeight
       ? getProgressPercentage(
           latestWeight,
-          isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight,
-          isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight
+          convertWeight(currentPeriod.startWeight, isImperial),
+          convertWeight(currentPeriod.targetWeight, isImperial)
         )
       : 0,
     timeProgress: getTimeProgressPercentage(
@@ -146,10 +146,10 @@ const DashboardContent = () => {
     ),
     totalWeeks: getWeeksInPeriod(currentPeriod.startDate, currentPeriod.endDate),
     totalMonths: getMonthsInPeriod(currentPeriod.startDate, currentPeriod.endDate),
-    weightChange: latestWeight 
-      ? Math.abs((isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight) - latestWeight)
+    weightChange: latestWeight
+      ? Math.abs(convertWeight(currentPeriod.startWeight, isImperial) - latestWeight)
       : 0,
-    weightDirection: latestWeight && latestWeight < (isImperial ? currentPeriod.startWeight * 2.20462 : currentPeriod.startWeight)
+    weightDirection: latestWeight && latestWeight < convertWeight(currentPeriod.startWeight, isImperial)
       ? 'lost' as const
       : 'gained' as const
   } : null;
@@ -220,7 +220,7 @@ const DashboardContent = () => {
         weightUnit={weightUnit}
         defaultValues={{
           startWeight: latestWeight || undefined,
-          targetWeight: profile?.targetWeight ? (isImperial ? profile.targetWeight * 2.20462 : profile.targetWeight) : undefined
+          targetWeight: profile?.targetWeight ? convertWeight(profile.targetWeight, isImperial) : undefined
         }}
       />
     </div>

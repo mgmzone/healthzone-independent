@@ -3,6 +3,7 @@ import { Scale, UtensilsCrossed, Timer, Dumbbell, Target, Check } from 'lucide-r
 import { WeighIn, MealLog, FastingLog, ExerciseLog, DailyGoal, DailyGoalEntry } from '@/lib/types';
 import { toLocalDateString } from '@/lib/utils/dateUtils';
 import { cn } from '@/lib/utils';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface TodayStatusStripProps {
   weighIns: WeighIn[];
@@ -70,7 +71,7 @@ const TodayStatusStrip: React.FC<TodayStatusStripProps> = ({
       icon: Scale,
       label: 'Weigh-in',
       value: todayWeighIn
-        ? `${(isImperial ? todayWeighIn.weight * 2.20462 : todayWeighIn.weight).toFixed(1)} ${weightUnit}`
+        ? `${convertWeight(todayWeighIn.weight, isImperial).toFixed(1)} ${weightUnit}`
         : 'Not yet',
       done: !!todayWeighIn,
     },

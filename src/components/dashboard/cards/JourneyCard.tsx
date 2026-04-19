@@ -4,6 +4,7 @@ import { Period } from '@/lib/types';
 import MultiValueCard from './MultiValueCard';
 import ProgressCircle from '@/components/ProgressCircle';
 import { formatWeight } from '../utils/weightUtils';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface JourneyCardProps {
   currentPeriod: Period;
@@ -27,7 +28,7 @@ const JourneyCard: React.FC<JourneyCardProps> = ({
   timeProgress,
 }) => {
   const isImperial = weightUnit === 'lbs';
-  const targetDisplay = isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
+  const targetDisplay = convertWeight(currentPeriod.targetWeight, isImperial);
   const toGo = latestWeight != null ? Math.max(0, latestWeight - targetDisplay) : null;
 
   const values = [

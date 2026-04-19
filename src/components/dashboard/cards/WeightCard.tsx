@@ -5,6 +5,7 @@ import MultiValueCard from './MultiValueCard';
 import { formatWeight } from '../utils/weightUtils';
 import ProgressCircle from '@/components/ProgressCircle';
 import TrendArrow from '../TrendArrow';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface WeightCardProps {
   latestWeight: number | null;
@@ -42,8 +43,8 @@ const WeightCard: React.FC<WeightCardProps> = ({
   const isImperial = weightUnit === 'lbs';
   const thisWeek = meanWeightInWindow(weighIns, 0, 7);
   const priorWeek = meanWeightInWindow(weighIns, 7, 14);
-  const thisWeekDisplay = thisWeek != null ? (isImperial ? thisWeek * 2.20462 : thisWeek) : null;
-  const priorWeekDisplay = priorWeek != null ? (isImperial ? priorWeek * 2.20462 : priorWeek) : null;
+  const thisWeekDisplay = thisWeek != null ? convertWeight(thisWeek, isImperial) : null;
+  const priorWeekDisplay = priorWeek != null ? convertWeight(priorWeek, isImperial) : null;
 
   const getWeightValues = () => {
     const values: { label: string; value: string; trend?: React.ReactNode }[] = [];
@@ -52,7 +53,7 @@ const WeightCard: React.FC<WeightCardProps> = ({
       const startingWeight = currentPeriod.startWeight;
       values.push({
         label: 'Starting',
-        value: formatWeight(startingWeight ? (isImperial ? startingWeight * 2.20462 : startingWeight) : null, weightUnit),
+        value: formatWeight(startingWeight ? convertWeight(startingWeight, isImperial) : null, weightUnit),
       });
     }
 
@@ -76,7 +77,7 @@ const WeightCard: React.FC<WeightCardProps> = ({
       const targetWeight = currentPeriod.targetWeight;
       values.push({
         label: 'Target',
-        value: formatWeight(targetWeight ? (isImperial ? targetWeight * 2.20462 : targetWeight) : null, weightUnit),
+        value: formatWeight(targetWeight ? convertWeight(targetWeight, isImperial) : null, weightUnit),
       });
     }
 

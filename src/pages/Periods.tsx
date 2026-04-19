@@ -11,7 +11,7 @@ import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodsTable from '@/components/periods/PeriodsTable';
 import MilestonesManager from '@/components/periods/MilestonesManager';
-import { convertToMetric } from '@/lib/weight/convertWeight';
+import { convertToMetric, convertWeight } from '@/lib/weight/convertWeight';
 
 const Periods = () => {
   const { profile } = useAuth();
@@ -38,9 +38,7 @@ const Periods = () => {
         })
       : weighIns;
     if (scoped.length === 0) return null;
-    // Weight is stored in kg, convert to lbs if needed
-    const weightInKg = scoped[0].weight;
-    return isImperial ? weightInKg * 2.20462 : weightInKg;
+    return convertWeight(scoped[0].weight, isImperial);
   };
 
   const latestWeight = getLatestWeight();
@@ -122,7 +120,7 @@ const Periods = () => {
         onSave={handleSavePeriod}
         defaultValues={{
           startWeight: latestWeight || undefined,
-          targetWeight: profile?.targetWeight ? (isImperial ? profile.targetWeight * 2.20462 : profile.targetWeight) : undefined
+          targetWeight: profile?.targetWeight ? convertWeight(profile.targetWeight, isImperial) : undefined
         }}
         weightUnit={weightUnit}
       />

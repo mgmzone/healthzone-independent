@@ -7,6 +7,7 @@ import { differenceInCalendarDays, format } from 'date-fns';
 import WeightForecastChartWrapper from '@/components/charts/WeightForecastChart';
 import { Period, WeighIn } from '@/lib/types';
 import { generateForecastPoints } from '@/components/charts/weight-forecast/utils/forecast/forecastGenerator';
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface WeightForecastSectionProps {
   weighIns: WeighIn[];
@@ -25,13 +26,13 @@ const WeightForecastSection: React.FC<WeightForecastSectionProps> = ({
   // chart's projected-completion line agree on the date.
   const summary = useMemo(() => {
     const displayTarget = currentPeriod.targetWeight
-      ? (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight)
+      ? convertWeight(currentPeriod.targetWeight, isImperial)
       : undefined;
 
     const history = [...weighIns]
       .map((w) => ({
         date: new Date(w.date),
-        weight: isImperial ? w.weight * 2.20462 : w.weight,
+        weight: convertWeight(w.weight, isImperial),
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 

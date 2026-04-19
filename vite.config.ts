@@ -17,6 +17,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Strip console.* calls in production builds only. Each call is a string
+  // allocation at runtime and sometimes leaks user data (fasting times,
+  // dashboard activity counts, etc.) into the browser console.
+  esbuild: {
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   build: {
     outDir: "dist",
     sourcemap: mode !== "production",

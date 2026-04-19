@@ -7,6 +7,7 @@ import { Period } from '@/lib/types';
 import { getProgressPercentage } from '@/lib/types';
 import ProgressCircle from '@/components/ProgressCircle';
 import { cn } from "@/lib/utils";
+import { convertWeight } from '@/lib/weight/convertWeight';
 
 interface PeriodCardProps {
   period: Period;
@@ -27,8 +28,8 @@ const PeriodCard: React.FC<PeriodCardProps> = ({
     : "Present";
   
   const isImperial = weightUnit === 'lbs';
-  const displayStartWeight = isImperial ? period.startWeight * 2.20462 : period.startWeight;
-  const displayTargetWeight = isImperial ? period.targetWeight * 2.20462 : period.targetWeight;
+  const displayStartWeight = convertWeight(period.startWeight, isImperial);
+  const displayTargetWeight = convertWeight(period.targetWeight, isImperial);
   
   // Calculate progress only if latest weight is provided
   const progress = latestWeight && displayStartWeight

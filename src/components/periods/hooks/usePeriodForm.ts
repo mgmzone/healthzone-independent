@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Period } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { addWeeks } from 'date-fns';
-import { convertToMetric } from '@/lib/weight/convertWeight';
+import { convertToMetric, convertWeight } from '@/lib/weight/convertWeight';
 
 interface UsePeriodFormProps {
   defaultValues?: {
@@ -53,11 +53,7 @@ export const usePeriodForm = ({
       setFastingSchedule(initialPeriod.fastingSchedule);
       
       if (initialPeriod.weightLossPerWeek !== undefined) {
-        // Format to one decimal place when displaying
-        const displayValue = isImperial 
-          ? (initialPeriod.weightLossPerWeek * 2.20462).toFixed(1)
-          : initialPeriod.weightLossPerWeek.toFixed(1);
-        setWeightLossPerWeek(displayValue);
+        setWeightLossPerWeek(convertWeight(initialPeriod.weightLossPerWeek, isImperial).toFixed(1));
       }
     }
   }, [initialPeriod, defaultValues, isImperial]);

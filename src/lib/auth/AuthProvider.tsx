@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import AuthContext from './AuthContext';
 import { useAuthState } from './useAuthState';
 import { useProfileManagement } from './useProfileManagement';
@@ -43,17 +43,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await fetchProfile();
   }, [fetchProfile]);
 
-  const value = {
-    session,
-    user,
-    profile,
-    loading,
-    profileLoading,
-    signUp,
-    signIn,
-    signOut,
-    refreshProfile
-  };
+  // Memoize the context value so consumers don't re-render on every
+  // AuthProvider render (this provider wraps the whole app, so unnecessary
+  // re-renders cascade everywhere). Operations (signUp/signIn/signOut) are
+  // stable references from useAuthOperations; only state + refreshProfile
+  // are meaningful deps.
+  const value = useMemo(
+    () => ({
+      session,
+      user,
+      profile,
+      loading,
+      profileLoading,
+      signUp,
+      signIn,
+      signOut,
+      refreshProfile,
+    }),
+    [session, user, profile, loading, profileLoading, signUp, signIn, signOut, refreshProfile]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

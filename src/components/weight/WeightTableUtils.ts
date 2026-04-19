@@ -1,5 +1,5 @@
 
-import { convertWeight as convertWeightUtil } from '@/lib/weight/convertWeight';
+import { convertWeight as convertWeightUtil, convertToMetric as convertToMetricUtil } from '@/lib/weight/convertWeight';
 
 export const convertWeight = (weight: number | undefined, isImperial: boolean) => {
   if (!weight) return '-';
@@ -20,5 +20,5 @@ export const formatPercentage = (value: number | undefined) => {
 export const convertToMetric = (value: string, isImperial: boolean) => {
   const num = parseFloat(value);
   if (isNaN(num)) return undefined;
-  return isImperial ? num / 2.20462 : num;
+  return convertToMetricUtil(num, isImperial);
 };
