@@ -21,14 +21,13 @@ const HeroSection = () => {
           className="text-center"
         >
           <div className="inline-block mb-6 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full">
-            <span className="text-white/90 text-sm font-medium">Your path to better health starts here</span>
+            <span className="text-white/90 text-sm font-medium">Intermittent fasting · Weight milestones · AI-assisted tracking</span>
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            Track Your Health Journey with <span className="bg-clip-text text-transparent bg-gradient-to-r from-healthzone-300 to-healthzone-500">Precision</span>
+            Hit your weight goal <span className="bg-clip-text text-transparent bg-gradient-to-r from-healthzone-300 to-healthzone-500">by a specific date.</span>
           </h1>
           <p className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-10">
-            Monitor your weight loss, intermittent fasting, and exercise goals in one seamless experience. 
-            Take control of your health with data-driven insights.
+            Track weight, meals, fasting, and exercise alongside the daily compliance goals that actually move the needle. Smart forecasts and an AI coach turn your numbers into honest guidance — built for people working toward a milestone, not open-ended wellness.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" asChild className="rounded-full px-8 gap-2 text-base">

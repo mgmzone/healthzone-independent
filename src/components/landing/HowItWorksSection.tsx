@@ -2,20 +2,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Steps data
+// Three-act framing: set the goal, log the days, read the signal.
 const steps = [
   {
-    title: "Create Your Profile",
-    description: "Set up your personal profile with your health metrics, preferences, and goals."
+    title: 'Set your target and deadline',
+    description:
+      'Tell HealthZone your starting weight, target weight, and the date you want to hit it. Pick your fasting protocol and define the daily compliance goals that matter for your plan.',
   },
   {
-    title: "Log Your Progress",
-    description: "Record your weight, fasting periods, and exercise routines with our intuitive trackers."
+    title: 'Log the days',
+    description:
+      'Weigh-ins, meals, workouts, fasting windows, and journal notes. The AI coach can estimate macros and assess meals against your goals when you want a second opinion.',
   },
   {
-    title: "Track & Analyze",
-    description: "Monitor your progress over time with detailed charts and personalized insights."
-  }
+    title: 'See whether you are on track',
+    description:
+      'Smart forecasts show your projected completion date based on real recent pace — not wishful thinking. Streaks, weekly summaries, and charts tell you what is actually working.',
+  },
 ];
 
 const HowItWorksSection = () => {
@@ -24,10 +27,10 @@ const HowItWorksSection = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            How HealthZone Works
+            How it works
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Our simple process helps you stay on track with your health goals.
+            Three acts: set the goal, log the days, read the signal.
           </p>
         </div>
 

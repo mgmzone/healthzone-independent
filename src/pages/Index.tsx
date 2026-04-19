@@ -1,33 +1,15 @@
-
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/lib/auth';
-import { isProfileComplete } from '@/lib/auth';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
+import IdealForSection from '@/components/landing/IdealForSection';
 import CallToActionSection from '@/components/landing/CallToActionSection';
 
 const Index = () => {
-  const { user, profile, loading, profileLoading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Add console log for debugging
-  useEffect(() => {
-    console.log('Index page loaded', { 
-      user: user?.id, 
-      profile: profile?.firstName, 
-      profileComplete: profile ? isProfileComplete(profile) : false,
-      loading, 
-      profileLoading,
-      pathname: location.pathname 
-    });
-  }, [user, profile, loading, profileLoading, location]);
-  
-  // Show loading state while auth and profile are being determined
+  const { user, loading } = useAuth();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -46,8 +28,8 @@ const Index = () => {
     <Layout transparentHeader hideFooter>
       <HeroSection />
       <FeaturesSection />
+      <IdealForSection />
       <HowItWorksSection />
-      <TestimonialsSection />
       <CallToActionSection />
     </Layout>
   );
