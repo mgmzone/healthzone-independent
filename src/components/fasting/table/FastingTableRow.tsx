@@ -31,14 +31,16 @@ const FastingTableRow: React.FC<FastingTableRowProps> = ({ log, onEdit, onDelete
     return `${wholeHours}:${minutes.toString().padStart(2, '0')}`;
   };
   
+  const tdClass = 'px-6 py-4 whitespace-nowrap text-sm text-foreground';
+
   return (
-    <tr key={log.id}>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{format(startTime, 'MM/dd/yyyy')}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{format(startTime, 'EEE')}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{format(startTime, 'h:mm a')}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{endTime ? format(endTime, 'h:mm a') : '-'}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{calculateDuration(startTime, endTime)}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm">{formatEatingWindow(log.eatingWindowHours)}</td>
+    <tr key={log.id} className="hover:bg-muted/30">
+      <td className={tdClass}>{format(startTime, 'MM/dd/yyyy')}</td>
+      <td className={tdClass}>{format(startTime, 'EEE')}</td>
+      <td className={tdClass}>{format(startTime, 'h:mm a')}</td>
+      <td className={tdClass}>{endTime ? format(endTime, 'h:mm a') : '-'}</td>
+      <td className={tdClass}>{calculateDuration(startTime, endTime)}</td>
+      <td className={tdClass}>{formatEatingWindow(log.eatingWindowHours)}</td>
       <td className="px-6 py-4 whitespace-nowrap">
         {endTime ? (
           <Check className="h-5 w-5 text-green-500" />
@@ -46,17 +48,17 @@ const FastingTableRow: React.FC<FastingTableRowProps> = ({ log, onEdit, onDelete
           <X className="h-5 w-5 text-red-500" />
         )}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
         <div className="flex space-x-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onEdit(log.id)}
           >
             <Edit className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => onDelete(log.id)}
           >

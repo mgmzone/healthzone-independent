@@ -33,15 +33,15 @@ const FastingWeekGroup: React.FC<FastingWeekGroupProps> = ({
         <h3 className="font-medium text-lg">
           {weekKey}, {yearDisplay}
         </h3>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-muted-foreground">
           Count: {logs.length}
         </div>
       </div>
-      
+
       <div className="overflow-x-auto rounded-lg border">
-        <table className="min-w-full divide-y divide-gray-200">
+        <table className="min-w-full divide-y divide-border">
           <FastingTableHeader />
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {sortedLogs.map((log) => (
               <FastingTableRow 
                 key={log.id} 
