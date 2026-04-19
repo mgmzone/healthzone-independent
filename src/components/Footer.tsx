@@ -21,9 +21,13 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Home</Link></li>
               <li><Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link></li>
-              <li><Link to="/weight" className="text-muted-foreground hover:text-foreground transition-colors">Weight Tracker</Link></li>
-              <li><Link to="/fasting" className="text-muted-foreground hover:text-foreground transition-colors">Fasting Tracker</Link></li>
-              <li><Link to="/exercise" className="text-muted-foreground hover:text-foreground transition-colors">Exercise Tracker</Link></li>
+              <li><Link to="/nutrition" className="text-muted-foreground hover:text-foreground transition-colors">Nutrition</Link></li>
+              <li><Link to="/exercise" className="text-muted-foreground hover:text-foreground transition-colors">Exercise</Link></li>
+              <li><Link to="/fasting" className="text-muted-foreground hover:text-foreground transition-colors">Fasting</Link></li>
+              <li><Link to="/weight" className="text-muted-foreground hover:text-foreground transition-colors">Weight</Link></li>
+              <li><Link to="/journal" className="text-muted-foreground hover:text-foreground transition-colors">Journal</Link></li>
+              <li><Link to="/periods" className="text-muted-foreground hover:text-foreground transition-colors">Periods</Link></li>
+              <li><Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">Profile</Link></li>
             </ul>
           </div>
           
