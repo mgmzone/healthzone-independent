@@ -58,6 +58,7 @@ const HeroSection = () => {
                   src="/lovable-uploads/7b18d2b6-0817-4015-afa4-f01258d4834d.png" 
                   alt="HealthZone Dashboard" 
                   className="w-full h-auto"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -69,6 +70,7 @@ const HeroSection = () => {
                   src="/lovable-uploads/7f41436f-32b9-4195-91c5-f74ebe845cef.png" 
                   alt="HealthZone Weight Tracker" 
                   className="w-full h-auto"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -80,6 +82,7 @@ const HeroSection = () => {
                   src="/lovable-uploads/99799d8c-1a79-4982-9c46-22e3fbe44e9f.png" 
                   alt="HealthZone Fasting Tracker" 
                   className="w-full h-auto"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -91,6 +94,7 @@ const HeroSection = () => {
                   src="/lovable-uploads/6b224319-b5c3-413e-9c54-f33b93b52bbc.png" 
                   alt="HealthZone Exercise Tracker" 
                   className="w-full h-auto"
+                  decoding="async"
                 />
               </div>
             </div>
