@@ -29,7 +29,7 @@ const Admin = () => {
         )}
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="mb-4">
+          <TabsList variant="underline" className="w-full mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="emails">Email Templates</TabsTrigger>

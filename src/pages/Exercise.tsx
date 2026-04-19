@@ -88,7 +88,7 @@ const Exercise = () => {
         </div>
 
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList variant="underline" className="w-full mb-6">
             <TabsTrigger value="summary">Summary</TabsTrigger>
             <TabsTrigger value="activities">Activities</TabsTrigger>
             <TabsTrigger value="goals">Goals</TabsTrigger>

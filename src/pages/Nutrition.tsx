@@ -110,7 +110,7 @@ const Nutrition = () => {
         </div>
 
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full max-w-lg grid-cols-4">
+          <TabsList variant="underline" className="w-full mb-6">
             <TabsTrigger value="daily">Daily Check-in</TabsTrigger>
             <TabsTrigger value="meals">Meals</TabsTrigger>
             <TabsTrigger value="goals">Manage Goals</TabsTrigger>

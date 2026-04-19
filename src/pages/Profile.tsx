@@ -164,19 +164,11 @@ const Profile = () => {
             
             <form onSubmit={onFormSubmit} className="space-y-4 mt-4">
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-                <TabsList className="grid grid-cols-4 w-full">
-                  <TabsTrigger value="personal">
-                    Settings
-                  </TabsTrigger>
-                  <TabsTrigger value="health">
-                    Health Info
-                  </TabsTrigger>
-                  <TabsTrigger value="integrations">
-                    Integrations
-                  </TabsTrigger>
-                  <TabsTrigger value="data">
-                    Data
-                  </TabsTrigger>
+                <TabsList variant="underline" className="w-full mb-6">
+                  <TabsTrigger value="personal">Settings</TabsTrigger>
+                  <TabsTrigger value="health">Health Info</TabsTrigger>
+                  <TabsTrigger value="integrations">Integrations</TabsTrigger>
+                  <TabsTrigger value="data">Data</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="personal" className="mt-4">
