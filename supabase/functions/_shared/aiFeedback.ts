@@ -2,6 +2,10 @@
 // Keeps prompt + data summary in one place so the dashboard card and the
 // weekly email produce consistent coaching output.
 
+import { MODEL_COACH } from "./models.ts";
+
+export { MODEL_COACH };
+
 export interface AIProfile {
   claude_api_key: string | null;
   ai_prompt: string | null;
@@ -172,7 +176,7 @@ export interface FeedbackCallResult {
 }
 
 export async function callClaudeForFeedback(apiKey: string, profile: AIProfile, dataSummary: string): Promise<FeedbackCallResult> {
-  const model = "claude-sonnet-4-20250514";
+  const model = MODEL_COACH;
   const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {

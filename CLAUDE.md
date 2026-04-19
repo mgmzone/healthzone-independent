@@ -75,7 +75,7 @@ All edge functions use `verify_jwt: false` at the gateway level (configured in `
 - Users can write custom AI context in `profiles.ai_prompt` — sent with every AI evaluation
 - AI edge functions verify JWT from Authorization header, extract user ID from token (no userId in request body)
 - `meal_logs` has `ai_assessment` (text) and `ai_protein_estimate` (numeric) columns for storing AI responses
-- Claude model: `claude-sonnet-4-20250514` — called via direct HTTP to `api.anthropic.com/v1/messages`
+- Claude models are centralized in `supabase/functions/_shared/models.ts`: `MODEL_BASIC` (`claude-haiku-4-5`) for parsing tasks (`evaluate-meal`, `analyze-exercise`), `MODEL_COACH` (`claude-sonnet-4-6`) for coaching (`ai-dashboard-feedback`, `send-weekly-summary`). Called via direct HTTP to `api.anthropic.com/v1/messages`.
 - Claude often wraps JSON in markdown code fences — edge functions strip ``` before parsing
 - CORS: production domain must be in `ALLOWED_ORIGIN` Supabase secret
 - Frontend service: `src/lib/services/aiService.ts` — `evaluateMeal()` and `getDashboardFeedback()`

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { logAiUsage } from "../_shared/aiUsage.ts";
+import { MODEL_COACH } from "../_shared/models.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -95,7 +96,26 @@ const handler = async (req: Request): Promise<Response> => {
       "sodiumEstimate: milligrams of sodium (number, no units).",
       "caloriesEstimate: total kilocalories (number, no units).",
       "Use 0 for any value you truly cannot estimate, but give a best-effort number for typical foods.",
-      "Weight interpretation: unless the user explicitly says 'dry', 'raw', or 'uncooked', assume weights refer to COOKED/PREPARED/AS-SERVED weight. This matters a lot for pasta, rice, grains, legumes, and starchy vegetables — cooked weight can be 2-3x the dry weight, with correspondingly lower carbs per gram.",
+      "",
+      "LANGUAGE: The user may describe the meal in any language (English, Portuguese, Spanish, etc.). Interpret the meal in the user's language and write the assessment in the same language the user used. Do not translate food names unnecessarily.",
+      "",
+      "WEIGHT INTERPRETATION: unless the user explicitly says 'dry', 'raw', 'uncooked', 'seca', 'crudo', or 'cru', assume weights refer to COOKED / PREPARED / AS-SERVED weight. Cooked weight for starchy foods is 2-3x the dry weight, with correspondingly lower carbs per gram. Getting this wrong is the most common error — do not commit to a number until you've decided whether the weight is cooked or dry.",
+      "",
+      "REFERENCE ANCHORS (use these as sanity checks — do not exceed them unless the user explicitly said dry weight):",
+      "  - 100g COOKED pasta ≈ 25-31g carbs, ~160 kcal, ~5g protein, <1g fat",
+      "  - 100g DRY pasta ≈ 70-75g carbs, ~360 kcal, ~13g protein, ~1.5g fat (yields ~250-300g cooked)",
+      "  - 100g COOKED white rice ≈ 28g carbs, ~130 kcal",
+      "  - 100g COOKED brown rice ≈ 23g carbs, ~110 kcal",
+      "  - 100g DRY rice ≈ 78g carbs, ~360 kcal",
+      "  - 1 medium slice bread ≈ 15g carbs, ~80 kcal",
+      "  - 100g boiled potato ≈ 17g carbs, ~85 kcal",
+      "  - 1 whole large egg ≈ 6g protein, 0.5g carbs, 5g fat, ~70 kcal",
+      "  - 100g egg whites ≈ 11g protein, 0.7g carbs, 0.2g fat, ~50 kcal",
+      "  - 100g cooked chicken breast ≈ 31g protein, 0g carbs, 3.6g fat, ~165 kcal",
+      "  - 100g cooked ground beef (85% lean) ≈ 26g protein, 0g carbs, 17g fat, ~250 kcal",
+      "",
+      "CONSISTENCY SELF-CHECK before you respond: verify your carb, calorie, protein, and fat numbers are internally consistent with (a) the weight-interpretation assumption you stated and (b) the reference anchors above. If the user gave grams of a starchy food, multiply per-100g values accordingly — do not default to dry-weight figures when you said 'assuming cooked'. If your numbers don't match your stated assumption, recompute before responding.",
+      "",
       "In the assessment, briefly state the key assumptions you made (e.g. 'Assuming 100g pasta is cooked weight...', 'Assuming ground beef is ~85% lean...') so the user can correct you by rephrasing if needed.",
       "Then add 1-2 sentences evaluating the meal against the user's goals: good choice? Concerns? Praise?",
     ];
@@ -116,8 +136,8 @@ const handler = async (req: Request): Promise<Response> => {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 400,
+        model: MODEL_COACH,
+        max_tokens: 600,
         system: systemParts.join("\n"),
         messages: [
           {
@@ -134,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
       await logAiUsage(supabase, {
         userId,
         functionName: 'evaluate-meal',
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL_COACH,
         usedFallbackKey,
         status: 'error',
         error: `Claude API ${claudeResponse.status}`,
@@ -150,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
     await logAiUsage(supabase, {
       userId,
       functionName: 'evaluate-meal',
-      model: claudeData.model || 'claude-sonnet-4-20250514',
+      model: claudeData.model || MODEL_COACH,
       usage: claudeData.usage,
       usedFallbackKey,
     });

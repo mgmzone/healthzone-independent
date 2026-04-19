@@ -12,17 +12,25 @@ export interface LogAiUsageInput {
   error?: string | null;
 }
 
-// Claude Sonnet 4 pricing (USD per 1M tokens) — keep in sync with anthropic.com/pricing.
-// Adjust when models change.
+// Claude pricing (USD per 1M tokens) — keep in sync with anthropic.com/pricing.
+// Adjust when models change. Keys match both version aliases and dated snapshots
+// so the actual model string returned by the API resolves correctly.
 const PRICING: Record<string, { inUsdPerMil: number; outUsdPerMil: number }> = {
-  'claude-sonnet-4-20250514': { inUsdPerMil: 3.0, outUsdPerMil: 15.0 },
-  'claude-opus-4-6':          { inUsdPerMil: 15.0, outUsdPerMil: 75.0 },
-  'claude-haiku-4-5-20251001':{ inUsdPerMil: 1.0, outUsdPerMil: 5.0 },
+  'claude-sonnet-4-20250514':  { inUsdPerMil: 3.0, outUsdPerMil: 15.0 },
+  'claude-sonnet-4-6':         { inUsdPerMil: 3.0, outUsdPerMil: 15.0 },
+  'claude-opus-4-6':           { inUsdPerMil: 15.0, outUsdPerMil: 75.0 },
+  'claude-opus-4-7':           { inUsdPerMil: 15.0, outUsdPerMil: 75.0 },
+  'claude-haiku-4-5':          { inUsdPerMil: 1.0, outUsdPerMil: 5.0 },
+  'claude-haiku-4-5-20251001': { inUsdPerMil: 1.0, outUsdPerMil: 5.0 },
 };
 
 export function estimateCostUsd(model: string | null | undefined, inTokens: number, outTokens: number): number {
   if (!model) return 0;
-  const p = PRICING[model];
+  // Try exact match first, then strip trailing dated snapshot suffix (e.g. -20250929).
+  const exact = PRICING[model];
+  if (exact) return (inTokens / 1_000_000) * exact.inUsdPerMil + (outTokens / 1_000_000) * exact.outUsdPerMil;
+  const aliased = model.replace(/-\d{8}$/, '');
+  const p = PRICING[aliased];
   if (!p) return 0;
   return (inTokens / 1_000_000) * p.inUsdPerMil + (outTokens / 1_000_000) * p.outUsdPerMil;
 }

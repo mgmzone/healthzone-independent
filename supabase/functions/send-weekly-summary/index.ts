@@ -10,6 +10,7 @@ import {
   resolveClaudeApiKey,
 } from "../_shared/aiFeedback.ts";
 import { logAiUsage } from "../_shared/aiUsage.ts";
+import { MODEL_COACH } from "../_shared/models.ts";
 
 // Initialize Resend with API key from environment variables
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -304,7 +305,7 @@ const handler = async (_req: Request): Promise<Response> => {
             await logAiUsage(supabase, {
               userId: profile.id,
               functionName: 'send-weekly-summary',
-              model: 'claude-sonnet-4-20250514',
+              model: MODEL_COACH,
               usedFallbackKey,
               status: 'error',
               error: err?.message || 'Claude API error',

@@ -7,6 +7,7 @@ import {
   resolveClaudeApiKey,
 } from "../_shared/aiFeedback.ts";
 import { logAiUsage } from "../_shared/aiUsage.ts";
+import { MODEL_COACH } from "../_shared/models.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -96,7 +97,7 @@ const handler = async (req: Request): Promise<Response> => {
       await logAiUsage(supabase, {
         userId,
         functionName: 'ai-dashboard-feedback',
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL_COACH,
         usedFallbackKey,
         status: 'error',
         error: err.message || 'Claude API error',
