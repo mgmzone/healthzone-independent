@@ -1,7 +1,7 @@
 import { format, isAfter, isBefore, parseISO } from 'date-fns';
 import { ActivityLogItem, SystemStats } from '@/lib/services/admin';
 import { TimeFilter, TimeFilteredData } from './types';
-import { getDateRangeAndFormat, parseWeekday } from './dateUtils';
+import { getDateRangeAndFormat, parseWeekday } from './timeFilterUtils';
 import { getEmptyTimeFilterData } from './emptyDataGenerator';
 import { generateSummaryData } from './summaryData';
 

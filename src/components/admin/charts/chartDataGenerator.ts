@@ -4,7 +4,7 @@
 
 // Re-export functions
 export * from './summaryData';
-export * from './dateUtils';
+export * from './timeFilterUtils';
 export * from './emptyDataGenerator';
 export * from './activityProcessor';
 
