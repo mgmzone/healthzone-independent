@@ -4,6 +4,7 @@ import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
 import { calculateWeightRange } from '../weightForecastUtils';
 import { generateForecastPoints } from '../utils/forecastGenerator';
+import { smoothRecentWeighIns } from '../utils/forecast/smoothing';
 
 interface UseWeightForecastDataProps {
   weighIns: WeighIn[];
@@ -37,10 +38,17 @@ export const useWeightForecastData = ({
       .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date, oldest first
   }, [weighIns, isImperial]);
   
-  // Get the last actual weigh-in for forecasting
+  // Get the last actual weigh-in (for displaying the final real dot)
   const lastWeighIn = useMemo(() => {
     if (processedData.length === 0) return null;
     return processedData[processedData.length - 1];
+  }, [processedData]);
+
+  // Smoothed anchor for the forecast line — uses a trimmed mean over recent
+  // weigh-ins so a single bad reading doesn't skew the projection. Date stays
+  // at the latest real weigh-in.
+  const forecastAnchor = useMemo(() => {
+    return smoothRecentWeighIns(processedData, 7);
   }, [processedData]);
   
   // Convert target weight to display units if needed
@@ -52,26 +60,30 @@ export const useWeightForecastData = ({
         undefined);
   }, [targetWeight, currentPeriod.targetWeight, isImperial]);
   
+  // Target-reached short-circuit: if the smoothed current weight is already at
+  // or below the target (for weight-loss periods), skip forecast generation.
+  // Without this, the chart would keep projecting past the finish line.
+  const targetReached = useMemo(() => {
+    if (!forecastAnchor || !displayTargetWeight) return false;
+    return forecastAnchor.weight <= displayTargetWeight;
+  }, [forecastAnchor, displayTargetWeight]);
+
   // Generate forecast data points if we have a target weight
   const forecastData = useMemo(() => {
-    if (!lastWeighIn || !displayTargetWeight || !currentPeriod.projectedEndDate) {
+    if (!forecastAnchor || !displayTargetWeight || !currentPeriod.projectedEndDate) {
       return [];
     }
-    
-    const projectedEndDate = currentPeriod.projectedEndDate ? 
+    if (targetReached) {
+      return [];
+    }
+
+    const projectedEndDate = currentPeriod.projectedEndDate ?
       new Date(currentPeriod.projectedEndDate) : undefined;
-    
-    console.log('Generating forecast data with:', {
-      lastWeighInDate: lastWeighIn.date.toISOString(),
-      lastWeighInWeight: lastWeighIn.weight,
-      displayTargetWeight,
-      projectedEndDate: projectedEndDate?.toISOString(),
-      weightLossPerWeek: currentPeriod.weightLossPerWeek
-    });
-    
-    // Use the same forecast generator that the calculation service uses
+
+    // Use the smoothed anchor (not the raw latest weigh-in) so an outlier
+    // reading doesn't warp the trajectory.
     const forecast = generateForecastPoints(
-      lastWeighIn,
+      forecastAnchor,
       displayTargetWeight,
       projectedEndDate,
       currentPeriod.weightLossPerWeek
@@ -89,7 +101,7 @@ export const useWeightForecastData = ({
     }
     
     return forecast;
-  }, [lastWeighIn, displayTargetWeight, currentPeriod.projectedEndDate, currentPeriod.weightLossPerWeek]);
+  }, [forecastAnchor, targetReached, displayTargetWeight, currentPeriod.projectedEndDate, currentPeriod.weightLossPerWeek]);
   
   // Combine actual and forecast data for the chart
   const combinedData = useMemo(() => {
@@ -146,6 +158,8 @@ export const useWeightForecastData = ({
     maxWeight,
     displayTargetWeight,
     startDate,
-    endDate
+    endDate,
+    forecastAnchor,
+    targetReached,
   };
 };
