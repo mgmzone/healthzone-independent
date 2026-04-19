@@ -1,164 +1,178 @@
+// Weight forecast math.
+//
+// We anchor the forecast at the user's actual most recent weigh-in (no
+// smoothed / phantom starting value — users were confused when the forecast
+// line began at a different weight than the one they just logged), estimate
+// their current daily rate of loss via linear regression over recent history,
+// and project forward with an exponential-decay curve toward target.
+//
+//   weight(t) = target + (anchor − target) · exp(−k · t)
+//
+// That shape naturally flattens as it approaches target, which matches
+// real-world physiology (smaller body → smaller deficit → slower loss) better
+// than the old weighted-blend curve, which produced a near-linear line.
+//
+// The rate `k` is fit so the curve's initial slope equals the user's observed
+// recent slope, not the period's planned rate. This makes the forecast
+// *responsive to reality*: if the user is losing faster than planned, the
+// projected end date pulls in; if they've stalled, it pushes out (or the
+// forecast disappears entirely when the rate isn't heading toward target).
+
+import { addDays } from 'date-fns';
+
+export interface WeighInPoint {
+  date: Date;
+  weight: number;
+}
+
+export interface ForecastPoint {
+  date: Date;
+  weight: number;
+  isForecast: true;
+}
+
+// "Reached" the target when the exponential gets within this much of it.
+// Exponentials never literally touch; 2% of the journey (floored at 0.2) is
+// close enough to call it done.
+const THRESHOLD_FRACTION = 0.02;
+const MIN_THRESHOLD = 0.2;
+
+const POINT_INTERVAL_DAYS = 2;
+const MAX_PROJECTION_DAYS = 365 * 3;
+
+// Regression window for estimating the user's actual recent daily rate.
+const REGRESSION_LOOKBACK_DAYS = 21;
+const MIN_REGRESSION_POINTS = 3;
 
 /**
- * Generate forecast data points from last actual weigh-in to target weight
- * with a curved trend line that shows faster loss at the beginning
+ * Ordinary least-squares slope of weight vs. days-since-first-point over the
+ * recent lookback window. Returns null when there's not enough data or the
+ * points are all on the same day (zero variance in x).
  */
-import { addDays } from 'date-fns';
-import { calculateAdjustedDailyRate } from '../curveCalculator';
-import { createForecastPoint, addIntermediatePoints, ensureTargetEndPoint, ensureMonotonicTrend } from './dataPointUtils';
-import { calculateInitialDailyRate, needsRateAdjustment, calculateEffectiveDailyRate, applyDailyChange } from './curveUtils';
-import { calculateProjectedEndDate, calculateDaysToProjectedEnd } from './endDateCalculator';
+function estimateDailyRate(historyOldestFirst: WeighInPoint[]): number | null {
+  if (historyOldestFirst.length < MIN_REGRESSION_POINTS) return null;
 
-export const generateForecastPoints = (
-  lastWeighIn: {date: Date, weight: number},
+  const anchorDate = historyOldestFirst[historyOldestFirst.length - 1].date;
+  const cutoff = addDays(anchorDate, -REGRESSION_LOOKBACK_DAYS).getTime();
+  const window = historyOldestFirst.filter((p) => p.date.getTime() >= cutoff);
+  if (window.length < MIN_REGRESSION_POINTS) return null;
+
+  const t0 = window[0].date.getTime();
+  const day = 24 * 60 * 60 * 1000;
+  const xs = window.map((p) => (p.date.getTime() - t0) / day);
+  const ys = window.map((p) => p.weight);
+
+  const n = xs.length;
+  const meanX = xs.reduce((s, v) => s + v, 0) / n;
+  const meanY = ys.reduce((s, v) => s + v, 0) / n;
+
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - meanX;
+    num += dx * (ys[i] - meanY);
+    den += dx * dx;
+  }
+  if (den === 0) return null;
+  return num / den;
+}
+
+export interface ForecastResult {
+  points: ForecastPoint[];
+  // Last point's date (= projected completion). Null when no forecast.
+  projectedEndDate: Date | null;
+  // True if the user is already at/near target — no forecast generated.
+  targetReached: boolean;
+  // The daily rate used for the projection (negative = losing).
+  // Null when falling back to planned rate.
+  observedDailyRate: number | null;
+}
+
+/**
+ * Build a weight-forecast curve.
+ *
+ * @param historyOldestFirst All period weigh-ins in the display unit,
+ *   ascending by date. The last element is the anchor.
+ * @param targetWeight Target in the same unit.
+ * @param fallbackWeeklyRate Period's planned weekly rate (positive magnitude).
+ *   Used only when the user's observed rate doesn't head toward the target
+ *   (e.g., gaining during a loss period, or too few data points for
+ *   regression).
+ */
+export function generateForecastPoints(
+  historyOldestFirst: WeighInPoint[],
   targetWeight: number | undefined,
-  projectedEndDate: Date | undefined,
-  weightLossPerWeek?: number
-) => {
-  if (!lastWeighIn || !targetWeight) {
-    console.log('Missing data for forecast generation', { lastWeighIn, targetWeight });
-    return [];
+  fallbackWeeklyRate?: number
+): ForecastResult {
+  const empty: ForecastResult = {
+    points: [],
+    projectedEndDate: null,
+    targetReached: false,
+    observedDailyRate: null,
+  };
+
+  if (!historyOldestFirst.length || targetWeight == null) return empty;
+
+  const anchor = historyOldestFirst[historyOldestFirst.length - 1];
+  const signedGap = anchor.weight - targetWeight;
+  const gap = Math.abs(signedGap);
+
+  // Already at / within-spitting-distance-of target.
+  if (gap < MIN_THRESHOLD) {
+    return { ...empty, targetReached: true };
   }
-  
-  // If no projected end date is provided, calculate a reasonable one
-  if (!projectedEndDate) {
-    const calculatedEndDate = calculateProjectedEndDate(
-      lastWeighIn.date,
-      lastWeighIn.weight,
-      targetWeight,
-      weightLossPerWeek
-    );
-    
-    if (!calculatedEndDate) {
-      return [];
-    }
-    
-    projectedEndDate = calculatedEndDate;
+
+  const isLoss = signedGap > 0;
+  const observedDailyRate = estimateDailyRate(historyOldestFirst);
+
+  // The rate must point toward the target, otherwise exponential decay fit
+  // diverges. If the observed rate is wrong-way or missing, fall back to the
+  // period's planned rate so new users still see *some* forecast.
+  const observedGoesRight =
+    observedDailyRate != null && (isLoss ? observedDailyRate < 0 : observedDailyRate > 0);
+
+  let dailyRate: number;
+  if (observedGoesRight) {
+    dailyRate = observedDailyRate!;
+  } else if (fallbackWeeklyRate && fallbackWeeklyRate > 0) {
+    dailyRate = (isLoss ? -1 : 1) * (fallbackWeeklyRate / 7);
+  } else {
+    return empty;
   }
-  
-  // Calculate days between last weigh-in and projected end date
-  const daysToProjectedEnd = calculateDaysToProjectedEnd(lastWeighIn.date, projectedEndDate);
-  
-  // Determine if this is weight loss or gain
-  const isWeightLoss = lastWeighIn.weight > targetWeight;
-  
-  // Calculate total weight change needed
-  const totalWeightChange = Math.abs(lastWeighIn.weight - targetWeight);
-  
-  // Calculate initial daily rate
-  const initialDailyRate = calculateInitialDailyRate(
-    lastWeighIn.weight,
-    totalWeightChange,
-    daysToProjectedEnd,
-    weightLossPerWeek
+
+  // Fit k so weight(t) = target + signedGap · exp(−k·t) has initial slope
+  // equal to dailyRate: d/dt weight(0) = −k · signedGap = dailyRate.
+  const k = -dailyRate / signedGap;
+  if (!Number.isFinite(k) || k <= 0) return empty;
+
+  // Days until within threshold of target.
+  //   gap · exp(−k·t) = threshold  ⇒  t = ln(gap / threshold) / k
+  const threshold = Math.max(MIN_THRESHOLD, THRESHOLD_FRACTION * gap);
+  const daysToReach = Math.min(
+    MAX_PROJECTION_DAYS,
+    Math.max(1, Math.ceil(Math.log(gap / threshold) / k))
   );
-  
-  // Final sustainable rate (1 lb per week)
-  // For imperial units (lbs), 1 lb per week = 0.143 lbs per day
-  // For metric units (kg), 0.45 kg per week = 0.064 kg per day
-  const finalSustainableRate = 1.0 / 7.0; // 1 lb per week (or equivalent kg)
-  
-  console.log('Forecast calculation:', {
-    daysToProjectedEnd,
-    isWeightLoss,
-    totalWeightChange,
-    initialDailyRate,
-    finalSustainableRate: finalSustainableRate,
-    lastWeighInDate: lastWeighIn.date.toISOString().split('T')[0],
-    lastWeighInWeight: lastWeighIn.weight,
-    targetWeight,
-    projectedEndDate: projectedEndDate.toISOString().split('T')[0]
-  });
-  
-  // Determine if rate needs adjustment to reach target by projected date
-  const rateNeedsAdjustment = needsRateAdjustment(
-    totalWeightChange,
-    initialDailyRate,
-    daysToProjectedEnd,
-    isWeightLoss
-  );
-  
-  // Calculate effective daily rate
-  const effectiveDailyRate = calculateEffectiveDailyRate(
-    totalWeightChange,
-    daysToProjectedEnd,
-    initialDailyRate,
-    rateNeedsAdjustment
-  );
-  
-  console.log(`Adjusted rate calculation: needsAdjustment=${rateNeedsAdjustment}, effectiveRate=${effectiveDailyRate}`);
-  
-  // Generate forecast points
-  const forecastPoints = [];
-  let currentDate = new Date(lastWeighIn.date);
-  let currentWeight = lastWeighIn.weight;
-  
-  // Start with the last actual data point
-  forecastPoints.push(createForecastPoint(currentDate, currentWeight));
-  
-  // Number of days per point for smoother curve
-  const daysPerPoint = 2; // Generate a point every 2 days
-  
-  // Generate points every few days for a smoother curve with more data points
-  for (let day = daysPerPoint; day <= daysToProjectedEnd; day += daysPerPoint) {
-    currentDate = addDays(lastWeighIn.date, day);
-    
-    // Calculate progress percentage toward target (0 to 1)
-    const progressPercent = day / daysToProjectedEnd;
-    
-    // Get adjusted daily rate using curve calculations
-    const adjustedDailyRate = calculateAdjustedDailyRate(
-      effectiveDailyRate, 
-      finalSustainableRate, 
-      progressPercent
-    );
-    
-    // Apply the daily change for each day in this segment
-    currentWeight = applyDailyChange(
-      currentWeight,
-      adjustedDailyRate,
-      daysPerPoint,
-      targetWeight,
-      isWeightLoss
-    );
-    
-    forecastPoints.push(createForecastPoint(currentDate, currentWeight));
-    
-    // If we reached target weight and we're past 80% of the timeline,
-    // add more frequent points for a smoother ending
-    if ((isWeightLoss && currentWeight <= targetWeight && progressPercent > 0.8) ||
-        (!isWeightLoss && currentWeight >= targetWeight && progressPercent > 0.8)) {
-      const remainingDays = daysToProjectedEnd - day;
-      const intermediatePoints = addIntermediatePoints(
-        lastWeighIn.date,
-        day,
-        remainingDays,
-        targetWeight
-      );
-      
-      forecastPoints.push(...intermediatePoints);
-      break;
-    }
+
+  // Emit the anchor point as the first forecast point so the line visually
+  // continues from the user's real last weigh-in (no jump).
+  const points: ForecastPoint[] = [
+    { date: anchor.date, weight: anchor.weight, isForecast: true },
+  ];
+
+  for (let d = POINT_INTERVAL_DAYS; d < daysToReach; d += POINT_INTERVAL_DAYS) {
+    const w = targetWeight + signedGap * Math.exp(-k * d);
+    points.push({ date: addDays(anchor.date, d), weight: w, isForecast: true });
   }
-  
-  // Ensure the last point is exactly on target weight on the projected end date
-  const endPoint = ensureTargetEndPoint(projectedEndDate, targetWeight, forecastPoints);
-  if (endPoint) {
-    forecastPoints.push(endPoint);
-    console.log('Added exact end point:', {
-      date: endPoint.date.toISOString(),
-      weight: endPoint.weight
-    });
-  }
-  
-  // Ensure no weird fluctuations by making sure the trend is monotonic
-  const filteredPoints = ensureMonotonicTrend(
-    forecastPoints,
-    isWeightLoss,
-    projectedEndDate,
-    targetWeight
-  );
-  
-  console.log(`Generated ${filteredPoints.length} final forecast points`);
-  return filteredPoints;
-};
+
+  // Snap the terminal point exactly to target so the chart meets the target
+  // reference line cleanly instead of asymptoting just above/below it.
+  const endDate = addDays(anchor.date, daysToReach);
+  points.push({ date: endDate, weight: targetWeight, isForecast: true });
+
+  return {
+    points,
+    projectedEndDate: endDate,
+    targetReached: false,
+    observedDailyRate: observedGoesRight ? observedDailyRate : null,
+  };
+}

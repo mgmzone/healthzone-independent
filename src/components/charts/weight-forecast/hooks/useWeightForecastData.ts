@@ -1,10 +1,8 @@
-
 import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
 import { calculateWeightRange } from '../weightForecastUtils';
 import { generateForecastPoints } from '../utils/forecast/forecastGenerator';
-import { smoothRecentWeighIns } from '../utils/forecast/smoothing';
 
 interface UseWeightForecastDataProps {
   weighIns: WeighIn[];
@@ -19,136 +17,74 @@ export const useWeightForecastData = ({
   isImperial = false,
   targetWeight,
 }: UseWeightForecastDataProps) => {
-  // Process data - convert to display format with proper units
+  // Actual weigh-ins in display units, sorted ascending. This is what the
+  // user sees as the "actual" line and what the forecast regression reads.
   const processedData = useMemo(() => {
     return weighIns
-      .map(weighIn => {
-        // Convert weight to display units if needed
-        const displayWeight = isImperial ? 
-          weighIn.weight * 2.20462 : weighIn.weight;
-        
-        return {
-          date: new Date(weighIn.date),
-          weight: displayWeight,
-          isActual: true,
-          isForecast: false,
-          formattedDate: format(new Date(weighIn.date), 'MMM d')
-        };
-      })
-      .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date, oldest first
+      .map((w) => ({
+        date: new Date(w.date),
+        weight: isImperial ? w.weight * 2.20462 : w.weight,
+        isActual: true as const,
+        isForecast: false as const,
+        formattedDate: format(new Date(w.date), 'MMM d'),
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [weighIns, isImperial]);
-  
-  // Get the last actual weigh-in (for displaying the final real dot)
-  const lastWeighIn = useMemo(() => {
-    if (processedData.length === 0) return null;
-    return processedData[processedData.length - 1];
-  }, [processedData]);
 
-  // Smoothed anchor for the forecast line — uses a trimmed mean over recent
-  // weigh-ins so a single bad reading doesn't skew the projection. Date stays
-  // at the latest real weigh-in.
-  const forecastAnchor = useMemo(() => {
-    return smoothRecentWeighIns(processedData, 7);
-  }, [processedData]);
-  
-  // Convert target weight to display units if needed
   const displayTargetWeight = useMemo(() => {
-    return targetWeight !== undefined ? 
-      targetWeight : 
-      (currentPeriod.targetWeight ? 
-        (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight) : 
-        undefined);
+    if (targetWeight !== undefined) return targetWeight;
+    if (!currentPeriod.targetWeight) return undefined;
+    return isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight;
   }, [targetWeight, currentPeriod.targetWeight, isImperial]);
-  
-  // Target-reached short-circuit: if the smoothed current weight is already at
-  // or below the target (for weight-loss periods), skip forecast generation.
-  // Without this, the chart would keep projecting past the finish line.
-  const targetReached = useMemo(() => {
-    if (!forecastAnchor || !displayTargetWeight) return false;
-    return forecastAnchor.weight <= displayTargetWeight;
-  }, [forecastAnchor, displayTargetWeight]);
 
-  // Generate forecast data points if we have a target weight
-  const forecastData = useMemo(() => {
-    if (!forecastAnchor || !displayTargetWeight || !currentPeriod.projectedEndDate) {
-      return [];
-    }
-    if (targetReached) {
-      return [];
-    }
-
-    const projectedEndDate = currentPeriod.projectedEndDate ?
-      new Date(currentPeriod.projectedEndDate) : undefined;
-
-    // Use the smoothed anchor (not the raw latest weigh-in) so an outlier
-    // reading doesn't warp the trajectory.
-    const forecast = generateForecastPoints(
-      forecastAnchor,
+  // Run the forecast. The generator owns the end-date calculation via
+  // regression on recent history + exponential decay fit.
+  const forecastResult = useMemo(() => {
+    const history = processedData.map((p) => ({ date: p.date, weight: p.weight }));
+    return generateForecastPoints(
+      history,
       displayTargetWeight,
-      projectedEndDate,
       currentPeriod.weightLossPerWeek
     );
-    
-    // Ensure the forecast includes the target weight point at the projected end date
-    const lastPoint = forecast.length > 0 ? forecast[forecast.length - 1] : null;
-    if (lastPoint && (Math.abs(lastPoint.weight - displayTargetWeight) > 0.1 || 
-        Math.abs(lastPoint.date.getTime() - projectedEndDate.getTime()) > 24 * 60 * 60 * 1000)) {
-      forecast.push({
-        date: new Date(projectedEndDate),
-        weight: displayTargetWeight,
-        isForecast: true
-      });
-    }
-    
-    return forecast;
-  }, [forecastAnchor, targetReached, displayTargetWeight, currentPeriod.projectedEndDate, currentPeriod.weightLossPerWeek]);
-  
-  // Combine actual and forecast data for the chart
+  }, [processedData, displayTargetWeight, currentPeriod.weightLossPerWeek]);
+
+  const forecastData = forecastResult.points;
+  const targetReached = forecastResult.targetReached;
+  const projectedEndDate = forecastResult.projectedEndDate;
+
+  // The generator's first forecast point is the anchor (= last actual
+  // weigh-in), so we drop it from the combined series to avoid plotting the
+  // same (date, weight) twice. What's drawn is: actuals in blue, then orange
+  // continuing from that last blue dot.
   const combinedData = useMemo(() => {
-    // Skip first forecast point as it duplicates last actual
-    // But only if the dates match
-    if (forecastData.length > 0 && processedData.length > 0) {
-      const firstForecastDate = forecastData[0].date instanceof Date ? 
-        forecastData[0].date.getTime() : new Date(forecastData[0].date).getTime();
-      
-      const lastActualDate = processedData[processedData.length - 1].date instanceof Date ?
-        processedData[processedData.length - 1].date.getTime() : 
-        new Date(processedData[processedData.length - 1].date).getTime();
-      
-      if (Math.abs(firstForecastDate - lastActualDate) < 24 * 60 * 60 * 1000) { // Within 24 hours
-        return [...processedData, ...forecastData.slice(1)];
-      }
-    }
-    
-    return [...processedData, ...forecastData];
+    if (forecastData.length === 0) return processedData;
+    return [...processedData, ...forecastData.slice(1)];
   }, [processedData, forecastData]);
-  
-  // Calculate min/max for y-axis
-  const weights = useMemo(() => {
-    return combinedData.map(d => d.weight);
-  }, [combinedData]);
-  
-  const { minWeight, maxWeight } = useMemo(() => {
-    return calculateWeightRange(weights, displayTargetWeight);
-  }, [weights, displayTargetWeight]);
-  
-  // Define chart domain
+
+  const weights = useMemo(() => combinedData.map((d) => d.weight), [combinedData]);
+
+  const { minWeight, maxWeight } = useMemo(
+    () => calculateWeightRange(weights, displayTargetWeight),
+    [weights, displayTargetWeight]
+  );
+
   const startDate = useMemo(() => {
     const d = new Date(currentPeriod.startDate as any);
     const t = d.getTime();
     return Number.isFinite(t) ? t : Date.now();
   }, [currentPeriod.startDate]);
-  
+
+  // X-axis extent: the generator's projected end date when available,
+  // otherwise the period's stored end date, otherwise a month out.
   const endDate = useMemo(() => {
-    // Use the projected end date from the period
-    const projectedDate = currentPeriod.projectedEndDate ? 
-      new Date(currentPeriod.projectedEndDate as any) : 
-      (currentPeriod.endDate ? 
-        new Date(currentPeriod.endDate as any) : 
-        addDays(new Date(), 30)); // 30 days from now if no end date
-    const t = projectedDate.getTime();
+    const candidate =
+      projectedEndDate ||
+      (currentPeriod.projectedEndDate ? new Date(currentPeriod.projectedEndDate as any) : null) ||
+      (currentPeriod.endDate ? new Date(currentPeriod.endDate as any) : null) ||
+      addDays(new Date(), 30);
+    const t = candidate.getTime();
     return Number.isFinite(t) ? t : addDays(new Date(), 30).getTime();
-  }, [currentPeriod.projectedEndDate, currentPeriod.endDate]);
+  }, [projectedEndDate, currentPeriod.projectedEndDate, currentPeriod.endDate]);
 
   return {
     processedData,
@@ -159,7 +95,8 @@ export const useWeightForecastData = ({
     displayTargetWeight,
     startDate,
     endDate,
-    forecastAnchor,
+    projectedEndDate,
     targetReached,
+    observedDailyRate: forecastResult.observedDailyRate,
   };
 };

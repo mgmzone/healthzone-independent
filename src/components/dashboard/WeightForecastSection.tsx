@@ -6,7 +6,7 @@ import { CalendarCheck, CheckCircle2, TrendingDown } from "lucide-react";
 import { differenceInCalendarDays, format } from 'date-fns';
 import WeightForecastChartWrapper from '@/components/charts/WeightForecastChart';
 import { Period, WeighIn } from '@/lib/types';
-import { smoothRecentWeighIns } from '@/components/charts/weight-forecast/utils/forecast/smoothing';
+import { generateForecastPoints } from '@/components/charts/weight-forecast/utils/forecast/forecastGenerator';
 
 interface WeightForecastSectionProps {
   weighIns: WeighIn[];
@@ -21,36 +21,45 @@ const WeightForecastSection: React.FC<WeightForecastSectionProps> = ({
 }) => {
   const unit = isImperial ? 'lbs' : 'kg';
 
+  // Run the same forecast math the chart uses so the header text and the
+  // chart's projected-completion line agree on the date.
   const summary = useMemo(() => {
     const displayTarget = currentPeriod.targetWeight
       ? (isImperial ? currentPeriod.targetWeight * 2.20462 : currentPeriod.targetWeight)
       : undefined;
 
-    const processed = [...weighIns]
+    const history = [...weighIns]
       .map((w) => ({
         date: new Date(w.date),
         weight: isImperial ? w.weight * 2.20462 : w.weight,
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    const anchor = smoothRecentWeighIns(processed, 7);
-    const projectedEnd = currentPeriod.projectedEndDate
-      ? new Date(currentPeriod.projectedEndDate as any)
+    const result = generateForecastPoints(
+      history,
+      displayTarget,
+      currentPeriod.weightLossPerWeek
+    );
+
+    const anchorWeight = history.length ? history[history.length - 1].weight : null;
+    const remaining =
+      anchorWeight != null && displayTarget != null
+        ? Math.max(0, anchorWeight - displayTarget)
+        : null;
+
+    const daysToGo = result.projectedEndDate
+      ? differenceInCalendarDays(result.projectedEndDate, new Date())
       : null;
 
-    const targetReached =
-      !!anchor && !!displayTarget && anchor.weight <= displayTarget;
-
-    const remaining = anchor && displayTarget
-      ? Math.max(0, anchor.weight - displayTarget)
-      : null;
-
-    const daysToGo = projectedEnd
-      ? differenceInCalendarDays(projectedEnd, new Date())
-      : null;
-
-    return { displayTarget, anchor, projectedEnd, targetReached, remaining, daysToGo };
-  }, [weighIns, currentPeriod.targetWeight, currentPeriod.projectedEndDate, isImperial]);
+    return {
+      displayTarget,
+      projectedEnd: result.projectedEndDate,
+      targetReached: result.targetReached,
+      remaining,
+      daysToGo,
+      haveEnoughData: history.length > 0,
+    };
+  }, [weighIns, currentPeriod.targetWeight, currentPeriod.weightLossPerWeek, isImperial]);
 
   return (
     <Card className="w-full mb-8">
@@ -98,6 +107,10 @@ const WeightForecastSection: React.FC<WeightForecastSectionProps> = ({
                     {summary.remaining.toFixed(1)} {unit} remaining
                   </Badge>
                 )}
+              </div>
+            ) : summary.haveEnoughData ? (
+              <div className="mt-2 text-sm text-muted-foreground">
+                Not enough trend yet — log a few more weigh-ins to see a forecast.
               </div>
             ) : (
               <div className="mt-2 text-sm text-muted-foreground">
