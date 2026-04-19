@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { Period, WeighIn } from '@/lib/types';
 import { format, addDays } from 'date-fns';
 import { calculateWeightRange } from '../weightForecastUtils';
-import { generateForecastPoints } from '../utils/forecastGenerator';
+import { generateForecastPoints } from '../utils/forecast/forecastGenerator';
 import { smoothRecentWeighIns } from '../utils/forecast/smoothing';
 
 interface UseWeightForecastDataProps {

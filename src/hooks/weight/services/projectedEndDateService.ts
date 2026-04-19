@@ -1,7 +1,8 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { usePeriodCalculations } from '@/hooks/periods/usePeriodCalculations';
-import { generateForecastPoints } from '@/components/charts/weight-forecast/utils/forecastGenerator';
+import { generateForecastPoints } from '@/components/charts/weight-forecast/utils/forecast/forecastGenerator';
+import { smoothRecentWeighIns } from '@/components/charts/weight-forecast/utils/forecast/smoothing';
 
 /**
  * Calculates the projected end date for a weight loss period
@@ -48,29 +49,43 @@ export async function calculateProjectedEndDateFromWeights(
       );
     }
     
-    // Sort weigh-ins by date (newest first)
-    const sortedWeighIns = [...weighIns].sort((a, b) => 
+    // Sort weigh-ins newest-first for picking the anchor date, then build a
+    // smoothing window oldest-first with the newest slot replaced by the
+    // currentWeight being submitted. This way a single spiky reading doesn't
+    // lock in an overly optimistic (or pessimistic) projected end date.
+    const sortedWeighIns = [...weighIns].sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-    
-    // Get the latest weigh-in
-    const latestWeighIn = {
-      date: new Date(sortedWeighIns[0].date),
-      weight: currentWeight // Use the new weight we're adding
-    };
-    
-    // Calculate a preliminary end date using the period calculation method
-    // This gives us a reasonable starting point
+
+    const smoothingWindow = sortedWeighIns
+      .slice(0, 7)
+      .map((w, i) => ({
+        date: new Date(w.date),
+        weight: i === 0 ? currentWeight : w.weight,
+      }))
+      .reverse();
+
+    const smoothed = smoothRecentWeighIns(smoothingWindow, 7);
+    const anchorWeight = smoothed?.weight ?? currentWeight;
+    const anchorDate = new Date(sortedWeighIns[0].date);
+
+    // If the smoothed weight already meets the target, there's nothing to
+    // project — return today so downstream UI shows target-reached.
+    if (anchorWeight <= periodData.target_weight) {
+      return new Date();
+    }
+
+    const latestWeighIn = { date: anchorDate, weight: anchorWeight };
+
+    // Preliminary linear ETA using the period's target rate — the forecast
+    // generator will curve around this to produce the actual projection.
     const prelimEndDate = calculateProjectedEndDate(
-      currentWeight,
+      anchorWeight,
       periodData.target_weight,
       periodData.weight_loss_per_week,
       new Date()
     );
-    
-    console.log('Preliminary end date calculation:', prelimEndDate);
-    
-    // Use the forecast generator to get a more accurate end date
+
     const forecastPoints = generateForecastPoints(
       latestWeighIn,
       periodData.target_weight,
