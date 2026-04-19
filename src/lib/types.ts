@@ -154,6 +154,20 @@ export interface DailyGoalEntry {
   notes?: string;
 }
 
+export interface JournalEntry {
+  id: string;
+  userId: string;
+  entryDate: string; // YYYY-MM-DD — the day the entry is about
+  entryTime?: string; // HH:MM:SS optional time-of-day
+  title?: string;
+  body: string;
+  tags: string[];
+  painLevel?: number; // 1-10
+  mood?: number; // 1-5
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export const DEFAULT_MEAL_NAMES = ['Meal 1', 'Meal 2', 'Meal 3'];
 
 export const PROTEIN_TARGET_MIN = 130;

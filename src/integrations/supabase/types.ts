@@ -233,6 +233,48 @@ export type Database = {
         }
         Relationships: []
       }
+      journal_entries: {
+        Row: {
+          body: string
+          created_at: string
+          entry_date: string
+          entry_time: string | null
+          id: string
+          mood: number | null
+          pain_level: number | null
+          tags: string[]
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          entry_date: string
+          entry_time?: string | null
+          id?: string
+          mood?: number | null
+          pain_level?: number | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          entry_date?: string
+          entry_time?: string | null
+          id?: string
+          mood?: number | null
+          pain_level?: number | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meal_logs: {
         Row: {
           ai_assessment: string | null

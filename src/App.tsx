@@ -18,6 +18,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Admin from './pages/Admin';
 import Nutrition from './pages/Nutrition';
+import Journal from './pages/Journal';
 import { AuthProvider } from './lib/auth';
 import { ThemeProvider } from './lib/ThemeContext';
 
@@ -40,6 +41,7 @@ const App = () => {
             <Route path="/fasting" element={<Fasting />} />
             <Route path="/exercise" element={<Exercise />} />
             <Route path="/nutrition" element={<Nutrition />} />
+            <Route path="/journal" element={<Journal />} />
             <Route path="/periods" element={<Periods />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

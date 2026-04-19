@@ -50,6 +50,7 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 ### Tables
 Core: `profiles`, `periods`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
 Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
+Journal: `journal_entries` (free-form diary; not period-scoped — filter by date range / tags in the UI)
 System: `email_templates`
 
 ### Edge Functions

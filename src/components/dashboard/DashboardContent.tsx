@@ -15,6 +15,7 @@ import WeightForecastSection from './WeightForecastSection';
 import PriorityMilestoneBanner from './PriorityMilestoneBanner';
 import TodayStatusStrip from './TodayStatusStrip';
 import StreaksHero from './StreaksHero';
+import MyDayCard from './MyDayCard';
 import { useMilestones } from '@/hooks/useMilestones';
 import { 
   getTimeProgressPercentage,
@@ -198,11 +199,15 @@ const DashboardContent = () => {
                 currentMetrics={currentMetrics}
               />
 
-              <WeightForecastSection 
-                weighIns={weighIns} 
+              <WeightForecastSection
+                weighIns={weighIns}
                 currentPeriod={currentPeriod}
                 isImperial={isImperial}
               />
+
+              <div className="mt-6">
+                <MyDayCard />
+              </div>
             </>
           )}
         </>
