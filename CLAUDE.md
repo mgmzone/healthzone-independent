@@ -28,6 +28,7 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 7. **Page** in `src/pages/` — Layout wrapper + Tabs pattern
 8. **Route** in `src/App.tsx` — inside ProtectedRoute
 9. **Nav link** in `src/components/Header.tsx` — add to `primaryLinks` for daily-use features (Dashboard/Nutrition/Exercise/Fasting/Weight/Journal); add to the account menu dropdown for low-frequency/admin features (Profile/Periods/Admin)
+10. **Docs** — if this change introduced a new edge function or a new env var (a new `Deno.env.get(...)` read), update the edge-functions table in this file, the env-var block in `DEPLOYMENT.md`, and the deploy/env blocks in `HOMELAB-SETUP.md` and `ADMIN-GUIDE.md` in the same commit. Docs drift silently if you skip this.
 
 ### Key Conventions
 - Database fields: `snake_case`. Frontend types: `camelCase`. Services transform between them.
@@ -97,6 +98,15 @@ Fallback Claude key (`CLAUDE_API_KEY_FALLBACK`) is capped per-user per-day via `
 - CORS: production domain must be in `ALLOWED_ORIGIN` Supabase secret
 - Frontend service: `src/lib/services/aiService.ts` — `evaluateMeal()` and `getDashboardFeedback()`
 - Dashboard card: `src/components/dashboard/cards/AIFeedbackCard.tsx` — caches in sessionStorage for 30 min
+
+## Landing Page (deliberately distinct from the auth'd app)
+The marketing landing at `/` uses a different visual system from the authenticated app on purpose — warm paper (`bg-paper`), dark teal ink, Fraunces serif for display + JetBrains Mono for micro-labels + Inter for body, editorial numbered feature rows, animated live preview, sage/amber accents. The auth'd app keeps Inter + the sky-blue/shadcn system.
+
+Key files (don't "harmonize" with the app without asking):
+- `src/pages/Index.tsx` renders the landing *outside* `<Layout>` — it owns its own nav (`LandingNav` inside `HeroSection`) and footer (`LandingFooter`). This is intentional so the app's `Header`/`Footer` chrome doesn't leak in.
+- Landing-only components live in `src/components/landing/` — `HeroSection`, `LivePreview`, `MarqueeSection`, `FeaturesSection`, `ProofSection`, `HowItWorksSection`, `CallToActionSection`, `LandingFooter`.
+- Landing-only tokens in `tailwind.config.ts`: colors `paper`/`ink`/`sage`/`amber`/`landing.*`, font families `font-display` (Fraunces) and `font-mono-ui` (JetBrains Mono). These aren't used anywhere in the auth'd app.
+- Design source lives in the MGMzone Design System bundle (`HealthZone Landing B - Daylight.html`) and the implementation deliberately adapts it — fabricated stats/testimonials in the mock were replaced with honest content. See the `0829fbc`/`32f8206` commits and `feedback_fabricated_content.md` memory.
 
 ## Weight Forecast Algorithm
 Forecast generator lives in `src/components/charts/weight-forecast/utils/forecast/forecastGenerator.ts`. Uses OLS regression over the last 21 days of weigh-ins to estimate the user's actual daily rate, then fits an exponential-decay curve `weight(t) = target + (anchor − target) · exp(−k · t)` anchored at the user's real last weigh-in. Curve naturally flattens approaching target. Same generator drives the chart AND the DB-stored `projected_end_date` (via `src/hooks/weight/services/projectedEndDateService.ts`), so every consumer of that field agrees. Do NOT revert to linear/weighted-blend — both prior approaches were explicitly rejected by the user; see `feedback_forecast_algorithm.md` memory for context.
