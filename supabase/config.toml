@@ -1,5 +1,12 @@
 project_id = "kvmvekesxdzwodnfabdr"
 
+[auth]
+site_url = "https://healthzone.mgm.zone"
+additional_redirect_urls = [
+  "https://healthzone.mgm.zone",
+  "https://healthzone.mgm.zone/**"
+]
+
 [auth.email]
 enable_confirmations = true
 
