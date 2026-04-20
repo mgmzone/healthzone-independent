@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { useMealData } from '@/hooks/useMealData';
 import { useDailyGoalsData } from '@/hooks/useDailyGoalsData';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MealLog } from '@/lib/types';
 import DailyGoalsChecklist from '@/components/nutrition/DailyGoalsChecklist';
 import ProteinSummary from '@/components/nutrition/ProteinSummary';
@@ -25,6 +25,16 @@ const Nutrition = () => {
   const { getCurrentPeriod } = usePeriodsData();
   const currentPeriod = getCurrentPeriod();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Honor ?tab=<value> so links from the getting-started flow can jump
+  // straight to a specific sub-tab (e.g. ?tab=goals for Daily Goals).
+  const initialTab = searchParams.get('tab') || 'daily';
+  const [activeTab, setActiveTab] = useState(initialTab);
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t) setActiveTab(t);
+  }, [searchParams]);
 
   const {
     mealLogs,
@@ -109,7 +119,7 @@ const Nutrition = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="daily" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList variant="underline" className="w-full mb-6">
             <TabsTrigger value="daily">Daily Check-in</TabsTrigger>
             <TabsTrigger value="meals">Meals</TabsTrigger>

@@ -18,6 +18,7 @@ import { useProfilePhoto } from '@/hooks/useProfilePhoto';
 import { cn } from '@/lib/utils';
 import { isProfileComplete } from '@/lib/auth';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { usePeriodsData } from '@/hooks/usePeriodsData';
 
 const Profile = () => {
   const { profile, refreshProfile } = useAuth();
@@ -55,20 +56,25 @@ const Profile = () => {
     setActiveTab(value);
   }, []);
 
+  const { periods } = usePeriodsData();
+
   const onFormSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSubmit(e);
-    
+
     const profileComplete = profile && isProfileComplete(profile);
-    
+
     if (profileComplete) {
       setShowSuccess(true);
-      // Allow users to see the success message before redirecting
+      // Send new users back into the guided flow so they see Step 2
+      // (create first period) instead of landing on a half-empty dashboard.
+      // Users who already have a period go straight to the dashboard.
+      const destination = periods.length === 0 ? '/getting-started' : '/dashboard';
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate(destination);
       }, 2000);
     }
-  }, [handleSubmit, profile, navigate]);
+  }, [handleSubmit, profile, navigate, periods.length]);
 
   const handleContinueToPeriods = () => {
     navigate('/periods');

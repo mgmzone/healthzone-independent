@@ -16,6 +16,7 @@ import PriorityMilestoneBanner from './PriorityMilestoneBanner';
 import TodayStatusStrip from './TodayStatusStrip';
 import StreaksHero from './StreaksHero';
 import MyDayCard from './MyDayCard';
+import WelcomeCard from './WelcomeCard';
 import { useMilestones } from '@/hooks/useMilestones';
 import { 
   getTimeProgressPercentage,
@@ -157,6 +158,15 @@ const DashboardContent = () => {
   return (
     <div className="w-full max-w-7xl mx-auto">
       <PriorityMilestoneBanner name={priorityMilestone?.name} date={priorityMilestone?.date} />
+      <WelcomeCard
+        hasAnyLoggedData={
+          weighIns.length > 0 ||
+          mealLogs.length > 0 ||
+          fastingLogs.length > 0 ||
+          exerciseLogs.length > 0 ||
+          goalEntries.length > 0
+        }
+      />
       {periods.length === 0 ? (
         <NoPeriodAlert onCreatePeriod={() => setIsPeriodModalOpen(true)} />
       ) : (

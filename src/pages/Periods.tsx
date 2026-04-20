@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -19,6 +20,19 @@ const Periods = () => {
   const { weighIns, isLoading: weighInsLoading } = useAllWeighIns();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [needsFirstPeriod, setNeedsFirstPeriod] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Honor ?create=1 — the getting-started flow sends new users here with
+  // this flag so the period modal opens automatically. Clear the param
+  // after consuming so a page refresh doesn't re-open.
+  useEffect(() => {
+    if (searchParams.get('create') === '1') {
+      setIsModalOpen(true);
+      searchParams.delete('create');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const isImperial = profile?.measurementUnit === 'imperial';
   const weightUnit = isImperial ? 'lbs' : 'kg';
@@ -61,13 +75,23 @@ const Periods = () => {
     // Convert weight to metric (kg) for storage if coming from imperial
     const startWeight = isImperial ? convertToMetric(periodData.startWeight, true) : periodData.startWeight;
     const targetWeight = isImperial ? convertToMetric(periodData.targetWeight, true) : periodData.targetWeight;
-    
+
+    const wasFirstPeriod = periods.length === 0;
+
     addPeriod({
       ...periodData,
       startWeight,
       targetWeight
     });
-    
+
+    // If this was the user's very first period, send them back to the
+    // getting-started flow so they see Step 3 (daily goals). Otherwise
+    // they stay on /periods as before.
+    if (wasFirstPeriod) {
+      setTimeout(() => navigate('/getting-started'), 0);
+    }
+
+
     setIsModalOpen(false);
     setNeedsFirstPeriod(false);
   };

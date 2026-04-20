@@ -60,18 +60,24 @@ export const useAuthRedirects = (
             // If on auth or index page, redirect based on profile completeness
             if (currentIsAuthOrIndexPage) {
               if (currentIsProfileComplete) {
-                console.log('Redirecting to dashboard from auth/index page');
                 navigate('/dashboard', { replace: true });
               } else {
-                console.log('Redirecting to profile page from auth/index page');
-                navigate('/profile', { replace: true });
+                // New / incomplete users land on /getting-started which walks
+                // them through profile + first period + daily goals step by step
+                // instead of dropping them straight on a half-empty Profile form.
+                navigate('/getting-started', { replace: true });
               }
               redirectProcessedRef.current = true;
-            } 
-            // If not on profile page and profile is incomplete, redirect to profile
-            else if (!currentIsProfileComplete && currentPath !== '/profile') {
-              console.log('Profile incomplete, redirecting to profile');
-              navigate('/profile', { replace: true });
+            }
+            // If not on profile/getting-started page and profile is incomplete,
+            // pull them back to the guided flow. /profile is allowed so they
+            // can actually fill the form; /getting-started is the home base.
+            else if (
+              !currentIsProfileComplete &&
+              currentPath !== '/profile' &&
+              currentPath !== '/getting-started'
+            ) {
+              navigate('/getting-started', { replace: true });
               redirectProcessedRef.current = true;
             }
           } else {
