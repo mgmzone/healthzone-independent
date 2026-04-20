@@ -30,19 +30,28 @@ VITE_APP_URL=https://yourdomain.com  # or http://localhost:8080 for local dev
 ```
 
 ### Backend Environment Variables (Supabase Edge Functions)
-Set these in your Supabase project settings:
+Set these via `supabase secrets set KEY=value`. `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_ANON_KEY` are provided automatically by the Supabase runtime — don't set them manually.
 
 ```bash
-# Supabase Service Role (for edge functions)
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# Security — REQUIRED. CORS helper fails closed if unset, so all browser
+# calls to edge functions will be rejected without this.
+ALLOWED_ORIGIN=https://yourdomain.com   # comma-separate for multi-origin
 
-# Email Service
+# App URL — used for unsubscribe links and email content
+APP_URL=https://yourdomain.com
+
+# Email — required for any email-sending function
 RESEND_API_KEY=your_resend_api_key
 FROM_EMAIL=HealthZone <noreply@yourdomain.com>
 
-# Security
-ALLOWED_ORIGIN=https://yourdomain.com  # Restricts CORS
+# Cron authentication — required for send-weekly-summary and send-system-emails
+CRON_SECRET=a_long_random_string
+
+# Claude AI — only needed if you want AI features to work for users who
+# haven't added their own API key. Set a per-user daily dollar cap to
+# limit cost exposure.
+CLAUDE_API_KEY_FALLBACK=sk-ant-...
+CLAUDE_FALLBACK_DAILY_CAP_USD=0.25      # optional; defaults to 0.25
 ```
 
 ## Local Development Setup
@@ -104,26 +113,41 @@ ALLOWED_ORIGIN=https://yourdomain.com  # Restricts CORS
    ```
 
 3. **Deploy Functions**
+   All functions deploy with `--no-verify-jwt` because each function handles auth internally; the `--no-verify-jwt` flag disables the Supabase gateway's JWT check so browser CORS preflight requests aren't rejected.
    ```bash
-   supabase functions deploy send-email
-   supabase functions deploy send-weekly-summary
+   # AI (Claude-powered)
+   supabase functions deploy evaluate-meal --no-verify-jwt
+   supabase functions deploy analyze-exercise --no-verify-jwt
+   supabase functions deploy ai-dashboard-feedback --no-verify-jwt
+
+   # Email
+   supabase functions deploy send-email --no-verify-jwt
+   supabase functions deploy send-weekly-summary --no-verify-jwt
+   supabase functions deploy send-welcome-email --no-verify-jwt
+   supabase functions deploy send-system-emails --no-verify-jwt
+   supabase functions deploy unsubscribe-email --no-verify-jwt
+
+   # Admin (require is_admin server-side)
+   supabase functions deploy admin-delete-user --no-verify-jwt
+   supabase functions deploy admin-set-user-ban --no-verify-jwt
+
+   # Strava integration
+   supabase functions deploy strava-oauth-exchange --no-verify-jwt
+   supabase functions deploy strava-sync --no-verify-jwt
    ```
 
-4. **Set Environment Variables**
-   ```bash
-   supabase secrets set RESEND_API_KEY=your_key
-   supabase secrets set FROM_EMAIL=your_email
-   supabase secrets set ALLOWED_ORIGIN=https://yourdomain.com
-   ```
+4. **Set Secrets** — see the Backend Environment Variables section above for the full list and which are required vs. optional.
 
 ## Security Checklist
 
-- [ ] Environment variables are properly set and not exposed
-- [ ] CORS is configured to only allow your domain
-- [ ] Supabase RLS policies are properly configured
-- [ ] Email sender domain is verified in Resend
-- [ ] SSL/TLS certificate is configured for your domain
-- [ ] Dependencies are updated and vulnerabilities fixed
+- [ ] `ALLOWED_ORIGIN` set to your production origin(s). Without it, `_shared/cors.ts` fails closed and browser calls get blocked.
+- [ ] `CLAUDE_FALLBACK_DAILY_CAP_USD` set to a comfortable limit (default $0.25/day/user). The fallback key lets users without their own Claude key burn your credits; cap is enforced via `checkFallbackDailyCap()` in `_shared/aiUsage.ts`.
+- [ ] `CRON_SECRET` is a long random string and rotated periodically. Used by `send-weekly-summary` and `send-system-emails`; compared via constant-time equality.
+- [ ] Supabase RLS is enabled on every table in `public` schema with `auth.uid() = user_id` policies (or `auth.uid() = id` for `profiles`). Verify in the Supabase dashboard → Authentication → Policies.
+- [ ] Admin functions (`admin-delete-user`, `admin-set-user-ban`) verify `is_admin` server-side before any privileged operation.
+- [ ] Resend sending domain(s) are verified in Resend dashboard, and `FROM_EMAIL` matches a verified domain.
+- [ ] SSL/TLS is active on the production origin (automatic if using Cloudflare/Vercel/Netlify).
+- [ ] No service-role key or other secret is exposed to the client bundle (only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are; both are safe by design).
 
 ## Performance Optimization
 

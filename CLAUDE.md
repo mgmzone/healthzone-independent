@@ -24,10 +24,10 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 3. **Frontend types** in `src/lib/types.ts` — camelCase interfaces
 4. **Service layer** in `src/lib/services/` — async CRUD functions, snake_case ↔ camelCase transforms
 5. **React hook** in `src/hooks/` — useState + useEffect + toast notifications
-6. **Components** in `src/components/<feature>/` — shadcn/ui based
+6. **Components** in `src/components/<feature>/` — shadcn/ui based. For page sub-nav inside the feature page, use `<TabsList variant="underline">` so it matches the top-bar nav treatment.
 7. **Page** in `src/pages/` — Layout wrapper + Tabs pattern
 8. **Route** in `src/App.tsx` — inside ProtectedRoute
-9. **Nav link** in `src/components/Header.tsx` — with Lucide icon
+9. **Nav link** in `src/components/Header.tsx` — add to `primaryLinks` for daily-use features (Dashboard/Nutrition/Exercise/Fasting/Weight/Journal); add to the account menu dropdown for low-frequency/admin features (Profile/Periods/Admin)
 
 ### Key Conventions
 - Database fields: `snake_case`. Frontend types: `camelCase`. Services transform between them.
@@ -48,20 +48,30 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 - Supabase CLI auth expires periodically — run `supabase login` if push/query fails with SASL errors
 
 ### Tables
-Core: `profiles`, `periods`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
+Core: `profiles`, `periods`, `period_milestones`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
 Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
 Journal: `journal_entries` (free-form diary; not period-scoped — filter by date range / tags in the UI)
-System: `email_templates`
+System: `email_templates`, `ai_usage_logs` (every Claude API call logged with tokens/cost/fallback-key flag)
 
 ### Edge Functions
-All edge functions use `verify_jwt: false` at the gateway level (configured in `supabase/functions.json`) but perform auth internally so CORS preflight requests work. Deploy with: `supabase functions deploy <name> --no-verify-jwt`
+All edge functions use `verify_jwt: false` at the gateway level (configured in `supabase/functions.json`) but perform auth internally so CORS preflight requests work. Deploy with: `supabase functions deploy <name> --no-verify-jwt`. CORS headers come from `_shared/cors.ts` which fails closed when `ALLOWED_ORIGIN` is unset or the request origin isn't on the allowlist.
 
 | Function | Auth | Purpose |
 |----------|------|---------|
+| `evaluate-meal` | JWT (user session) | Claude-powered meal macro/protein estimation + assessment. Uses `MODEL_COACH` |
+| `analyze-exercise` | JWT (user session) | Claude-powered free-text exercise parsing (category/minutes/intensity/calories). Uses `MODEL_BASIC` |
+| `ai-dashboard-feedback` | JWT (user session) | Claude-powered weekly progress insights for dashboard card. Uses `MODEL_COACH` |
 | `send-email` | JWT (user session) | Sends templated emails via Resend |
-| `send-weekly-summary` | `CRON_SECRET` Bearer token | Weekly activity + AI summary emails |
-| `evaluate-meal` | JWT (user session) | Proxies Claude API for meal protein estimation + assessment |
-| `ai-dashboard-feedback` | JWT (user session) | Proxies Claude API for weekly progress insights |
+| `send-weekly-summary` | `CRON_SECRET` Bearer token | Weekly activity + AI summary emails; pg_cron driven |
+| `send-welcome-email` | JWT / trigger | New-user welcome email |
+| `send-system-emails` | `CRON_SECRET` Bearer token | Milestone / inactivity reminders; pg_cron driven |
+| `unsubscribe-email` | Token param | One-click unsubscribe via per-user token |
+| `admin-delete-user` | JWT + server-side `is_admin` check | Hard-delete a user and cascade all their data |
+| `admin-set-user-ban` | JWT + server-side `is_admin` check | Ban/unban a user in `auth.users` |
+| `strava-oauth-exchange` | JWT (user session) | OAuth code → token exchange for Strava integration |
+| `strava-sync` | JWT (user session) | Pull recent activities from Strava into `exercise_logs` |
+
+Fallback Claude key (`CLAUDE_API_KEY_FALLBACK`) is capped per-user per-day via `checkFallbackDailyCap()` in `_shared/aiUsage.ts`. Default cap is $0.25/day, override with `CLAUDE_FALLBACK_DAILY_CAP_USD` secret. Interactive functions return 429 when capped; `send-weekly-summary` skips the AI section and still sends the email.
 
 ### Email & Scheduling
 - Email provider: Resend (API key in `RESEND_API_KEY` secret)
@@ -81,6 +91,9 @@ All edge functions use `verify_jwt: false` at the gateway level (configured in `
 - CORS: production domain must be in `ALLOWED_ORIGIN` Supabase secret
 - Frontend service: `src/lib/services/aiService.ts` — `evaluateMeal()` and `getDashboardFeedback()`
 - Dashboard card: `src/components/dashboard/cards/AIFeedbackCard.tsx` — caches in sessionStorage for 30 min
+
+## Weight Forecast Algorithm
+Forecast generator lives in `src/components/charts/weight-forecast/utils/forecast/forecastGenerator.ts`. Uses OLS regression over the last 21 days of weigh-ins to estimate the user's actual daily rate, then fits an exponential-decay curve `weight(t) = target + (anchor − target) · exp(−k · t)` anchored at the user's real last weigh-in. Curve naturally flattens approaching target. Same generator drives the chart AND the DB-stored `projected_end_date` (via `src/hooks/weight/services/projectedEndDateService.ts`), so every consumer of that field agrees. Do NOT revert to linear/weighted-blend — both prior approaches were explicitly rejected by the user; see `feedback_forecast_algorithm.md` memory for context.
 
 ## Git & Deployment
 - Remote uses SSH: `git@github.com-mgmzone:mgmzone/healthzone-independent.git`

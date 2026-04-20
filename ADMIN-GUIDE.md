@@ -76,13 +76,35 @@ chmod +x scripts/*.sh
    - **Save**
 
 ### Step 5: Configure Supabase Edge Functions
-In Supabase project dashboard → Edge Functions → Settings, add:
+Set via `supabase secrets set KEY=value`. `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` / `SUPABASE_ANON_KEY` are provided by the runtime — don't set them manually.
+
+```bash
+# REQUIRED — CORS fails closed without this
+supabase secrets set ALLOWED_ORIGIN=https://healthzone.mgm.zone
+supabase secrets set APP_URL=https://healthzone.mgm.zone
+
+# Email
+supabase secrets set RESEND_API_KEY=your-resend-api-key
+supabase secrets set FROM_EMAIL="HealthZone <noreply@mgm.zone>"
+
+# Cron auth
+supabase secrets set CRON_SECRET=a_long_random_string
+
+# Shared Claude key (optional) + per-user daily cap
+supabase secrets set CLAUDE_API_KEY_FALLBACK=sk-ant-...
+supabase secrets set CLAUDE_FALLBACK_DAILY_CAP_USD=0.25
 ```
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-RESEND_API_KEY=your-resend-api-key
-FROM_EMAIL=HealthZone <noreply@mgm.zone>
-ALLOWED_ORIGIN=https://healthzone.mgm.zone
+
+Then deploy every function. They all use `--no-verify-jwt` because each function handles auth internally:
+
+```bash
+for fn in evaluate-meal analyze-exercise ai-dashboard-feedback \
+          send-email send-weekly-summary send-welcome-email \
+          send-system-emails unsubscribe-email \
+          admin-delete-user admin-set-user-ban \
+          strava-oauth-exchange strava-sync; do
+  supabase functions deploy "$fn" --no-verify-jwt
+done
 ```
 
 ### Step 6: Verify Deployment

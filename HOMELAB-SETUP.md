@@ -1,6 +1,14 @@
-# HealthZone Homelab Deployment - Step by Step Guide
+# HealthZone Homelab Deployment — Step-by-Step Guide
 
 This guide walks you through deploying HealthZone from your GitHub repository to your homelab Docker server.
+
+## Architecture
+
+```
+Internet → Cloudflare Edge → Cloudflare Tunnel → Docker container (nginx) → Supabase
+```
+
+Benefits: no port forwarding needed, automatic TLS, Cloudflare DDoS / CDN, easy subdomain management, container isolation. Current resource limits in `docker-compose.yml`: 0.5 CPU max / 256MB memory max (adjust for your homelab).
 
 ## 📋 Prerequisites Checklist
 
@@ -165,16 +173,25 @@ sudo systemctl enable cloudflared
 
 ### Step 7: Configure Supabase Edge Functions
 
-1. **Set Environment Variables in Supabase**
-   - Go to your Supabase project dashboard
-   - Navigate to **Edge Functions** → **Settings**
-   - Add these secrets:
-   ```
-   SUPABASE_URL=https://kvmvekesxdzwodnfabdr.supabase.co
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   RESEND_API_KEY=your-resend-api-key
-   FROM_EMAIL=HealthZone <noreply@yourdomain.com>
-   ALLOWED_ORIGIN=https://healthzone.yourdomain.com
+1. **Set Secrets** via the Supabase CLI (`supabase secrets set KEY=value`). `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_ANON_KEY` are provided automatically by the runtime — don't set them manually.
+   ```bash
+   # REQUIRED — CORS helper fails closed without this
+   supabase secrets set ALLOWED_ORIGIN=https://healthzone.yourdomain.com
+
+   # App URL — used in emails (unsubscribe links, etc.)
+   supabase secrets set APP_URL=https://healthzone.yourdomain.com
+
+   # Email
+   supabase secrets set RESEND_API_KEY=your-resend-api-key
+   supabase secrets set FROM_EMAIL="HealthZone <noreply@yourdomain.com>"
+
+   # Cron auth for send-weekly-summary + send-system-emails
+   supabase secrets set CRON_SECRET=a_long_random_string
+
+   # Optional: shared Claude fallback key with per-user daily dollar cap
+   # (default cap is $0.25/day if CLAUDE_FALLBACK_DAILY_CAP_USD unset)
+   supabase secrets set CLAUDE_API_KEY_FALLBACK=sk-ant-...
+   supabase secrets set CLAUDE_FALLBACK_DAILY_CAP_USD=0.25
    ```
 
 2. **Deploy Edge Functions** (if not already deployed)
@@ -186,9 +203,14 @@ sudo systemctl enable cloudflared
    supabase login
    supabase link --project-ref kvmvekesxdzwodnfabdr
 
-   # Deploy functions
-   supabase functions deploy send-email
-   supabase functions deploy send-weekly-summary
+   # Deploy all functions with --no-verify-jwt (each handles auth internally).
+   for fn in evaluate-meal analyze-exercise ai-dashboard-feedback \
+             send-email send-weekly-summary send-welcome-email \
+             send-system-emails unsubscribe-email \
+             admin-delete-user admin-set-user-ban \
+             strava-oauth-exchange strava-sync; do
+     supabase functions deploy "$fn" --no-verify-jwt
+   done
    ```
 
 ### Step 8: Test Your Deployment
