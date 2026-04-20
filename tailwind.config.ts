@@ -75,7 +75,36 @@ export default {
 					800: '#00638c',
 					900: '#065374',
 					950: '#04344d',
-				}
+				},
+				// Landing page palette (from the Daylight design). Scoped to
+				// the landing route; auth'd app uses its own tokens.
+				paper: {
+					DEFAULT: '#FAF7F0',
+					dark: '#F2EDE0',
+				},
+				ink: {
+					DEFAULT: '#0F2A2D',
+					2: '#43545B',
+					3: '#7E8B8F',
+				},
+				sage: {
+					DEFAULT: '#4F9D5F',
+					tint: '#E3F0DA',
+				},
+				amber: {
+					DEFAULT: '#E08A3C',
+					tint: '#FAEAD7',
+				},
+				landing: {
+					blue: '#0891B8',
+					'blue-tint': '#DBF1F7',
+					teal: '#0E6F6F',
+					rose: '#D96A7B',
+				},
+			},
+			fontFamily: {
+				display: ['Fraunces', 'Georgia', 'serif'],
+				'mono-ui': ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

@@ -1,121 +1,145 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Check } from 'lucide-react';
+import LivePreview from './LivePreview';
 
-const HeroSection = () => {
+// Inlines the landing-only sticky nav so we don't fight with the app's
+// Header component (which belongs to the authenticated experience).
+
+const LandingNav: React.FC = () => {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-healthzone-950 via-healthzone-900 to-black text-white">
-      <div className="absolute inset-0 z-0 opacity-30">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30"></div>
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center px-4 py-32 md:py-40 max-w-7xl mx-auto">
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
+    <header
+      className={`sticky top-0 z-50 backdrop-blur-lg backdrop-saturate-[1.1] transition-[border-color] duration-200 ${
+        scrolled ? 'border-b border-ink/10' : 'border-b border-transparent'
+      }`}
+      style={{ backgroundColor: 'rgba(250,247,240,0.75)' }}
+    >
+      <div className="max-w-[1240px] mx-auto px-7 py-4 flex items-center gap-7">
+        <Link to="/" className="font-display text-[26px] font-medium text-landing-teal leading-none" style={{ letterSpacing: '-0.02em' }}>
+          health<em className="italic font-normal text-landing-blue">zone</em>
+        </Link>
+        <nav className="hidden md:flex gap-7 ml-5 text-sm text-ink-2">
+          <a href="#features" className="hover:text-ink transition-colors">Features</a>
+          <a href="#how" className="hover:text-ink transition-colors">How it works</a>
+          <a href="#who" className="hover:text-ink transition-colors">Who it&rsquo;s for</a>
+        </nav>
+        <div className="flex-1" />
+        <Link to="/auth" className="px-4 py-2 rounded-full text-sm text-ink-2 hover:text-ink transition-colors">
+          Log in
+        </Link>
+        <Link
+          to="/auth?tab=signup"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold bg-ink text-paper hover:bg-landing-teal transition-all hover:-translate-y-0.5"
         >
-          <div className="inline-block mb-6 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full">
-            <span className="text-white/90 text-sm font-medium">Intermittent fasting · Weight milestones · AI-assisted tracking</span>
-          </div>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-            Hit your weight goal <span className="bg-clip-text text-transparent bg-gradient-to-r from-healthzone-300 to-healthzone-500">by a specific date.</span>
-          </h1>
-          <p className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-10">
-            Track weight, meals, fasting, and exercise alongside the daily compliance goals that actually move the needle. Smart forecasts and an AI coach turn your numbers into honest guidance — built for people working toward a milestone, not open-ended wellness.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" asChild className="rounded-full px-8 gap-2 text-base">
-              <Link to="/auth?tab=signup">
-                Get Started <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild className="rounded-full px-8 gap-2 text-base bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20">
-              <Link to="/auth">
-                Log In
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-20 w-full max-w-5xl relative"
-        >
-          <div className="relative h-[500px] md:h-[600px]">
-            {/* Dashboard screenshot */}
-            <div className="absolute top-0 left-0 md:left-[5%] w-[85%] md:w-[60%] transform hover:scale-105 transition-transform duration-300 z-30">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
-                <img 
-                  src="/screenshots/7b18d2b6-0817-4015-afa4-f01258d4834d.png" 
-                  alt="HealthZone Dashboard" 
-                  className="w-full h-auto"
-                  decoding="async"
-                />
-              </div>
-            </div>
-            
-            {/* Weight tracker screenshot */}
-            <div className="absolute top-[15%] right-0 md:right-[5%] w-[80%] md:w-[55%] transform hover:scale-105 transition-transform duration-300 z-20">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
-                <img 
-                  src="/screenshots/7f41436f-32b9-4195-91c5-f74ebe845cef.png" 
-                  alt="HealthZone Weight Tracker" 
-                  className="w-full h-auto"
-                  decoding="async"
-                />
-              </div>
-            </div>
-            
-            {/* Fasting tracker screenshot */}
-            <div className="absolute top-[35%] left-[10%] md:left-[15%] w-[80%] md:w-[55%] transform hover:scale-105 transition-transform duration-300 z-10">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
-                <img 
-                  src="/screenshots/99799d8c-1a79-4982-9c46-22e3fbe44e9f.png" 
-                  alt="HealthZone Fasting Tracker" 
-                  className="w-full h-auto"
-                  decoding="async"
-                />
-              </div>
-            </div>
-            
-            {/* Exercise tracker screenshot */}
-            <div className="absolute top-[50%] right-[5%] md:right-[10%] w-[75%] md:w-[50%] transform hover:scale-105 transition-transform duration-300 z-0">
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-xl overflow-hidden">
-                <img 
-                  src="/screenshots/6b224319-b5c3-413e-9c54-f33b93b52bbc.png" 
-                  alt="HealthZone Exercise Tracker" 
-                  className="w-full h-auto"
-                  decoding="async"
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div className="absolute -bottom-6 -right-6 rotate-12 animate-float">
-            <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl shadow-lg p-3 w-40">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-4 h-4 rounded-full bg-green-400"></div>
-                <span className="text-xs font-medium">Weight Goal</span>
-              </div>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full w-[75%] bg-gradient-to-r from-healthzone-400 to-healthzone-600 rounded-full"></div>
-              </div>
-              <div className="mt-2 text-xs text-right">75% Complete</div>
-            </div>
-          </div>
-        </motion.div>
+          Start tracking <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
+    </header>
+  );
+};
 
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background/90 to-transparent"></div>
-    </section>
+const HeroSection: React.FC = () => {
+  return (
+    <>
+      <LandingNav />
+      <section className="relative pt-[120px] pb-20 overflow-hidden">
+        {/* Soft radial washes */}
+        <div
+          className="absolute inset-x-[-20%] top-[-10%] h-[720px] z-0 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(50% 50% at 15% 30%, rgba(219,241,247,0.8), transparent 60%),
+              radial-gradient(40% 40% at 80% 20%, rgba(250,234,215,0.7), transparent 60%),
+              radial-gradient(45% 50% at 60% 85%, rgba(227,240,218,0.7), transparent 60%)
+            `,
+          }}
+        />
+
+        <div className="relative z-[2] max-w-[1240px] mx-auto px-7">
+          <div className="grid grid-cols-1 md:grid-cols-[1.05fr_1fr] gap-12 items-center">
+            <div>
+              {/* Eyebrow */}
+              <div className="inline-flex items-center gap-2 font-mono-ui text-[11px] uppercase tracking-[0.18em] text-sage px-3.5 py-1.5 rounded-full bg-sage-tint border border-sage/20 mb-7">
+                <span className="w-1.5 h-1.5 rounded-full bg-sage shadow-[0_0_10px_rgba(79,157,95,0.6)]" />
+                Now in open beta
+              </div>
+
+              <h1
+                className="font-display font-normal m-0 mb-3.5 max-w-[12ch]"
+                style={{
+                  fontSize: 'clamp(52px, 8.8vw, 124px)',
+                  lineHeight: 0.92,
+                  letterSpacing: '-0.035em',
+                }}
+              >
+                <span className="block">Track</span>
+                <span className="block italic text-landing-blue relative">
+                  <span className="relative inline-block">
+                    truly.
+                    <span
+                      className="absolute left-[-0.05em] right-[-0.05em] bottom-[0.1em] h-[0.09em] bg-sage rounded-full opacity-40 -z-10"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </span>
+              </h1>
+
+              <p className="text-lg leading-relaxed text-ink-2 max-w-[560px] my-5 mb-9">
+                Hit your weight goal by a specific date. Weight, fasting, meals, movement — one honest number per day, not twelve. Built for the slow work of{' '}
+                <em className="text-sage font-display text-[1.08em] font-medium not-italic" style={{ fontStyle: 'italic' }}>
+                  actually changing
+                </em>
+                .
+              </p>
+
+              <div className="flex gap-3 items-center flex-wrap">
+                <Link
+                  to="/auth?tab=signup"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5"
+                  style={{ backgroundColor: '#0891B8' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#076583')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0891B8')}
+                >
+                  Start free <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a
+                  href="#preview"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full text-[15px] font-medium text-ink border border-ink/20 hover:bg-ink/5 transition-all hover:-translate-y-0.5"
+                >
+                  See it in action
+                </a>
+              </div>
+
+              <div className="mt-5 flex gap-5 text-[13px] text-ink-3 items-center flex-wrap">
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-sage" />
+                  Free forever
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-sage" />
+                  No credit card
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-sage" />
+                  Imperial &amp; metric
+                </span>
+              </div>
+            </div>
+
+            <div id="preview">
+              <LivePreview />
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 

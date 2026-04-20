@@ -1,11 +1,12 @@
 import React from 'react';
-import Layout from '@/components/Layout';
 import { useAuth } from '@/lib/auth';
 import HeroSection from '@/components/landing/HeroSection';
 import FeaturesSection from '@/components/landing/FeaturesSection';
+import MarqueeSection from '@/components/landing/MarqueeSection';
 import HowItWorksSection from '@/components/landing/HowItWorksSection';
-import IdealForSection from '@/components/landing/IdealForSection';
+import ProofSection from '@/components/landing/ProofSection';
 import CallToActionSection from '@/components/landing/CallToActionSection';
+import LandingFooter from '@/components/landing/LandingFooter';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -18,20 +19,26 @@ const Index = () => {
     );
   }
 
-  // If user is already logged in, don't render the landing page content
-  // but let the auth redirects handle navigation
   if (user) {
     return null;
   }
 
+  // The landing renders outside <Layout> so it controls its own header
+  // (LandingNav inside HeroSection) and footer. Paper background is
+  // applied here and its font-sans default shifts to Inter — Fraunces
+  // and JetBrains Mono are scoped via font-display / font-mono-ui utilities.
   return (
-    <Layout transparentHeader hideFooter>
-      <HeroSection />
-      <FeaturesSection />
-      <IdealForSection />
-      <HowItWorksSection />
-      <CallToActionSection />
-    </Layout>
+    <div className="min-h-screen flex flex-col bg-paper text-ink antialiased">
+      <main className="flex-1">
+        <HeroSection />
+        <MarqueeSection />
+        <FeaturesSection />
+        <ProofSection />
+        <HowItWorksSection />
+        <CallToActionSection />
+      </main>
+      <LandingFooter />
+    </div>
   );
 };
 
