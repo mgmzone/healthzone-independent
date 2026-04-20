@@ -119,12 +119,16 @@ CLAUDE_FALLBACK_DAILY_CAP_USD=0.25      # optional; defaults to 0.25
    supabase functions deploy evaluate-meal --no-verify-jwt
    supabase functions deploy analyze-exercise --no-verify-jwt
    supabase functions deploy ai-dashboard-feedback --no-verify-jwt
+   supabase functions deploy ai-journal-insights --no-verify-jwt
+   supabase functions deploy generate-doctor-report --no-verify-jwt
 
    # Email
    supabase functions deploy send-email --no-verify-jwt
    supabase functions deploy send-weekly-summary --no-verify-jwt
    supabase functions deploy send-welcome-email --no-verify-jwt
    supabase functions deploy send-system-emails --no-verify-jwt
+   supabase functions deploy send-daily-reminders --no-verify-jwt
+   supabase functions deploy send-admin-daily-digest --no-verify-jwt
    supabase functions deploy unsubscribe-email --no-verify-jwt
 
    # Admin (require is_admin server-side)

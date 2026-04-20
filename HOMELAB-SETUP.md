@@ -205,8 +205,10 @@ sudo systemctl enable cloudflared
 
    # Deploy all functions with --no-verify-jwt (each handles auth internally).
    for fn in evaluate-meal analyze-exercise ai-dashboard-feedback \
+             ai-journal-insights generate-doctor-report \
              send-email send-weekly-summary send-welcome-email \
-             send-system-emails unsubscribe-email \
+             send-system-emails send-daily-reminders send-admin-daily-digest \
+             unsubscribe-email \
              admin-delete-user admin-set-user-ban \
              strava-oauth-exchange strava-sync; do
      supabase functions deploy "$fn" --no-verify-jwt
