@@ -21,6 +21,8 @@ export interface User {
   aiPrompt?: string;
   proteinTargetMin?: number;
   proteinTargetMax?: number;
+  timeZone?: string;
+  dailyReminderEnabled?: boolean;
 }
 
 export interface PeriodMilestone {

@@ -65,6 +65,8 @@ All edge functions use `verify_jwt: false` at the gateway level (configured in `
 | `send-weekly-summary` | `CRON_SECRET` Bearer token | Weekly activity + AI summary emails; pg_cron driven |
 | `send-welcome-email` | JWT / trigger | New-user welcome email |
 | `send-system-emails` | `CRON_SECRET` Bearer token | Milestone / inactivity reminders; pg_cron driven |
+| `send-daily-reminders` | `CRON_SECRET` Bearer token | Opt-in nightly 8 PM summary at user's local time; fires hourly, filters to users whose local hour = 20 via `profiles_due_for_daily_reminder` RPC |
+| `send-admin-daily-digest` | `CRON_SECRET` Bearer token | Daily digest for admins: yesterday's active users (per-user tz) + AI cost by user (UTC day) |
 | `unsubscribe-email` | Token param | One-click unsubscribe via per-user token |
 | `admin-delete-user` | JWT + server-side `is_admin` check | Hard-delete a user and cascade all their data |
 | `admin-set-user-ban` | JWT + server-side `is_admin` check | Ban/unban a user in `auth.users` |
@@ -79,6 +81,10 @@ Fallback Claude key (`CLAUDE_API_KEY_FALLBACK`) is capped per-user per-day via `
 - From address: `HealthZone <healthzone@mgm.zone>` (in `FROM_EMAIL` secret)
 - Weekly summary cron: `pg_cron` job `weekly-summary-email` runs `0 13 * * 1` (Monday 8am EST)
 - Weekly summary includes AI Coach Insights section when user has Claude API key configured
+- Daily reminder cron: `pg_cron` job `send-daily-reminders-hourly` runs `0 * * * *` (every hour). The function selects users whose local hour = 20 (8 PM) via `profiles_due_for_daily_reminder(target_hour)` — most fires match zero users, which is fine.
+- Admin digest cron: `pg_cron` job `send-admin-daily-digest` runs `0 10 * * *` (6am ET). Uses `daily_active_users(target_date)` and `daily_ai_cost_by_user(target_date)` RPCs.
+- User timezone lives in `profiles.time_zone` (IANA id, e.g. `America/New_York`); used by the daily-reminder filter and by both emails to compute "today" per user.
+- Daily reminder opt-in is `profiles.daily_reminder_enabled` — OFF by default.
 - To trigger manually: `curl` the function URL with `Authorization: Bearer $CRON_SECRET`
 
 ### AI Integration

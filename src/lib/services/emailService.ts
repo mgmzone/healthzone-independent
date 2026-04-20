@@ -47,21 +47,31 @@ export async function sendEmail(request: EmailRequest): Promise<{ success: boole
  * Updates the email preferences for a user
  */
 export async function updateEmailPreferences(
-  userId: string, 
-  preferences: { 
-    weeklyEmails?: boolean; 
+  userId: string,
+  preferences: {
+    weeklyEmails?: boolean;
     systemEmails?: boolean;
+    dailyReminder?: boolean;
+    timeZone?: string;
   }
 ): Promise<{ success: boolean; message?: string }> {
   try {
-    const updates: Record<string, boolean> = {};
-    
+    const updates: Record<string, boolean | string> = {};
+
     if (preferences.weeklyEmails !== undefined) {
       updates.weekly_summary_emails = preferences.weeklyEmails;
     }
-    
+
     if (preferences.systemEmails !== undefined) {
       updates.system_notification_emails = preferences.systemEmails;
+    }
+
+    if (preferences.dailyReminder !== undefined) {
+      updates.daily_reminder_enabled = preferences.dailyReminder;
+    }
+
+    if (preferences.timeZone !== undefined) {
+      updates.time_zone = preferences.timeZone;
     }
 
     const { error } = await supabase
@@ -77,9 +87,9 @@ export async function updateEmailPreferences(
     return { success: true };
   } catch (error) {
     console.error('Exception in updateEmailPreferences:', error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Unknown error updating email preferences' 
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error updating email preferences'
     };
   }
 }
@@ -87,31 +97,36 @@ export async function updateEmailPreferences(
 /**
  * Gets the email preferences for a user
  */
-export async function getEmailPreferences(userId: string): Promise<{ 
-  weeklyEmails: boolean; 
+export async function getEmailPreferences(userId: string): Promise<{
+  weeklyEmails: boolean;
   systemEmails: boolean;
-  success: boolean; 
+  dailyReminder: boolean;
+  timeZone: string;
+  success: boolean;
 }> {
+  const empty = { success: false, weeklyEmails: false, systemEmails: false, dailyReminder: false, timeZone: 'UTC' };
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('weekly_summary_emails, system_notification_emails')
+      .select('weekly_summary_emails, system_notification_emails, daily_reminder_enabled, time_zone')
       .eq('id', userId)
       .single();
 
     if (error) {
       console.error('Error getting email preferences:', error);
-      return { success: false, weeklyEmails: false, systemEmails: false };
+      return empty;
     }
 
-    return { 
-      success: true, 
-      weeklyEmails: data.weekly_summary_emails || false, 
-      systemEmails: data.system_notification_emails || false
+    return {
+      success: true,
+      weeklyEmails: data.weekly_summary_emails || false,
+      systemEmails: data.system_notification_emails || false,
+      dailyReminder: data.daily_reminder_enabled || false,
+      timeZone: data.time_zone || 'UTC',
     };
   } catch (error) {
     console.error('Exception in getEmailPreferences:', error);
-    return { success: false, weeklyEmails: false, systemEmails: false };
+    return empty;
   }
 }
 

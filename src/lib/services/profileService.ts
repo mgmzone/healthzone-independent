@@ -71,6 +71,8 @@ export async function getProfile() {
       aiPrompt: data.ai_prompt || '',
       proteinTargetMin: data.protein_target_min ?? undefined,
       proteinTargetMax: data.protein_target_max ?? undefined,
+      timeZone: data.time_zone || 'UTC',
+      dailyReminderEnabled: data.daily_reminder_enabled ?? false,
     };
     return transformedData;
   }
@@ -111,6 +113,8 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.aiPrompt !== undefined) dbProfileData.ai_prompt = profileData.aiPrompt;
   if (profileData.proteinTargetMin !== undefined) dbProfileData.protein_target_min = profileData.proteinTargetMin || null;
   if (profileData.proteinTargetMax !== undefined) dbProfileData.protein_target_max = profileData.proteinTargetMax || null;
+  if (profileData.timeZone !== undefined) dbProfileData.time_zone = profileData.timeZone || 'UTC';
+  if (profileData.dailyReminderEnabled !== undefined) dbProfileData.daily_reminder_enabled = profileData.dailyReminderEnabled;
 
   const { data, error } = await supabase
     .from('profiles')

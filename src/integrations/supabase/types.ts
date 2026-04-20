@@ -501,6 +501,8 @@ export type Database = {
           system_notification_emails: boolean | null
           target_meals_per_day: number | null
           target_weight: number | null
+          time_zone: string
+          daily_reminder_enabled: boolean
           updated_at: string
           weekly_summary_emails: boolean | null
         }
@@ -531,6 +533,8 @@ export type Database = {
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null
+          time_zone?: string
+          daily_reminder_enabled?: boolean
           updated_at?: string
           weekly_summary_emails?: boolean | null
         }
@@ -561,6 +565,8 @@ export type Database = {
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null
+          time_zone?: string
+          daily_reminder_enabled?: boolean
           updated_at?: string
           weekly_summary_emails?: boolean | null
         }
