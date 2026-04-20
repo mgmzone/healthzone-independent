@@ -12,22 +12,26 @@ export const useProfileFormState = () => {
   const { toast } = useToast();
   const profileLoadedRef = useRef(false);
   
-  // Create a state with default values
+  // Create a state with default values. Numeric fields start undefined so
+  // their inputs render empty — we explicitly do NOT want them to default
+  // to 0 and silently persist as 0 when the user never touches them.
+  // birthDate starts undefined for the same reason — defaulting to new Date()
+  // would save "today" as the user's DOB if they skip the picker.
   const [formData, setFormData] = useState<Partial<User>>({
     firstName: '',
     lastName: '',
     email: '',
-    birthDate: new Date(),
+    birthDate: undefined,
     gender: 'other',
-    height: 0,
-    currentWeight: 0,
-    targetWeight: 0,
+    height: undefined,
+    currentWeight: undefined,
+    targetWeight: undefined,
     fitnessLevel: 'moderate',
     exerciseMinutesPerDay: 30,
     targetMealsPerDay: 3,
     healthGoals: '',
     measurementUnit: 'imperial',
-    startingWeight: 0,
+    startingWeight: undefined,
     claudeApiKey: '',
     aiPrompt: '',
     proteinTargetMin: undefined,
@@ -39,17 +43,21 @@ export const useProfileFormState = () => {
     if (profile && !profileLoadedRef.current) {
       console.log('Setting profile data:', profile);
       
-      // Create a fresh object without reference issues
+      // Create a fresh object without reference issues. Numeric/date fields
+      // carry through as undefined when missing (not 0 / new Date()), so
+      // empty profile state stays empty in the form instead of masking as
+      // "filled in" with meaningless defaults.
       const newFormData = {
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
-        birthDate: profile.birthDate instanceof Date ? new Date(profile.birthDate) : new Date(),
+        birthDate: profile.birthDate instanceof Date ? new Date(profile.birthDate) : undefined,
         gender: profile.gender || 'other',
-        height: profile.height || 0,
+        height: profile.height || undefined,
         // All weights from server are in KG (metric)
-        currentWeight: profile.currentWeight || 0,
-        startingWeight: profile.startingWeight || 0,
+        currentWeight: profile.currentWeight || undefined,
+        targetWeight: profile.targetWeight || undefined,
+        startingWeight: profile.startingWeight || undefined,
         fitnessLevel: profile.fitnessLevel || 'moderate',
         exerciseMinutesPerDay: profile.exerciseMinutesPerDay || 30,
         targetMealsPerDay: profile.targetMealsPerDay || 3,
@@ -94,33 +102,55 @@ export const useProfileFormState = () => {
     }
   }, []);
 
-  // Handle number changes
+  // Handle number changes. Empty input stays undefined (instead of silently
+  // becoming 0) so "no value entered" doesn't masquerade as a real reading.
   const handleNumberChange = useCallback((name: string, value: string) => {
-    // Convert the string value to a number if possible, or use 0
-    const numValue = value === '' ? 0 : parseFloat(value) || 0;
-    
-    console.log(`Number changed: ${name} = ${numValue}`);
+    if (value === '') {
+      setFormData(prev => ({ ...prev, [name]: undefined }));
+      return;
+    }
+    const parsed = parseFloat(value);
+    const numValue = isNaN(parsed) ? undefined : parsed;
     setFormData(prev => ({ ...prev, [name]: numValue }));
   }, []);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Refuse to save half-filled profiles. Before this guard, missing
+    // fields silently saved as 0 / undefined and the user only discovered
+    // later (via the "profile not complete" checklist) that the save
+    // didn't actually move them forward in onboarding.
+    const missing: string[] = [];
+    if (!formData.firstName?.trim()) missing.push('First name');
+    if (!formData.birthDate || !(formData.birthDate instanceof Date) || isNaN(formData.birthDate.getTime())) {
+      missing.push('Birth date');
+    }
+    if (!formData.height || formData.height <= 0) missing.push('Height');
+
+    if (missing.length > 0) {
+      toast({
+        title: 'Please complete these fields',
+        description: missing.join(', '),
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
-    
+
     try {
-      console.log('Submitting form data:', formData);
-      
       // Convert weight values back to metric for storage if using imperial
       const dataToSubmit = { ...formData };
-      
+
       if (formData.measurementUnit === 'imperial') {
         // Convert from imperial to metric for storage
         if (formData.currentWeight) {
           dataToSubmit.currentWeight = convertToMetric(formData.currentWeight, true);
         }
       }
-      
+
       await updateProfile(dataToSubmit);
       // Reset the profile loaded flag so we get fresh data
       profileLoadedRef.current = false;

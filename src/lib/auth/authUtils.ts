@@ -2,31 +2,21 @@
 import { User } from '../types';
 
 /**
- * Checks if a user profile has completed the basic required fields
+ * Checks whether the user has filled in the demographic fields the profile
+ * form actually collects: first name, height, birth date.
+ *
+ * currentWeight and targetWeight are intentionally NOT checked here — there
+ * is no input for either on the profile form. currentWeight is updated by
+ * weigh-ins; targetWeight is set when the user creates a Period. Requiring
+ * them here used to deadlock onboarding: Step 2 (create period) was gated
+ * on profile-complete, but profile-complete required targetWeight, which
+ * could only be set from Step 2.
  */
 export const isProfileComplete = (profile: User | null): boolean => {
   if (!profile) return false;
-  
-  console.log('Checking profile completeness:', {
-    firstName: !!profile.firstName,
-    currentWeight: !!profile.currentWeight,
-    targetWeight: !!profile.targetWeight,
-    height: !!profile.height,
-    birthDate: !!profile.birthDate,
-    all: !!(
-      profile.firstName && 
-      profile.currentWeight && 
-      profile.targetWeight && 
-      profile.height &&
-      profile.birthDate
-    )
-  });
-  
-  // Check for all required fields including birthDate
+
   return !!(
-    profile.firstName && 
-    profile.currentWeight && 
-    profile.targetWeight && 
+    profile.firstName &&
     profile.height &&
     profile.birthDate
   );
