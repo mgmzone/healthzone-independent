@@ -1,1 +1,18 @@
 project_id = "kvmvekesxdzwodnfabdr"
+
+[auth.email]
+enable_confirmations = true
+
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(SUPABASE_AUTH_SMTP_PASS)"
+admin_email = "healthzone@mgm.zone"
+sender_name = "HealthZone"
+max_frequency = "1s"
+
+[auth.email.template.confirmation]
+subject = "Confirm your HealthZone email"
+content_path = "./supabase/templates/confirmation.html"
