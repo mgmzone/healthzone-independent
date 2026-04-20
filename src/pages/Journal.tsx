@@ -19,6 +19,8 @@ import JournalEntryCard from '@/components/journal/JournalEntryCard';
 import JournalEntryModal from '@/components/journal/JournalEntryModal';
 import JournalFilters, { JournalFiltersState } from '@/components/journal/JournalFilters';
 import JournalEmptyState from '@/components/journal/JournalEmptyState';
+import JournalInsightsCard from '@/components/journal/JournalInsightsCard';
+import DoctorReportDialog from '@/components/journal/DoctorReportDialog';
 
 const Journal: React.FC = () => {
   const [filters, setFilters] = useState<JournalFiltersState>({
@@ -110,11 +112,16 @@ const Journal: React.FC = () => {
               Narrative notes on your recovery, workouts, nutrition, goals — whatever you want to remember.
             </p>
           </div>
-          <Button onClick={openNew}>
-            <Plus className="h-4 w-4 mr-1" />
-            New Entry
-          </Button>
+          <div className="flex items-center gap-2">
+            <DoctorReportDialog availableTags={tags} />
+            <Button onClick={openNew}>
+              <Plus className="h-4 w-4 mr-1" />
+              New Entry
+            </Button>
+          </div>
         </div>
+
+        {entries.length >= 3 && !hasFilters && <JournalInsightsCard />}
 
         <div className="mb-8">
           <JournalFilters state={filters} onChange={setFilters} availableTags={tags} />

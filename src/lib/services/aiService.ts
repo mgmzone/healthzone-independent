@@ -92,3 +92,50 @@ export async function getDashboardFeedback(): Promise<DashboardFeedback> {
     tip: result.tip,
   };
 }
+
+export interface DoctorReport {
+  report: string; // markdown
+  dateFrom: string;
+  dateTo: string;
+  entryCount: number;
+}
+
+export async function generateDoctorReport(params: {
+  dateFrom?: string;
+  dateTo?: string;
+  tags?: string[];
+  focus?: string;
+}): Promise<DoctorReport> {
+  const { data: result, error } = await supabase.functions.invoke("generate-doctor-report", {
+    body: params,
+  });
+  if (error) throw new Error(error.message);
+  if (!result?.success) throw new Error(result?.error || "Failed to generate report");
+  return {
+    report: result.report,
+    dateFrom: result.dateFrom,
+    dateTo: result.dateTo,
+    entryCount: result.entryCount,
+  };
+}
+
+export interface JournalInsights {
+  insights: string[];
+  asOfDate: string;
+  entryCount: number;
+  reason?: string;
+}
+
+export async function getJournalInsights(): Promise<JournalInsights> {
+  const { data: result, error } = await supabase.functions.invoke("ai-journal-insights", {
+    body: {},
+  });
+  if (error) throw new Error(error.message);
+  if (!result?.success) throw new Error(result?.error || "Failed to generate insights");
+  return {
+    insights: result.insights || [],
+    asOfDate: result.asOfDate,
+    entryCount: result.entryCount,
+    reason: result.reason,
+  };
+}
