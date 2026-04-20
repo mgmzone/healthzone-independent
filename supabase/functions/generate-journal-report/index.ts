@@ -179,24 +179,24 @@ const handler = async (req: Request): Promise<Response> => {
     const dataSummary = summaryParts.join("\n\n");
 
     const focusLine = focus
-      ? `The patient specifically wants this report to emphasize: ${focus}`
+      ? `The user specifically wants this report to emphasize: ${focus}`
       : `No specific focus area provided — cover what stands out in the data.`;
 
     const systemPrompt = [
-      "You are a clinical scribe. You are generating a one-page pre-visit summary that a patient will share with their doctor or copy into a patient portal.",
-      "Write in a neutral, factual, medical-note voice. Third person (\"the patient\" or use their first name) or first person (\"I noticed\" from the patient's voice) — pick one and stay consistent. Do NOT prescribe, diagnose, or advise treatment. You are summarizing the patient's own journal, tracking, and self-report.",
+      "You are generating a one-page journal report from a user's own notes and tracking data. The user may share this with a doctor, trainer, coach, family member, or keep it for themselves — write neutrally enough that it reads well in any of those contexts.",
+      "Voice: factual, structured, well-sourced. First person (\"I noticed\", \"my protein averaged\") in the user's voice, OR third person (\"the user\" / their first name) — pick one and stay consistent. Do NOT prescribe, diagnose, or recommend treatment. You are summarizing what the data says, not interpreting it medically.",
       "Output ONLY markdown. Structure it with these sections, in order:",
-      "  # Pre-visit summary — <date range>",
+      "  # Journal report — <date range>",
       "  ## Overall",
       "  ## Weight & body-composition trend",
-      "  ## Notable events, side effects, and symptoms",
-      "  ## Medications mentioned",
+      "  ## Notable events, symptoms, and observations",
+      "  ## Medications, supplements, or substances mentioned",
       "  ## Pain, mood, and energy",
-      "  ## Compliance & routine",
+      "  ## Routines & compliance",
       "  ## Questions / things I'd like to discuss",
       "Each section: a short paragraph OR a bulleted list. Be concrete. Quote short phrases from journal entries with their dates when doing so sharpens the point. If a section has no data, say so in one line rather than padding.",
-      "Do not invent facts. Do not extrapolate beyond what the data says. If symptoms, meds, or concerns are not present in the data, say so.",
-      "Length: aim for 250-500 words total. A doctor should be able to read it in under 2 minutes.",
+      "Do not invent facts. Do not extrapolate beyond what the data says. If something isn't present in the data, say so rather than guess.",
+      "Length: aim for 250-500 words total. A reader should be able to skim it in under 2 minutes.",
     ].join("\n");
 
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
@@ -224,7 +224,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Claude API error:", claudeResponse.status, errorBody);
       await logAiUsage(supabase, {
         userId: user.id,
-        functionName: "generate-doctor-report",
+        functionName: "generate-journal-report",
         model: MODEL_COACH,
         usedFallbackKey,
         status: "error",
@@ -240,7 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
     const reportText = claudeData.content?.[0]?.text || "";
     await logAiUsage(supabase, {
       userId: user.id,
-      functionName: "generate-doctor-report",
+      functionName: "generate-journal-report",
       model: claudeData.model || MODEL_COACH,
       usage: claudeData.usage,
       usedFallbackKey,
@@ -257,7 +257,7 @@ const handler = async (req: Request): Promise<Response> => {
       { status: 200, headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) } }
     );
   } catch (error: any) {
-    console.error("generate-doctor-report error:", error);
+    console.error("generate-journal-report error:", error);
     return new Response(JSON.stringify({ success: false, error: error.message || "Unknown error" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },

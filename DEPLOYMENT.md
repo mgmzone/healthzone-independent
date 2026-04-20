@@ -120,7 +120,7 @@ CLAUDE_FALLBACK_DAILY_CAP_USD=0.25      # optional; defaults to 0.25
    supabase functions deploy analyze-exercise --no-verify-jwt
    supabase functions deploy ai-dashboard-feedback --no-verify-jwt
    supabase functions deploy ai-journal-insights --no-verify-jwt
-   supabase functions deploy generate-doctor-report --no-verify-jwt
+   supabase functions deploy generate-journal-report --no-verify-jwt
 
    # Email
    supabase functions deploy send-email --no-verify-jwt

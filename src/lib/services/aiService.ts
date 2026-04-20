@@ -93,20 +93,20 @@ export async function getDashboardFeedback(): Promise<DashboardFeedback> {
   };
 }
 
-export interface DoctorReport {
+export interface JournalReport {
   report: string; // markdown
   dateFrom: string;
   dateTo: string;
   entryCount: number;
 }
 
-export async function generateDoctorReport(params: {
+export async function generateJournalReport(params: {
   dateFrom?: string;
   dateTo?: string;
   tags?: string[];
   focus?: string;
-}): Promise<DoctorReport> {
-  const { data: result, error } = await supabase.functions.invoke("generate-doctor-report", {
+}): Promise<JournalReport> {
+  const { data: result, error } = await supabase.functions.invoke("generate-journal-report", {
     body: params,
   });
   if (error) throw new Error(error.message);

@@ -20,7 +20,7 @@ import JournalEntryModal from '@/components/journal/JournalEntryModal';
 import JournalFilters, { JournalFiltersState } from '@/components/journal/JournalFilters';
 import JournalEmptyState from '@/components/journal/JournalEmptyState';
 import JournalInsightsCard from '@/components/journal/JournalInsightsCard';
-import DoctorReportDialog from '@/components/journal/DoctorReportDialog';
+import JournalReportDialog from '@/components/journal/JournalReportDialog';
 
 const Journal: React.FC = () => {
   const [filters, setFilters] = useState<JournalFiltersState>({
@@ -113,7 +113,7 @@ const Journal: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <DoctorReportDialog availableTags={tags} />
+            <JournalReportDialog availableTags={tags} />
             <Button onClick={openNew}>
               <Plus className="h-4 w-4 mr-1" />
               New Entry

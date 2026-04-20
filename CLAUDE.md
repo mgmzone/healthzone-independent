@@ -63,7 +63,7 @@ All edge functions use `verify_jwt: false` at the gateway level (configured in `
 | `analyze-exercise` | JWT (user session) | Claude-powered free-text exercise parsing (category/minutes/intensity/calories). Uses `MODEL_BASIC` |
 | `ai-dashboard-feedback` | JWT (user session) | Claude-powered weekly progress insights for dashboard card. Uses `MODEL_COACH` |
 | `ai-journal-insights` | JWT (user session) | Claude pattern-finding across last 14 days of journal + tracking data. Renders on Journal page with sessionStorage cache. Uses `MODEL_COACH` |
-| `generate-doctor-report` | JWT (user session) | Claude pre-visit medical summary from journal + weight + compliance. Markdown output with Copy/Print in the UI. Uses `MODEL_COACH` |
+| `generate-journal-report` | JWT (user session) | Claude narrative summary from journal + weight + compliance over a user-selected window. Report-agnostic — user picks a focus and shares with whoever (doctor, trainer, family, future self). Markdown output with Copy/Print in the UI. Uses `MODEL_COACH` |
 | `send-email` | JWT (user session) | Sends templated emails via Resend |
 | `send-weekly-summary` | `CRON_SECRET` Bearer token | Weekly activity + AI summary emails; pg_cron driven |
 | `send-welcome-email` | JWT / trigger | New-user welcome email |

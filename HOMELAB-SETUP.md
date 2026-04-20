@@ -205,7 +205,7 @@ sudo systemctl enable cloudflared
 
    # Deploy all functions with --no-verify-jwt (each handles auth internally).
    for fn in evaluate-meal analyze-exercise ai-dashboard-feedback \
-             ai-journal-insights generate-doctor-report \
+             ai-journal-insights generate-journal-report \
              send-email send-weekly-summary send-welcome-email \
              send-system-emails send-daily-reminders send-admin-daily-digest \
              unsubscribe-email \

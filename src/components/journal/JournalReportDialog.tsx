@@ -11,17 +11,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Stethoscope, Loader2, Copy, Check, Printer, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, Copy, Check, Printer, AlertCircle } from 'lucide-react';
 import { toLocalDateString } from '@/lib/utils/dateUtils';
-import { generateDoctorReport, DoctorReport } from '@/lib/services/aiService';
+import { generateJournalReport, JournalReport } from '@/lib/services/aiService';
 import { toast } from 'sonner';
 
-// Pre-visit medical summary generator. User picks a date range + optional
-// tag filter + optional focus text, we ask Claude to build a one-page
-// summary of journal entries, weight trend, compliance, and symptoms.
-// Output is markdown; we render a minimal viewer with Copy and Print buttons.
+// Narrative summary generator — user picks a date range + optional tag
+// filter + optional focus text, Claude returns a one-page structured
+// report of journal entries, weight trend, compliance, and observations.
+// Output is markdown with a minimal Copy/Print viewer. The report is
+// report-agnostic: user can share it with a doctor, trainer, family
+// member, or keep it for themselves — the focus text shapes emphasis.
 
-interface DoctorReportDialogProps {
+interface JournalReportDialogProps {
   availableTags: string[];
   triggerClassName?: string;
 }
@@ -101,7 +103,7 @@ function renderMarkdown(md: string): React.ReactNode {
   return out;
 }
 
-const DoctorReportDialog: React.FC<DoctorReportDialogProps> = ({
+const JournalReportDialog: React.FC<JournalReportDialogProps> = ({
   availableTags,
   triggerClassName,
 }) => {
@@ -111,7 +113,7 @@ const DoctorReportDialog: React.FC<DoctorReportDialogProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [focus, setFocus] = useState('');
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<DoctorReport | null>(null);
+  const [report, setReport] = useState<JournalReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -126,7 +128,7 @@ const DoctorReportDialog: React.FC<DoctorReportDialogProps> = ({
     setError(null);
     setReport(null);
     try {
-      const result = await generateDoctorReport({
+      const result = await generateJournalReport({
         dateFrom,
         dateTo,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
@@ -161,7 +163,7 @@ const DoctorReportDialog: React.FC<DoctorReportDialogProps> = ({
       return;
     }
     w.document.write(`<!doctype html>
-<html><head><title>Pre-visit report</title>
+<html><head><title>Journal report</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 24px; color: #0f172a; line-height: 1.55; }
   h1 { font-size: 22px; margin: 0 0 16px; }
@@ -200,16 +202,17 @@ ${report.report
     >
       <DialogTrigger asChild>
         <Button variant="outline" className={triggerClassName}>
-          <Stethoscope className="h-4 w-4 mr-2" />
-          Doctor report
+          <FileText className="h-4 w-4 mr-2" />
+          Journal report
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Generate pre-visit summary</DialogTitle>
+          <DialogTitle>Generate a journal report</DialogTitle>
           <DialogDescription>
-            A one-page report you can copy into a patient portal or print for your doctor.
-            Pulls from your journal, weight, and compliance data.
+            A one-page structured summary of your journal entries, weight, and
+            compliance data over the window you choose. Copy, print, or share
+            it however you need &mdash; doctor, trainer, coach, or just future you.
           </DialogDescription>
         </DialogHeader>
 
@@ -275,7 +278,7 @@ ${report.report
                 id="report-focus"
                 value={focus}
                 onChange={(e) => setFocus(e.target.value)}
-                placeholder="e.g. Side effects of medication changes, pain trend since surgery, irritant-food triggers…"
+                placeholder="e.g. Side effects of a medication change, pain trend since surgery, training fatigue, irritant-food patterns, recent sleep issues…"
                 className="min-h-[80px]"
                 disabled={loading}
                 maxLength={300}
@@ -354,4 +357,4 @@ ${report.report
   );
 };
 
-export default DoctorReportDialog;
+export default JournalReportDialog;
