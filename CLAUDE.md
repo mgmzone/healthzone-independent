@@ -125,3 +125,9 @@ npx tsc --noEmit    # type check
 npm run build       # production build
 npm run dev         # dev server on :8080
 ```
+
+**`tsc --noEmit` is not a safety net.** `tsconfig` runs in permissive mode (`strict: false`, `noImplicitAny: false`, `strictNullChecks: false`) so undefined identifiers read as implicit-`any` and compile clean — a typo or a dangling reference to a removed helper will pass type-check and build, then throw `ReferenceError` at render time (blanking the page). Clean `tsc` is necessary but not sufficient; smoke-test the affected page in the dev server after any sweeping refactor.
+
+**ESLint is currently broken** — `npx eslint` crashes with `@typescript-eslint/no-unused-expressions: Cannot read properties of undefined (reading 'allowShortCircuit')` from an `eslint` vs `@typescript-eslint` plugin version skew in `node_modules`. Until it's fixed, don't rely on lint as a fallback check.
+
+**Refactoring rule — grep every plausible helper name.** When consolidating utilities (e.g. the 42-site `* 2.20462` → `convertWeight` pass), grep for every name that could be doing the same job — old helpers, aliases, one-off inlined versions — not just the signature you're replacing. Unimported identifiers survive type-check here, so missed call sites become runtime crashes. The `toDisplayUnit` bug on `/periods` was exactly this.
