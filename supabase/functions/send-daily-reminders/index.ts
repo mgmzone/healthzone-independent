@@ -223,6 +223,17 @@ function renderEmail(opts: {
   };
 }
 
+type Profile = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  time_zone: string;
+  target_meals_per_day: number | null;
+  protein_target_min: number | null;
+  protein_target_max: number | null;
+  email_unsubscribe_token: string | null;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   try {
     const cronSecret = Deno.env.get("CRON_SECRET");
@@ -235,43 +246,69 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Filter server-side using PostgreSQL's timezone math so we only fetch
-    // users whose local hour equals REMINDER_HOUR right now. EXTRACT(HOUR
-    // FROM now() AT TIME ZONE tz) does the right thing for each row.
-    const { data: profiles, error: profilesError } = await supabase.rpc(
-      "profiles_due_for_daily_reminder",
-      { target_hour: REMINDER_HOUR }
-    );
-
-    if (profilesError) {
-      console.error("Error fetching due profiles:", profilesError);
-      return new Response(JSON.stringify({ success: false, error: profilesError.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Test-mode overrides — still require CRON_SECRET. Lets us preview the
+    // email on demand instead of waiting for 8 PM somewhere.
+    //   force_user_id:  render for this specific user, skip the due-hour filter
+    //   override_email: destination address (use when you want the preview
+    //                   sent somewhere other than the profile's auth email)
+    let body: { force_user_id?: string; override_email?: string } = {};
+    try {
+      if (req.method === "POST") {
+        const text = await req.text();
+        if (text) body = JSON.parse(text);
+      }
+    } catch {
+      // Non-JSON or empty bodies are fine — production cron sends '{}'.
     }
 
-    const list = (profiles || []) as Array<{
-      id: string;
-      first_name: string | null;
-      last_name: string | null;
-      time_zone: string;
-      target_meals_per_day: number | null;
-      protein_target_min: number | null;
-      protein_target_max: number | null;
-      email_unsubscribe_token: string | null;
-    }>;
+    let list: Profile[];
+    if (body.force_user_id) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(
+          "id, first_name, last_name, time_zone, target_meals_per_day, protein_target_min, protein_target_max, email_unsubscribe_token"
+        )
+        .eq("id", body.force_user_id)
+        .single();
+      if (error || !data) {
+        return new Response(
+          JSON.stringify({ success: false, error: `force_user_id not found: ${error?.message}` }),
+          { status: 404, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      list = [data as Profile];
+    } else {
+      const { data: profiles, error: profilesError } = await supabase.rpc(
+        "profiles_due_for_daily_reminder",
+        { target_hour: REMINDER_HOUR }
+      );
+      if (profilesError) {
+        console.error("Error fetching due profiles:", profilesError);
+        return new Response(JSON.stringify({ success: false, error: profilesError.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      list = (profiles || []) as Profile[];
+    }
 
-    console.log(`Daily reminder run: ${list.length} users due at hour ${REMINDER_HOUR} local`);
+    console.log(
+      `Daily reminder run: ${list.length} user(s) selected ${
+        body.force_user_id ? "(forced)" : `(local hour = ${REMINDER_HOUR})`
+      }`
+    );
 
     let sent = 0;
     let errors = 0;
 
     for (const p of list) {
       try {
-        const { data: userRec } = await supabase.auth.admin.getUserById(p.id);
-        const email = userRec?.user?.email;
-        if (!email) {
+        let destination = body.override_email;
+        if (!destination) {
+          const { data: userRec } = await supabase.auth.admin.getUserById(p.id);
+          destination = userRec?.user?.email ?? undefined;
+        }
+        if (!destination) {
           console.warn(`No email for ${p.id}, skipping`);
           continue;
         }
@@ -287,8 +324,8 @@ const handler = async (req: Request): Promise<Response> => {
 
         const result = await resend.emails.send({
           from: FROM_EMAIL,
-          to: [email],
-          subject,
+          to: [destination],
+          subject: body.force_user_id ? `[preview] ${subject}` : subject,
           html,
         });
 
