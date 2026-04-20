@@ -4,12 +4,14 @@ import { useAuth } from '@/lib/auth';
 import Layout from '@/components/Layout';
 import { Navigate } from 'react-router-dom';
 import AuthCard from '@/components/auth/AuthCard';
+import CheckEmailCard from '@/components/auth/CheckEmailCard';
 import { isProfileComplete } from '@/lib/auth';
 
 const Auth = () => {
   const { user, profile, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   // Log for debugging
   useEffect(() => {
@@ -54,6 +56,7 @@ const Auth = () => {
         first_name: firstName,
         last_name: lastName
       });
+      setPendingEmail(email);
     } catch (error: any) {
       console.error('Signup error:', error);
       setError(error.message || 'Failed to create account. Please try again.');
@@ -64,12 +67,19 @@ const Auth = () => {
 
   return (
     <Layout className="flex items-center justify-center px-4 py-32" transparentHeader>
-      <AuthCard 
-        onSignIn={handleSignIn}
-        onSignUp={handleSignUp}
-        isLoading={isLoading}
-        error={error}
-      />
+      {pendingEmail ? (
+        <CheckEmailCard
+          email={pendingEmail}
+          onUseDifferentEmail={() => setPendingEmail(null)}
+        />
+      ) : (
+        <AuthCard
+          onSignIn={handleSignIn}
+          onSignUp={handleSignUp}
+          isLoading={isLoading}
+          error={error}
+        />
+      )}
     </Layout>
   );
 };
