@@ -64,8 +64,8 @@ const PeriodTableRow: React.FC<PeriodTableRowProps> = ({
     ? Math.min(...sortedAsc.map(w => w.weight))
     : null;
 
-  const finalWeight = finalWeighInKg !== null ? toDisplayUnit(finalWeighInKg) : null;
-  const lowestWeight = lowestWeighInKg !== null ? toDisplayUnit(lowestWeighInKg) : null;
+  const finalWeight = finalWeighInKg !== null ? convertWeight(finalWeighInKg, isImperial) : null;
+  const lowestWeight = lowestWeighInKg !== null ? convertWeight(lowestWeighInKg, isImperial) : null;
 
   const actualLoss = finalWeight !== null ? displayStartWeight - finalWeight : null;
   // Weeks elapsed = full duration for closed periods; for active, use weeks since start (capped at duration)
