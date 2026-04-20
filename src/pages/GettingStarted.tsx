@@ -35,6 +35,9 @@ interface StepProps {
   description: string;
   cta: string;
   onAction: () => void;
+  secondaryCta?: string;
+  onSecondaryAction?: () => void;
+  secondaryDisabled?: boolean;
 }
 
 const StepCard: React.FC<StepProps> = ({
@@ -45,6 +48,9 @@ const StepCard: React.FC<StepProps> = ({
   description,
   cta,
   onAction,
+  secondaryCta,
+  onSecondaryAction,
+  secondaryDisabled,
 }) => (
   <Card
     className={cn(
@@ -68,10 +74,22 @@ const StepCard: React.FC<StepProps> = ({
           </h2>
           <p className="text-muted-foreground mb-4">{description}</p>
           {state === 'active' && (
-            <Button onClick={onAction} size="lg" className="mt-2">
-              {cta}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Button onClick={onAction} size="lg">
+                {cta}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              {secondaryCta && onSecondaryAction && (
+                <Button
+                  onClick={onSecondaryAction}
+                  size="lg"
+                  variant="outline"
+                  disabled={secondaryDisabled}
+                >
+                  {secondaryCta}
+                </Button>
+              )}
+            </div>
           )}
           {state === 'pending' && (
             <Button disabled size="lg" className="mt-2">
@@ -88,12 +106,33 @@ const StepCard: React.FC<StepProps> = ({
 const GettingStarted = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { periods, isLoading: periodsLoading } = usePeriodsData();
+  const { periods, isLoading: periodsLoading, addPeriod } = usePeriodsData();
   const { activeGoals, isLoading: goalsLoading } = useDailyGoalsData();
 
   const profileComplete = isProfileComplete(profile);
   const hasPeriod = periods.length > 0;
   const hasGoals = activeGoals.length > 0;
+
+  // Quick-start: create a weight-loss period with the user's profile values
+  // and no deadline. For users who don't want to commit to a weekly rate
+  // and a target date — the forecast will project a completion date from
+  // their actual pace once weigh-ins accumulate.
+  const handleStartWithoutDeadline = () => {
+    if (!profile?.currentWeight || !profile?.targetWeight) return;
+    addPeriod({
+      type: 'weightLoss',
+      startWeight: profile.currentWeight,
+      targetWeight: profile.targetWeight,
+      startDate: new Date(),
+      endDate: undefined,
+      fastingSchedule: '16:8',
+      weightLossPerWeek: 0.5,
+    });
+  };
+  const canStartWithoutDeadline =
+    !!profile?.currentWeight &&
+    !!profile?.targetWeight &&
+    profile.currentWeight > profile.targetWeight;
 
   const step1State: StepState = profileComplete ? 'done' : 'active';
   const step2State: StepState = !profileComplete
@@ -157,9 +196,12 @@ const GettingStarted = () => {
               icon={Calendar}
               number={2}
               title="Create your first period"
-              description="A period is a weight-loss or maintenance phase with a start weight, target weight, and a finish date. HealthZone uses this to project your completion and track progress."
+              description="A period is a weight-loss or maintenance phase. Set a target weight and a finish date, or start open-ended and let the forecast project one from your actual pace. You can change this any time."
               cta="Create first period"
               onAction={() => navigate('/periods?create=1')}
+              secondaryCta="Start without a deadline"
+              onSecondaryAction={handleStartWithoutDeadline}
+              secondaryDisabled={!canStartWithoutDeadline}
             />
 
             <StepCard

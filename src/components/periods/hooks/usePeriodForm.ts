@@ -40,9 +40,12 @@ export const usePeriodForm = ({
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [calculatedEndDate, setCalculatedEndDate] = useState<Date | undefined>(undefined);
   const [fastingSchedule, setFastingSchedule] = useState<string>('16:8');
+  // Open-ended = no target date. Users who don't think in deadlines can still
+  // create a period and let the forecast project one from their actual pace.
+  const [openEnded, setOpenEnded] = useState<boolean>(false);
   const { toast } = useToast();
   const isImperial = weightUnit === 'lbs';
-  
+
   useEffect(() => {
     if (initialPeriod) {
       setStartWeight(defaultValues?.startWeight?.toString() || '');
@@ -50,16 +53,29 @@ export const usePeriodForm = ({
       setType(initialPeriod.type);
       setStartDate(new Date(initialPeriod.startDate));
       setEndDate(initialPeriod.endDate ? new Date(initialPeriod.endDate) : undefined);
+      // If the existing period has no end date, surface that in the form
+      // state so the user sees the checkbox pre-ticked when editing.
+      setOpenEnded(!initialPeriod.endDate);
       setFastingSchedule(initialPeriod.fastingSchedule);
-      
+
       if (initialPeriod.weightLossPerWeek !== undefined) {
         setWeightLossPerWeek(convertWeight(initialPeriod.weightLossPerWeek, isImperial).toFixed(1));
       }
     }
   }, [initialPeriod, defaultValues, isImperial]);
-  
-  // Calculate end date whenever relevant inputs change
+
+  // Clear any auto-calculated end date the moment the user flips to open-ended.
   useEffect(() => {
+    if (openEnded) {
+      setEndDate(undefined);
+      setCalculatedEndDate(undefined);
+    }
+  }, [openEnded]);
+
+  // Calculate end date whenever relevant inputs change — skipped entirely
+  // when the user has opted into open-ended.
+  useEffect(() => {
+    if (openEnded) return;
     if (type === 'weightLoss' && startWeight && targetWeight && weightLossPerWeek && parseFloat(weightLossPerWeek) > 0) {
       try {
         const startWeightNum = parseFloat(startWeight);
@@ -87,7 +103,7 @@ export const usePeriodForm = ({
         console.error("Error calculating end date:", e);
       }
     }
-  }, [startWeight, targetWeight, weightLossPerWeek, startDate, type, initialPeriod, endDate]);
+  }, [startWeight, targetWeight, weightLossPerWeek, startDate, type, initialPeriod, endDate, openEnded]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,8 +139,10 @@ export const usePeriodForm = ({
       return;
     }
     
-    // For weight loss periods, ensure a valid end date is calculated
-    if (type === 'weightLoss' && !endDate && startWeightValue <= targetWeightValue) {
+    // For weight loss periods with a target date, ensure the end date can be
+    // calculated. Open-ended periods skip this check — the forecast picks up
+    // from actual recent pace without needing a deadline.
+    if (type === 'weightLoss' && !openEnded && !endDate && startWeightValue <= targetWeightValue) {
       toast({
         title: "Invalid weight goal",
         description: "Target weight must be lower than starting weight for weight loss periods",
@@ -144,10 +162,10 @@ export const usePeriodForm = ({
       weightLossPerWeek: weightLossPerWeekInKg,
       type,
       startDate,
-      endDate,
+      endDate: openEnded ? undefined : endDate,
       fastingSchedule
     });
-    
+
     resetForm();
   };
 
@@ -160,8 +178,9 @@ export const usePeriodForm = ({
     setEndDate(undefined);
     setCalculatedEndDate(undefined);
     setFastingSchedule('16:8');
+    setOpenEnded(false);
   };
-  
+
   return {
     startWeight,
     setStartWeight,
@@ -178,6 +197,8 @@ export const usePeriodForm = ({
     calculatedEndDate,
     fastingSchedule,
     setFastingSchedule,
+    openEnded,
+    setOpenEnded,
     handleSubmit,
     isImperial,
     weightUnit

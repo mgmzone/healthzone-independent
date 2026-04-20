@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import WeightInputField from './WeightInputField';
 import PeriodTypeSelector from './PeriodTypeSelector';
 import DateRangePickerField from './DateRangePickerField';
@@ -51,6 +53,8 @@ const PeriodForm: React.FC<PeriodFormProps> = ({
     calculatedEndDate,
     fastingSchedule,
     setFastingSchedule,
+    openEnded,
+    setOpenEnded,
     handleSubmit,
     isImperial
   } = usePeriodForm({
@@ -85,24 +89,45 @@ const PeriodForm: React.FC<PeriodFormProps> = ({
           weightUnit={weightUnit}
         />
         
-        <WeightInputField
-          id="weightLossPerWeek"
-          label="Target Weight Loss Per Week"
-          value={weightLossPerWeek}
-          onChange={setWeightLossPerWeek}
-          weightUnit={weightUnit}
-          step="0.1"
-          min="0"
-          max={isImperial ? "10" : "4.5"}
-        />
-        
-        <DateRangePickerField
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          calculatedEndDate={calculatedEndDate}
-        />
+        {!openEnded && (
+          <WeightInputField
+            id="weightLossPerWeek"
+            label="Target Weight Loss Per Week"
+            value={weightLossPerWeek}
+            onChange={setWeightLossPerWeek}
+            weightUnit={weightUnit}
+            step="0.1"
+            min="0"
+            max={isImperial ? "10" : "4.5"}
+          />
+        )}
+
+        {!openEnded && (
+          <DateRangePickerField
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            calculatedEndDate={calculatedEndDate}
+          />
+        )}
+
+        <div className="flex items-start gap-2 p-3 rounded-md bg-muted/40 border">
+          <Checkbox
+            id="open-ended"
+            checked={openEnded}
+            onCheckedChange={(v) => setOpenEnded(v === true)}
+            className="mt-0.5"
+          />
+          <div className="space-y-1">
+            <Label htmlFor="open-ended" className="cursor-pointer font-medium">
+              Open-ended period &mdash; no target date
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Skip the weekly target and deadline. The weight forecast will still project a completion date from your actual pace once you have a few weigh-ins.
+            </p>
+          </div>
+        </div>
         
         <FastingScheduleSelector
           value={fastingSchedule}
