@@ -15,7 +15,7 @@ import WeightForecastSection from './WeightForecastSection';
 import PriorityMilestoneBanner from './PriorityMilestoneBanner';
 import TodayStatusStrip from './TodayStatusStrip';
 import StreaksHero from './StreaksHero';
-import MyDayCard from './MyDayCard';
+import MyDayDialog from './MyDayDialog';
 import WelcomeCard from './WelcomeCard';
 import { useMilestones } from '@/hooks/useMilestones';
 import { 
@@ -174,6 +174,10 @@ const DashboardContent = () => {
           {!currentPeriod && <NoActivePeriodAlert />}
           {currentPeriod && currentMetrics && (
             <>
+              <div className="flex justify-end mb-3">
+                <MyDayDialog />
+              </div>
+
               <TodayStatusStrip
                 weighIns={weighIns}
                 mealLogs={mealLogs}
@@ -214,10 +218,6 @@ const DashboardContent = () => {
                 currentPeriod={currentPeriod}
                 isImperial={isImperial}
               />
-
-              <div className="mt-6">
-                <MyDayCard />
-              </div>
             </>
           )}
         </>
