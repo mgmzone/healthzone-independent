@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { checkFallbackDailyCap, logAiUsage } from "../_shared/aiUsage.ts";
 import { buildCorsHeaders } from "../_shared/cors.ts";
 import { MODEL_COACH } from "../_shared/models.ts";
+import { extractJson } from "../_shared/parseJson.ts";
 
 // Scans the user's last 14 days of journal entries + tracking data and
 // surfaces 2-3 non-obvious patterns. Meant to be displayed on the Journal
@@ -233,11 +234,10 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     let insights: string[] = [];
-    try {
-      const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-      const parsed = JSON.parse(jsonStr);
-      if (Array.isArray(parsed.insights)) insights = parsed.insights.filter((s: any) => typeof s === "string").slice(0, 3);
-    } catch {
+    const parsed = extractJson<{ insights?: unknown }>(responseText);
+    if (parsed && Array.isArray(parsed.insights)) {
+      insights = parsed.insights.filter((s: unknown): s is string => typeof s === "string").slice(0, 3);
+    } else {
       // Fallback: if Claude didn't produce valid JSON, treat the first line as a single insight.
       const first = responseText.split("\n").map((l: string) => l.trim()).find((l: string) => l.length > 0);
       if (first) insights = [first];

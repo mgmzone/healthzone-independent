@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { checkFallbackDailyCap, logAiUsage } from "../_shared/aiUsage.ts";
 import { buildCorsHeaders } from "../_shared/cors.ts";
 import { MODEL_COACH } from "../_shared/models.ts";
+import { extractJson } from "../_shared/parseJson.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -177,26 +178,23 @@ const handler = async (req: Request): Promise<Response> => {
       usedFallbackKey,
     });
 
-    // Parse the JSON response from Claude — strip markdown code fences if present
-    let proteinEstimate = 0;
-    let carbsEstimate = 0;
-    let fatEstimate = 0;
-    let sodiumEstimate = 0;
-    let caloriesEstimate = 0;
-    let assessment = "";
-    try {
-      const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-      const parsed = JSON.parse(jsonStr);
-      proteinEstimate = typeof parsed.proteinEstimate === "number" ? parsed.proteinEstimate : 0;
-      carbsEstimate = typeof parsed.carbsEstimate === "number" ? parsed.carbsEstimate : 0;
-      fatEstimate = typeof parsed.fatEstimate === "number" ? parsed.fatEstimate : 0;
-      sodiumEstimate = typeof parsed.sodiumEstimate === "number" ? parsed.sodiumEstimate : 0;
-      caloriesEstimate = typeof parsed.caloriesEstimate === "number" ? parsed.caloriesEstimate : 0;
-      assessment = parsed.assessment || "";
-    } catch {
-      // If Claude didn't return valid JSON, use the raw text as assessment
-      assessment = responseText;
-    }
+    // Extract the JSON object from Claude's response — handles code fences
+    // and prose wrappers both. Returns null if no parseable JSON found.
+    const parsed = extractJson<{
+      proteinEstimate?: number;
+      carbsEstimate?: number;
+      fatEstimate?: number;
+      sodiumEstimate?: number;
+      caloriesEstimate?: number;
+      assessment?: string;
+    }>(responseText);
+
+    const proteinEstimate = typeof parsed?.proteinEstimate === "number" ? parsed.proteinEstimate : 0;
+    const carbsEstimate = typeof parsed?.carbsEstimate === "number" ? parsed.carbsEstimate : 0;
+    const fatEstimate = typeof parsed?.fatEstimate === "number" ? parsed.fatEstimate : 0;
+    const sodiumEstimate = typeof parsed?.sodiumEstimate === "number" ? parsed.sodiumEstimate : 0;
+    const caloriesEstimate = typeof parsed?.caloriesEstimate === "number" ? parsed.caloriesEstimate : 0;
+    const assessment = parsed?.assessment || (parsed ? "" : responseText);
 
     return new Response(JSON.stringify({
       success: true,

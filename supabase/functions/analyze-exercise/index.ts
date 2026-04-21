@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { checkFallbackDailyCap, logAiUsage } from "../_shared/aiUsage.ts";
 import { buildCorsHeaders } from "../_shared/cors.ts";
 import { MODEL_BASIC } from "../_shared/models.ts";
+import { extractJson } from "../_shared/parseJson.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -180,26 +181,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     const ALLOWED_CATEGORIES = ["cardio", "resistance", "sports", "flexibility", "other"];
     const ALLOWED_INTENSITIES = ["low", "medium", "high"];
-    let category = "other";
-    let activityName = "";
-    let minutes = 0;
-    let intensity: string = "medium";
-    let caloriesBurned = 0;
-    let assessment = "";
-    try {
-      const jsonStr = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-      const parsed = JSON.parse(jsonStr);
-      const c = typeof parsed.category === "string" ? parsed.category.toLowerCase() : "other";
-      category = ALLOWED_CATEGORIES.includes(c) ? c : "other";
-      activityName = typeof parsed.activityName === "string" ? parsed.activityName : "";
-      minutes = typeof parsed.minutes === "number" ? Math.max(0, Math.round(parsed.minutes)) : 0;
-      const i = typeof parsed.intensity === "string" ? parsed.intensity.toLowerCase() : "medium";
-      intensity = ALLOWED_INTENSITIES.includes(i) ? i : "medium";
-      caloriesBurned = typeof parsed.caloriesBurned === "number" ? Math.max(0, Math.round(parsed.caloriesBurned)) : 0;
-      assessment = typeof parsed.assessment === "string" ? parsed.assessment : "";
-    } catch {
-      assessment = responseText;
-    }
+    const parsed = extractJson<{
+      category?: string;
+      activityName?: string;
+      minutes?: number;
+      intensity?: string;
+      caloriesBurned?: number;
+      assessment?: string;
+    }>(responseText);
+
+    const c = typeof parsed?.category === "string" ? parsed.category.toLowerCase() : "other";
+    const category = ALLOWED_CATEGORIES.includes(c) ? c : "other";
+    const activityName = typeof parsed?.activityName === "string" ? parsed.activityName : "";
+    const minutes = typeof parsed?.minutes === "number" ? Math.max(0, Math.round(parsed.minutes)) : 0;
+    const i = typeof parsed?.intensity === "string" ? parsed.intensity.toLowerCase() : "medium";
+    const intensity = ALLOWED_INTENSITIES.includes(i) ? i : "medium";
+    const caloriesBurned = typeof parsed?.caloriesBurned === "number" ? Math.max(0, Math.round(parsed.caloriesBurned)) : 0;
+    const assessment = typeof parsed?.assessment === "string" ? parsed.assessment : (parsed ? "" : responseText);
 
     return new Response(JSON.stringify({
       success: true,
