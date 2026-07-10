@@ -236,13 +236,31 @@ export interface Vitals {
   notes?: string;
 }
 
+// Time-of-day dose slots (mirrors the AM/NOON/PM/BED columns on the med sheet).
+export const MED_SLOTS = [
+  { value: 'am', label: 'Morning' },
+  { value: 'noon', label: 'Noon' },
+  { value: 'pm', label: 'Evening' },
+  { value: 'bed', label: 'Bedtime' },
+] as const;
+export type MedSlot = 'am' | 'noon' | 'pm' | 'bed' | 'prn';
+
+export function medSlotLabel(slot: string): string {
+  if (slot === 'prn') return 'As needed';
+  return MED_SLOTS.find((s) => s.value === slot)?.label ?? slot;
+}
+
 export interface Medication {
   id: string;
   userId: string;
   name: string;
   dose?: string;
   schedule?: string;
-  timesPerDay?: number;   // powers "n of m taken today"; undefined = as-needed
+  timesPerDay?: number;      // legacy; superseded by slots/isPrn
+  slots: string[];           // scheduled slots: subset of am/noon/pm/bed
+  isPrn: boolean;            // as-needed
+  maxPerDay?: number;        // PRN safety cap (doses / 24h)
+  minHoursBetween?: number;  // PRN safety spacing
   notes?: string;
   isActive: boolean;
   sortOrder: number;
@@ -256,6 +274,7 @@ export interface MedicationLog {
   medicationId?: string;  // null once the med is deleted; medicationName persists
   medicationName?: string;
   takenAt: Date;
+  slot?: string;          // which slot this dose satisfied (am/noon/pm/bed/prn)
   status: MedicationLogStatus;
   notes?: string;
 }

@@ -539,6 +539,7 @@ export type Database = {
           medication_id: string | null
           medication_name: string | null
           notes: string | null
+          slot: string | null
           status: string
           taken_at: string
           user_id: string
@@ -549,6 +550,7 @@ export type Database = {
           medication_id?: string | null
           medication_name?: string | null
           notes?: string | null
+          slot?: string | null
           status?: string
           taken_at?: string
           user_id: string
@@ -559,6 +561,7 @@ export type Database = {
           medication_id?: string | null
           medication_name?: string | null
           notes?: string | null
+          slot?: string | null
           status?: string
           taken_at?: string
           user_id?: string
@@ -586,9 +589,13 @@ export type Database = {
           dose: string | null
           id: string
           is_active: boolean
+          is_prn: boolean
+          max_per_day: number | null
+          min_hours_between: number | null
           name: string
           notes: string | null
           schedule: string | null
+          slots: string[]
           sort_order: number
           times_per_day: number | null
           updated_at: string | null
@@ -599,9 +606,13 @@ export type Database = {
           dose?: string | null
           id?: string
           is_active?: boolean
+          is_prn?: boolean
+          max_per_day?: number | null
+          min_hours_between?: number | null
           name: string
           notes?: string | null
           schedule?: string | null
+          slots?: string[]
           sort_order?: number
           times_per_day?: number | null
           updated_at?: string | null
@@ -612,9 +623,13 @@ export type Database = {
           dose?: string | null
           id?: string
           is_active?: boolean
+          is_prn?: boolean
+          max_per_day?: number | null
+          min_hours_between?: number | null
           name?: string
           notes?: string | null
           schedule?: string | null
+          slots?: string[]
           sort_order?: number
           times_per_day?: number | null
           updated_at?: string | null

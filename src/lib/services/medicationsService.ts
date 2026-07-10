@@ -12,6 +12,10 @@ type MedicationRow = {
   dose: string | null;
   schedule: string | null;
   times_per_day: number | null;
+  slots: string[] | null;
+  is_prn: boolean | null;
+  max_per_day: number | null;
+  min_hours_between: number | null;
   notes: string | null;
   is_active: boolean;
   sort_order: number;
@@ -25,6 +29,10 @@ function mapMedication(row: MedicationRow): Medication {
     dose: row.dose ?? undefined,
     schedule: row.schedule ?? undefined,
     timesPerDay: row.times_per_day ?? undefined,
+    slots: row.slots ?? [],
+    isPrn: row.is_prn ?? false,
+    maxPerDay: row.max_per_day ?? undefined,
+    minHoursBetween: row.min_hours_between ?? undefined,
     notes: row.notes ?? undefined,
     isActive: row.is_active,
     sortOrder: row.sort_order,
@@ -62,6 +70,10 @@ export async function addMedication(input: Partial<Medication>): Promise<Medicat
       dose: input.dose ?? null,
       schedule: input.schedule ?? null,
       times_per_day: input.timesPerDay ?? null,
+      slots: input.slots ?? [],
+      is_prn: input.isPrn ?? false,
+      max_per_day: input.maxPerDay ?? null,
+      min_hours_between: input.minHoursBetween ?? null,
       notes: input.notes ?? null,
       is_active: input.isActive ?? true,
       sort_order: input.sortOrder ?? 0,
@@ -82,6 +94,10 @@ export async function updateMedication(id: string, input: Partial<Medication>): 
   if (input.dose !== undefined) patch.dose = input.dose;
   if (input.schedule !== undefined) patch.schedule = input.schedule;
   if (input.timesPerDay !== undefined) patch.times_per_day = input.timesPerDay;
+  if (input.slots !== undefined) patch.slots = input.slots;
+  if (input.isPrn !== undefined) patch.is_prn = input.isPrn;
+  if (input.maxPerDay !== undefined) patch.max_per_day = input.maxPerDay;
+  if (input.minHoursBetween !== undefined) patch.min_hours_between = input.minHoursBetween;
   if (input.notes !== undefined) patch.notes = input.notes;
   if (input.isActive !== undefined) patch.is_active = input.isActive;
   if (input.sortOrder !== undefined) patch.sort_order = input.sortOrder;
@@ -120,6 +136,7 @@ type MedicationLogRow = {
   medication_id: string | null;
   medication_name: string | null;
   taken_at: string;
+  slot: string | null;
   status: string;
   notes: string | null;
 };
@@ -131,6 +148,7 @@ function mapMedicationLog(row: MedicationLogRow): MedicationLog {
     medicationId: row.medication_id ?? undefined,
     medicationName: row.medication_name ?? undefined,
     takenAt: new Date(row.taken_at),
+    slot: row.slot ?? undefined,
     status: (row.status as MedicationLogStatus) ?? 'taken',
     notes: row.notes ?? undefined,
   };
@@ -138,6 +156,7 @@ function mapMedicationLog(row: MedicationLogRow): MedicationLog {
 
 export async function logMedication(input: {
   medication: Medication;
+  slot?: string;
   status?: MedicationLogStatus;
   takenAt?: Date;
   notes?: string;
@@ -152,6 +171,7 @@ export async function logMedication(input: {
       medication_id: input.medication.id,
       medication_name: input.medication.name,
       taken_at: (input.takenAt ?? new Date()).toISOString(),
+      slot: input.slot ?? (input.medication.isPrn ? 'prn' : null),
       status: input.status ?? 'taken',
       notes: input.notes ?? null,
     })
