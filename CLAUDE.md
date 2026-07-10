@@ -52,6 +52,7 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 Core: `profiles`, `periods`, `period_milestones`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
 Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
 Journal: `journal_entries` (free-form diary; not period-scoped — filter by date range / tags in the UI)
+Daily tracking (post-surgical; all period-FREE, keyed by user + timestamp like journal): `event_types` + `tracked_events` (generic configurable "+1" tally trackers — water, ostomy empties, bag changes, bowel movements; event_types is per-user config, tracked_events is the log; `getTodayTotals()` sums per key), `vitals` (BP/pulse/SpO2/temperature/etc., multiple readings per day; weight intentionally stays in `weigh_ins`), `medications` + `medication_logs` (definitions + doses taken/skipped; `times_per_day` powers "n of m taken today")
 System: `email_templates`, `ai_usage_logs` (every Claude API call logged with tokens/cost/fallback-key flag)
 
 ### Edge Functions
@@ -64,7 +65,7 @@ All edge functions use `verify_jwt: false` at the gateway level (configured in `
 | `ai-dashboard-feedback` | JWT (user session) | Claude-powered weekly progress insights for dashboard card. Uses `MODEL_COACH` |
 | `ai-journal-insights` | JWT (user session) | Claude pattern-finding across last 14 days of journal + tracking data. Renders on Journal page with sessionStorage cache. Uses `MODEL_COACH` |
 | `generate-journal-report` | JWT (user session) | Claude narrative summary from journal + weight + compliance over a user-selected window. Report-agnostic — user picks a focus and shares with whoever (doctor, trainer, family, future self). Markdown output with Copy/Print in the UI. Uses `MODEL_COACH` |
-| `send-email` | JWT (user session) | Sends templated emails via Resend |
+| `send-email` | JWT (user session) | Sends templated emails via Resend. Recipient is locked to the caller's own auth email; only server-verified admins may target an arbitrary address (the admin template test-send). `appUrl` is sourced from the `APP_URL` secret (optional; falls back to `ALLOWED_ORIGIN` then the prod URL), never from the request body |
 | `send-weekly-summary` | `CRON_SECRET` Bearer token | Weekly activity + AI summary emails; pg_cron driven |
 | `send-welcome-email` | JWT / trigger | New-user welcome email |
 | `send-system-emails` | `CRON_SECRET` Bearer token | Milestone / inactivity reminders; pg_cron driven |

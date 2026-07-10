@@ -5,6 +5,7 @@ import { Period } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { usePeriodCalculations } from './usePeriodCalculations';
 import { ensureDate } from '@/lib/utils/dateUtils';
+import { invalidateCurrentPeriodCache } from '@/lib/services/periodsService';
 
 export function usePeriodMutations() {
   const { toast } = useToast();
@@ -44,6 +45,7 @@ export function usePeriodMutations() {
       return data;
     },
     onSuccess: () => {
+      invalidateCurrentPeriodCache();
       queryClient.invalidateQueries({ queryKey: ['periods'] });
       // Period change affects all metrics; refresh dependent datasets
       queryClient.invalidateQueries({ queryKey: ['weighIns'] });
@@ -92,6 +94,7 @@ export function usePeriodMutations() {
       return data;
     },
     onSuccess: () => {
+      invalidateCurrentPeriodCache();
       queryClient.invalidateQueries({ queryKey: ['periods'] });
       queryClient.invalidateQueries({ queryKey: ['weighIns'] });
       queryClient.invalidateQueries({ queryKey: ['fastingLogs'] });
@@ -121,6 +124,7 @@ export function usePeriodMutations() {
       if (error) throw error;
     },
     onSuccess: () => {
+      invalidateCurrentPeriodCache();
       queryClient.invalidateQueries({ queryKey: ['periods'] });
       queryClient.invalidateQueries({ queryKey: ['weighIns'] });
       queryClient.invalidateQueries({ queryKey: ['fastingLogs'] });

@@ -132,13 +132,19 @@ const MealTable: React.FC<MealTableProps> = ({
                             <TableCell>
                               <div className="flex gap-1">
                                 {meal.antiInflammatory && (
-                                  <Leaf className="h-4 w-4 text-green-500" title="Anti-inflammatory" />
+                                  <span title="Anti-inflammatory" className="inline-flex">
+                                    <Leaf className="h-4 w-4 text-green-500" />
+                                  </span>
                                 )}
                                 {meal.irritantViolation && (
-                                  <AlertTriangle className="h-4 w-4 text-red-500" title={meal.irritantNotes || 'Irritant violation'} />
+                                  <span title={meal.irritantNotes || 'Irritant violation'} className="inline-flex">
+                                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                                  </span>
                                 )}
                                 {meal.aiAssessment && (
-                                  <Brain className="h-4 w-4 text-purple-500" title="AI evaluated" />
+                                  <span title="AI evaluated" className="inline-flex">
+                                    <Brain className="h-4 w-4 text-purple-500" />
+                                  </span>
                                 )}
                               </div>
                             </TableCell>

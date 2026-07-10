@@ -96,7 +96,7 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
       return {
         subject: "Complete Your HealthZone Profile",
         html: `
-          <h1>Hello ${name},</h1>
+          <h1>Hello ${sanitizeHtml(name)},</h1>
           <p>Your HealthZone profile is not complete yet. Taking a few minutes to complete it will help us provide you with better insights.</p>
           <p><a href="${placeholders.appUrl}/profile" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Complete Profile</a></p>
           <p>Thank you,<br>The HealthZone Team</p>
@@ -106,7 +106,7 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
       return {
         subject: "We Miss You at HealthZone",
         html: `
-          <h1>Hello ${name},</h1>
+          <h1>Hello ${sanitizeHtml(name)},</h1>
           <p>We noticed you haven't logged any activities on HealthZone recently. Regular tracking helps you stay on top of your health goals.</p>
           <p><a href="${placeholders.appUrl}/dashboard" style="padding: 12px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">Visit Dashboard</a></p>
           <p>Thank you,<br>The HealthZone Team</p>
@@ -116,7 +116,7 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
       return {
         subject: "Your Weekly HealthZone Summary",
         html: `
-          <h1>Hello ${name},</h1>
+          <h1>Hello ${sanitizeHtml(name)},</h1>
           <p>Here's your weekly summary from HealthZone:</p>
           
           <div style="margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">
@@ -134,7 +134,7 @@ async function generateEmailContent(type: EmailType, name: string, data?: Record
       return {
         subject: "HealthZone Notification",
         html: `
-          <h1>Hello ${name},</h1>
+          <h1>Hello ${sanitizeHtml(name)},</h1>
           <p>Thank you for using HealthZone.</p>
           <p>The HealthZone Team</p>
         `,
@@ -170,19 +170,45 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Parse the request body
+    // Parse the request body. A regular user may only send to their OWN
+    // authenticated address; only admins (verified server-side) may target an
+    // arbitrary recipient (the admin template test-send). Without this gate any
+    // logged-in user could relay mail from our verified domain to anyone
+    // (phishing / reputation abuse).
     const { type, email, name, data }: EmailRequest = await req.json();
 
-    console.log(`Processing email request of type: ${type} for ${email}`);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", authData.user.id)
+      .maybeSingle();
+    const isAdmin = profile?.is_admin === true;
+
+    const recipientEmail = isAdmin && email ? email : authData.user.email;
+    if (!recipientEmail) {
+      return new Response(JSON.stringify({ success: false, error: "No recipient email available" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...buildCorsHeaders(req) },
+      });
+    }
+
+    // appUrl / unsubscribeUrl are raw-HTML placeholders, so they must not be
+    // caller-controlled. Force appUrl from env and drop any caller-supplied URLs.
+    const appUrl = Deno.env.get("APP_URL") || Deno.env.get("ALLOWED_ORIGIN") || "https://healthzone.mgm.zone";
+    const safeData: Record<string, any> = { ...(data || {}) };
+    delete safeData.unsubscribeUrl;
+    safeData.appUrl = appUrl;
+
+    console.log(`Processing email request of type: ${type} for authenticated user`);
 
     // Generate the email content based on the type
-    const emailContent = await generateEmailContent(type, name, data);
+    const emailContent = await generateEmailContent(type, name, safeData);
 
     // Send the email
     const fromEmail = Deno.env.get("FROM_EMAIL") || "HealthZone <noreply@yourdomain.com>";
     const emailResponse = await resend.emails.send({
       from: fromEmail,
-      to: [email],
+      to: [recipientEmail],
       subject: emailContent.subject,
       html: emailContent.html,
     });

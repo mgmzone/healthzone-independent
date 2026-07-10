@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Apple,
   BookOpen,
+  ListChecks,
   Sun,
   Moon,
   Monitor,
@@ -64,9 +65,9 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
   // Dashboard → what to eat / log → exercise & fasting → weight → journal → periods
   const primaryLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: BarChart },
+    { name: 'Today', path: '/today', icon: ListChecks },
     { name: 'Nutrition', path: '/nutrition', icon: Apple },
     { name: 'Exercise', path: '/exercise', icon: Dumbbell },
-    { name: 'Fasting', path: '/fasting', icon: Clock },
     { name: 'Weight', path: '/weight', icon: Scale },
     { name: 'Journal', path: '/journal', icon: BookOpen },
   ];

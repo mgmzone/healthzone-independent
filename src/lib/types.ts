@@ -170,6 +170,76 @@ export interface JournalEntry {
   updatedAt: Date;
 }
 
+// ============================================================
+// Post-surgical daily tracking (period-free)
+// ============================================================
+
+// Per-user configurable "+1" tally tracker (water, ostomy empties, etc.)
+export interface EventType {
+  id: string;
+  userId: string;
+  key: string;            // stable slug, e.g. 'water'
+  label: string;          // display name
+  icon?: string;          // lucide icon name or emoji
+  unit?: string;          // 'oz','ml','glass'... undefined = plain count
+  defaultQuantity: number;
+  dailyTarget?: number;   // undefined = no target
+  color?: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+// A single logged tally event
+export interface TrackedEvent {
+  id: string;
+  userId: string;
+  eventTypeId?: string;   // null once the type is deleted; eventKey persists
+  eventKey: string;
+  occurredAt: Date;
+  quantity: number;
+  unit?: string;
+  notes?: string;
+}
+
+export interface Vitals {
+  id: string;
+  userId: string;
+  measuredAt: Date;
+  systolic?: number;
+  diastolic?: number;
+  pulse?: number;
+  oxygenSaturation?: number;
+  temperature?: number;
+  temperatureUnit: 'F' | 'C';
+  respiratoryRate?: number;
+  bloodGlucose?: number;
+  notes?: string;
+}
+
+export interface Medication {
+  id: string;
+  userId: string;
+  name: string;
+  dose?: string;
+  schedule?: string;
+  timesPerDay?: number;   // powers "n of m taken today"; undefined = as-needed
+  notes?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export type MedicationLogStatus = 'taken' | 'skipped';
+
+export interface MedicationLog {
+  id: string;
+  userId: string;
+  medicationId?: string;  // null once the med is deleted; medicationName persists
+  medicationName?: string;
+  takenAt: Date;
+  status: MedicationLogStatus;
+  notes?: string;
+}
+
 export const DEFAULT_MEAL_NAMES = ['Meal 1', 'Meal 2', 'Meal 3'];
 
 export const PROTEIN_TARGET_MIN = 130;
