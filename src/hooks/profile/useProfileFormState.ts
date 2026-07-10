@@ -36,6 +36,7 @@ export const useProfileFormState = () => {
     aiPrompt: '',
     proteinTargetMin: undefined,
     proteinTargetMax: undefined,
+    surgeryDate: '',
   });
 
   // Only set form data once when profile loads or changes
@@ -67,6 +68,7 @@ export const useProfileFormState = () => {
         aiPrompt: profile.aiPrompt || '',
         proteinTargetMin: profile.proteinTargetMin,
         proteinTargetMax: profile.proteinTargetMax,
+        surgeryDate: profile.surgeryDate || '',
       };
       
       setFormData(newFormData);

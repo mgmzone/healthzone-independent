@@ -20,6 +20,7 @@ interface HealthFormProps {
     aiPrompt?: string;
     proteinTargetMin?: number;
     proteinTargetMax?: number;
+    surgeryDate?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
@@ -135,6 +136,20 @@ const HealthForm: React.FC<HealthFormProps> = ({
             step="1"
             min="0"
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="surgeryDate" className="text-left block">Surgery Date</Label>
+          <Input
+            id="surgeryDate"
+            name="surgeryDate"
+            type="date"
+            value={formData.surgeryDate || ''}
+            onChange={handleInputChange}
+          />
+          <p className="text-xs text-muted-foreground">Powers the post-op day counter on the Today page.</p>
         </div>
       </div>
 

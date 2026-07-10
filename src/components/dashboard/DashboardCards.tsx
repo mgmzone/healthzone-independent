@@ -4,8 +4,8 @@ import { Period, ExerciseLog, FastingLog, MealLog, DailyGoal, DailyGoalEntry, Us
 import WeightCard from './cards/WeightCard';
 import JourneyCard from './cards/JourneyCard';
 import ExerciseCard from './cards/ExerciseCard';
-import FastingCard from './cards/FastingCard';
 import NutritionCard from './cards/NutritionCard';
+import DailyTrackingCard from './cards/DailyTrackingCard';
 import GoalsCard from './cards/GoalsCard';
 import AIFeedbackCard from './cards/AIFeedbackCard';
 
@@ -72,10 +72,7 @@ const DashboardCards: React.FC<DashboardCardsProps> = ({
           showProgressCircle={true}
         />
 
-        <FastingCard
-          fastingLogs={fastingLogs}
-          showProgressCircle={true}
-        />
+        <DailyTrackingCard />
 
         <NutritionCard
           mealLogs={mealLogs}

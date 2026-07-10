@@ -23,6 +23,7 @@ export interface User {
   proteinTargetMax?: number;
   timeZone?: string;
   dailyReminderEnabled?: boolean;
+  surgeryDate?: string; // YYYY-MM-DD — anchors the post-op day counter
 }
 
 export interface PeriodMilestone {

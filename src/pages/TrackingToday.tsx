@@ -8,6 +8,8 @@ import { useDailyTracking } from '@/hooks/useDailyTracking';
 import TrackerTile from '@/components/tracking/TrackerTile';
 import MedsChecklist from '@/components/tracking/MedsChecklist';
 import VitalsQuickDialog from '@/components/tracking/VitalsQuickDialog';
+import TrackerManagerDialog from '@/components/tracking/TrackerManagerDialog';
+import MedicationManagerDialog from '@/components/tracking/MedicationManagerDialog';
 
 // Days since surgery ("POD" = post-op day), read straight from profiles.surgery_date.
 function usePostOpDay() {
@@ -59,9 +61,12 @@ const TrackingToday: React.FC = () => {
 
         {/* One-tap trackers */}
         <section className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Trackers
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Trackers
+            </h2>
+            <TrackerManagerDialog />
+          </div>
           {isLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -90,8 +95,9 @@ const TrackingToday: React.FC = () => {
         <div className="grid gap-6 md:grid-cols-2">
           {/* Medications */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base">Medications</CardTitle>
+              <MedicationManagerDialog />
             </CardHeader>
             <CardContent>
               <MedsChecklist />

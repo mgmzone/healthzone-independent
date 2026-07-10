@@ -758,6 +758,7 @@ export type Database = {
           strava_client_secret: string | null
           strava_last_sync_at: string | null
           strava_refresh_token: string | null
+          surgery_date: string | null
           system_notification_emails: boolean | null
           target_meals_per_day: number | null
           target_weight: number | null
@@ -794,6 +795,7 @@ export type Database = {
           strava_client_secret?: string | null
           strava_last_sync_at?: string | null
           strava_refresh_token?: string | null
+          surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null
@@ -830,6 +832,7 @@ export type Database = {
           strava_client_secret?: string | null
           strava_last_sync_at?: string | null
           strava_refresh_token?: string | null
+          surgery_date?: string | null
           system_notification_emails?: boolean | null
           target_meals_per_day?: number | null
           target_weight?: number | null
