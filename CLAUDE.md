@@ -49,7 +49,8 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 - Supabase CLI auth expires periodically — run `supabase login` if push/query fails with SASL errors
 
 ### Tables
-Core: `profiles`, `periods`, `period_milestones`, `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
+Core: `profiles`, `periods`, `period_milestones` (DEPRECATED — superseded by `milestones`; left for rollback), `weigh_ins`, `exercise_logs`, `exercise_goals`, `fasting_logs`, `health_stats`
+Milestones: `milestones` (user-level, period-FREE, typed: surgery/procedure/appointment/follow_up/medication/personal/other; one `is_priority` per user shown on the dashboard banner; powers the /milestones Timeline+Calendar and the Today post-op-day counter which reads the most recent past `type='surgery'` row)
 Nutrition: `meal_logs`, `protein_sources`, `daily_goals`, `daily_goal_entries`
 Journal: `journal_entries` (free-form diary; not period-scoped — filter by date range / tags in the UI)
 Daily tracking (post-surgical; all period-FREE, keyed by user + timestamp like journal): `event_types` + `tracked_events` (generic configurable "+1" tally trackers — water, ostomy empties, bag changes, bowel movements; event_types is per-user config, tracked_events is the log; `getTodayTotals()` sums per key), `vitals` (BP/pulse/SpO2/temperature/etc., multiple readings per day; weight intentionally stays in `weigh_ins`), `medications` + `medication_logs` (definitions + doses taken/skipped; `times_per_day` powers "n of m taken today")

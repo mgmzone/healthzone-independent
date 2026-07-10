@@ -42,7 +42,7 @@ const DashboardContent = () => {
   const weightUnit = isImperial ? 'lbs' : 'kg';
 
   const currentPeriod = getCurrentPeriod();
-  const { milestones } = useMilestones(currentPeriod?.id);
+  const { milestones } = useMilestones();
   const priorityMilestone = milestones.find((m) => m.isPriority);
 
   const getLatestWeight = () => {

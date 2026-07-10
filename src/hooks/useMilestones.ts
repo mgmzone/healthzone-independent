@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { PeriodMilestone } from '@/lib/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Milestone } from '@/lib/types';
 import {
   getMilestones,
   addMilestone as addMilestoneApi,
@@ -10,40 +10,29 @@ import {
 } from '@/lib/services/milestonesService';
 import { useToast } from '@/hooks/use-toast';
 
-export function useMilestones(periodId: string | undefined) {
-  const [milestones, setMilestones] = useState<PeriodMilestone[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+// User-level milestones (no longer scoped to a weight-loss period).
+export function useMilestones() {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const load = useCallback(async () => {
-    if (!periodId) {
-      setMilestones([]);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const data = await getMilestones(periodId);
-      setMilestones(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [periodId]);
+  const { data: milestones = [], isLoading } = useQuery({
+    queryKey: ['milestones'],
+    queryFn: getMilestones,
+  });
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['milestones'] });
 
   const addMilestone = async (input: {
     name: string;
+    type: string;
     date: string;
-    isPriority: boolean;
+    isPriority?: boolean;
     notes?: string;
   }) => {
-    if (!periodId) return;
     try {
-      await addMilestoneApi({ periodId, ...input });
+      await addMilestoneApi(input);
       toast({ title: 'Milestone added' });
-      await load();
+      invalidate();
     } catch (err: any) {
       toast({ title: 'Failed to add milestone', description: err.message, variant: 'destructive' });
     }
@@ -51,12 +40,12 @@ export function useMilestones(periodId: string | undefined) {
 
   const updateMilestone = async (
     id: string,
-    updates: { name?: string; date?: string; notes?: string },
+    updates: Partial<Pick<Milestone, 'name' | 'type' | 'date' | 'notes'>>,
   ) => {
     try {
       await updateMilestoneApi(id, updates);
       toast({ title: 'Milestone updated' });
-      await load();
+      invalidate();
     } catch (err: any) {
       toast({ title: 'Failed to update milestone', description: err.message, variant: 'destructive' });
     }
@@ -66,27 +55,25 @@ export function useMilestones(periodId: string | undefined) {
     try {
       await deleteMilestoneApi(id);
       toast({ title: 'Milestone deleted' });
-      await load();
+      invalidate();
     } catch (err: any) {
       toast({ title: 'Failed to delete milestone', description: err.message, variant: 'destructive' });
     }
   };
 
   const setPriority = async (id: string) => {
-    if (!periodId) return;
     try {
-      await setPriorityMilestoneApi(id, periodId);
-      await load();
+      await setPriorityMilestoneApi(id);
+      invalidate();
     } catch (err: any) {
       toast({ title: 'Failed to set priority', description: err.message, variant: 'destructive' });
     }
   };
 
   const clearPriority = async () => {
-    if (!periodId) return;
     try {
-      await clearPriorityMilestoneApi(periodId);
-      await load();
+      await clearPriorityMilestoneApi();
+      invalidate();
     } catch (err: any) {
       toast({ title: 'Failed to clear priority', description: err.message, variant: 'destructive' });
     }
@@ -100,6 +87,6 @@ export function useMilestones(periodId: string | undefined) {
     deleteMilestone,
     setPriority,
     clearPriority,
-    refetch: load,
+    refetch: invalidate,
   };
 }

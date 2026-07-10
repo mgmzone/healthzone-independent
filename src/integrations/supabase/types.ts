@@ -630,6 +630,53 @@ export type Database = {
           },
         ]
       }
+      milestones: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_priority: boolean
+          milestone_date: string
+          name: string
+          notes: string | null
+          sort_order: number
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_priority?: boolean
+          milestone_date: string
+          name: string
+          notes?: string | null
+          sort_order?: number
+          type?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_priority?: boolean
+          milestone_date?: string
+          name?: string
+          notes?: string | null
+          sort_order?: number
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       period_milestones: {
         Row: {
           created_at: string

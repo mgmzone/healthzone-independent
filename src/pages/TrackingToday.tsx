@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getMilestones } from '@/lib/services/milestonesService';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import TrackerTile from '@/components/tracking/TrackerTile';
 import MedsChecklist from '@/components/tracking/MedsChecklist';
@@ -11,24 +11,21 @@ import VitalsQuickDialog from '@/components/tracking/VitalsQuickDialog';
 import TrackerManagerDialog from '@/components/tracking/TrackerManagerDialog';
 import MedicationManagerDialog from '@/components/tracking/MedicationManagerDialog';
 
-// Days since surgery ("POD" = post-op day), read straight from profiles.surgery_date.
+// Days since surgery ("POD" = post-op day), derived from the most recent past
+// milestone of type "surgery". Milestones are the single source of truth now.
 function usePostOpDay() {
   return useQuery({
-    queryKey: ['surgeryDate'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('surgery_date')
-        .eq('id', session.user.id)
-        .maybeSingle();
-      const raw = (data as { surgery_date?: string | null } | null)?.surgery_date;
-      if (!raw) return null;
-      // date-only string → local noon to avoid TZ off-by-one
-      const surgery = new Date(`${raw}T12:00:00`);
+    queryKey: ['milestones'],
+    queryFn: getMilestones,
+    select: (milestones) => {
       const today = new Date();
-      const days = Math.floor((today.getTime() - surgery.getTime()) / (1000 * 60 * 60 * 24));
+      const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const pastSurgeries = milestones
+        .filter((m) => m.type === 'surgery' && new Date(`${m.date}T12:00:00`) <= todayMid)
+        .sort((a, b) => b.date.localeCompare(a.date));
+      if (pastSurgeries.length === 0) return null;
+      const surgery = new Date(`${pastSurgeries[0].date}T12:00:00`);
+      const days = Math.floor((todayMid.getTime() - surgery.getTime()) / (1000 * 60 * 60 * 24));
       return days >= 0 ? days : null;
     },
   });

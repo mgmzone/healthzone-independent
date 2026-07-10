@@ -23,19 +23,38 @@ export interface User {
   proteinTargetMax?: number;
   timeZone?: string;
   dailyReminderEnabled?: boolean;
-  surgeryDate?: string; // YYYY-MM-DD — anchors the post-op day counter
 }
 
-export interface PeriodMilestone {
+// Curated milestone types; custom values (any other string) are also allowed.
+export const MILESTONE_TYPES = [
+  { value: 'surgery', label: 'Surgery' },
+  { value: 'procedure', label: 'Procedure' },
+  { value: 'appointment', label: 'Appointment' },
+  { value: 'follow_up', label: 'Follow-up' },
+  { value: 'medication', label: 'Medication change' },
+  { value: 'personal', label: 'Personal' },
+  { value: 'other', label: 'Other' },
+] as const;
+
+export function milestoneTypeLabel(type: string): string {
+  return MILESTONE_TYPES.find((t) => t.value === type)?.label
+    ?? type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ');
+}
+
+// User-level milestone (decoupled from weight-loss periods).
+export interface Milestone {
   id: string;
-  periodId: string;
   userId: string;
   name: string;
-  date: string; // YYYY-MM-DD
+  type: string;      // one of MILESTONE_TYPES or a custom value
+  date: string;      // YYYY-MM-DD (maps to milestone_date)
   isPriority: boolean;
   notes?: string;
   sortOrder: number;
 }
+
+/** @deprecated Milestones are now user-level; use Milestone. Alias kept for transition. */
+export type PeriodMilestone = Milestone;
 
 export interface Period {
   id: string;

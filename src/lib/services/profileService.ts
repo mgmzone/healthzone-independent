@@ -73,7 +73,6 @@ export async function getProfile() {
       proteinTargetMax: data.protein_target_max ?? undefined,
       timeZone: data.time_zone || 'UTC',
       dailyReminderEnabled: data.daily_reminder_enabled ?? false,
-      surgeryDate: data.surgery_date || undefined,
     };
     return transformedData;
   }
@@ -116,7 +115,6 @@ export async function updateProfile(profileData: Partial<User>) {
   if (profileData.proteinTargetMax !== undefined) dbProfileData.protein_target_max = profileData.proteinTargetMax || null;
   if (profileData.timeZone !== undefined) dbProfileData.time_zone = profileData.timeZone || 'UTC';
   if (profileData.dailyReminderEnabled !== undefined) dbProfileData.daily_reminder_enabled = profileData.dailyReminderEnabled;
-  if (profileData.surgeryDate !== undefined) dbProfileData.surgery_date = profileData.surgeryDate || null;
 
   const { data, error } = await supabase
     .from('profiles')

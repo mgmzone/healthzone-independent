@@ -16,6 +16,7 @@ import {
   Apple,
   BookOpen,
   ListChecks,
+  Flag,
   Sun,
   Moon,
   Monitor,
@@ -151,6 +152,10 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => navigate('/milestones')}>
+                    <Flag className="mr-2 h-4 w-4" />
+                    Milestones
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => navigate('/periods')}>
                     <Calendar className="mr-2 h-4 w-4" />
                     Periods
@@ -270,6 +275,19 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                   >
                     <User className="h-5 w-5" />
                     <span>Profile</span>
+                  </Link>
+                  <Link
+                    to="/milestones"
+                    className={cn(
+                      'flex items-center space-x-2 p-3 rounded-md transition-colors',
+                      location.pathname === '/milestones'
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'hover:bg-secondary'
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Flag className="h-5 w-5" />
+                    <span>Milestones</span>
                   </Link>
                   <Link
                     to="/periods"
