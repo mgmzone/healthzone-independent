@@ -18,6 +18,7 @@ const GettingStarted = lazy(() => import('./pages/GettingStarted'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const TrackingToday = lazy(() => import('./pages/TrackingToday'));
 const Milestones = lazy(() => import('./pages/Milestones'));
+const Log = lazy(() => import('./pages/Log'));
 const Weight = lazy(() => import('./pages/Weight'));
 const Fasting = lazy(() => import('./pages/Fasting'));
 const Exercise = lazy(() => import('./pages/Exercise'));
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/today" element={<TrackingToday />} />
             <Route path="/milestones" element={<Milestones />} />
+            <Route path="/log" element={<Log />} />
             <Route path="/weight" element={<Weight />} />
             <Route path="/fasting" element={<Fasting />} />
             <Route path="/exercise" element={<Exercise />} />

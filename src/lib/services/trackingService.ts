@@ -173,6 +173,18 @@ export async function logTrackedEvent(input: {
   return mapTrackedEvent(data as TrackedEventRow);
 }
 
+export async function updateTrackedEventTime(id: string, occurredAt: Date): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('tracked_events')
+    .update({ occurred_at: occurredAt.toISOString() })
+    .eq('id', id)
+    .eq('user_id', session.user.id);
+  if (error) throw error;
+}
+
 export async function deleteTrackedEvent(id: string): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');

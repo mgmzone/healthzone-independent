@@ -182,6 +182,18 @@ export async function logMedication(input: {
   return mapMedicationLog(data as MedicationLogRow);
 }
 
+export async function updateMedicationLogTime(id: string, takenAt: Date): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('medication_logs')
+    .update({ taken_at: takenAt.toISOString() })
+    .eq('id', id)
+    .eq('user_id', session.user.id);
+  if (error) throw error;
+}
+
 export async function deleteMedicationLog(id: string): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');

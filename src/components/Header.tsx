@@ -17,6 +17,7 @@ import {
   BookOpen,
   ListChecks,
   Flag,
+  ClipboardList,
   Sun,
   Moon,
   Monitor,
@@ -156,6 +157,10 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                     <Flag className="mr-2 h-4 w-4" />
                     Milestones
                   </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => navigate('/log')}>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    Log
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => navigate('/periods')}>
                     <Calendar className="mr-2 h-4 w-4" />
                     Periods
@@ -288,6 +293,19 @@ const Header: React.FC<HeaderProps> = ({ transparent = false }) => {
                   >
                     <Flag className="h-5 w-5" />
                     <span>Milestones</span>
+                  </Link>
+                  <Link
+                    to="/log"
+                    className={cn(
+                      'flex items-center space-x-2 p-3 rounded-md transition-colors',
+                      location.pathname === '/log'
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'hover:bg-secondary'
+                    )}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <ClipboardList className="h-5 w-5" />
+                    <span>Log</span>
                   </Link>
                   <Link
                     to="/periods"

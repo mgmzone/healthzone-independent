@@ -77,6 +77,18 @@ export async function addVitals(input: Partial<Vitals>): Promise<Vitals> {
   return mapVitals(data as VitalsRow);
 }
 
+export async function updateVitalsTime(id: string, measuredAt: Date): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('vitals')
+    .update({ measured_at: measuredAt.toISOString() })
+    .eq('id', id)
+    .eq('user_id', session.user.id);
+  if (error) throw error;
+}
+
 export async function deleteVitals(id: string): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
