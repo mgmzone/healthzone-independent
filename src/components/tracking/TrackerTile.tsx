@@ -74,9 +74,9 @@ const TrackerTile: React.FC<TrackerTileProps> = ({ eventType, total, onLog, onUn
           type="button"
           onClick={onUndo}
           aria-label={`Undo last ${eventType.label}`}
-          className="absolute -right-1.5 -top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-foreground"
+          className="absolute -right-2 -top-2 inline-flex h-8 w-8 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-foreground"
         >
-          <Undo2 className="h-3 w-3" />
+          <Undo2 className="h-4 w-4" />
         </button>
       )}
     </div>

@@ -2,7 +2,7 @@
   "name": "HealthZone",
   "short_name": "HealthZone",
   "description": "Daily health tracking — hydration, ostomy output, medications, vitals, protein, and more.",
-  "start_url": "/dashboard",
+  "start_url": "/today",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -13,6 +13,18 @@
       "src": "/favicon.svg",
       "type": "image/svg+xml",
       "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
       "purpose": "any maskable"
     }
   ]
