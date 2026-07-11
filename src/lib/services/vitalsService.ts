@@ -51,6 +51,25 @@ export async function getVitals(limit = 100): Promise<Vitals[]> {
   return (data as VitalsRow[]).map(mapVitals);
 }
 
+export async function getVitalsInRange(start: Date, end: Date): Promise<Vitals[]> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
+
+  const { data, error } = await supabase
+    .from('vitals')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .gte('measured_at', start.toISOString())
+    .lte('measured_at', end.toISOString())
+    .order('measured_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching vitals range:', error);
+    return [];
+  }
+  return (data as VitalsRow[]).map(mapVitals);
+}
+
 export async function addVitals(input: Partial<Vitals>): Promise<Vitals> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');

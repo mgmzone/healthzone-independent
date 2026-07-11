@@ -11,6 +11,7 @@ import NoPeriodAlert from '@/components/periods/NoPeriodAlert';
 import NoActivePeriodAlert from '@/components/periods/NoActivePeriodAlert';
 import PeriodEntryModal from '@/components/periods/PeriodEntryModal';
 import DashboardCards from './DashboardCards';
+import TrendsSection from './TrendsSection';
 import WeightForecastSection from './WeightForecastSection';
 import PriorityMilestoneBanner from './PriorityMilestoneBanner';
 import TodayStatusStrip from './TodayStatusStrip';
@@ -211,6 +212,15 @@ const DashboardContent = () => {
                 goalEntries={goalEntries}
                 profile={profile}
                 currentMetrics={currentMetrics}
+              />
+
+              <TrendsSection
+                weighIns={weighIns}
+                mealLogs={mealLogs}
+                exerciseLogs={exerciseLogs}
+                isImperial={isImperial}
+                proteinTargetMin={profile?.proteinTargetMin}
+                proteinTargetMax={profile?.proteinTargetMax}
               />
 
               <WeightForecastSection
