@@ -1,6 +1,14 @@
 import { supabase } from "@/lib/supabase";
 import { ExerciseLog } from "@/lib/types";
 import { getCurrentPeriodRange } from '@/lib/services/periodsService';
+import { toLocalDateString } from '@/lib/utils/dateUtils';
+
+// Store activity dates at noon UTC on the user's local calendar date — the
+// same convention as Strava imports. Raw toISOString() put evening entries
+// (8 PM+ ET) on the NEXT UTC day, so they displayed under the wrong date.
+function toNoonUtc(date: Date): string {
+  return `${toLocalDateString(date)}T12:00:00+00:00`;
+}
 
 export async function getExerciseLogs(limit?: number) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -97,7 +105,7 @@ export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
   // Convert camelCase to snake_case for DB and Date to string
   const dbData = {
     user_id: session.user.id,
-    date: exerciseData.date ? exerciseData.date.toISOString() : new Date().toISOString(),
+    date: toNoonUtc(exerciseData.date ?? new Date()),
     type: exerciseData.type || 'cardio',
     activity_name: exerciseData.activityName,
     minutes: exerciseData.minutes || 0,
@@ -147,7 +155,7 @@ export async function updateExerciseLog(id: string, exerciseData: Partial<Exerci
   const dbData: Record<string, any> = {};
   
   if (exerciseData.date) {
-    dbData.date = exerciseData.date.toISOString();
+    dbData.date = toNoonUtc(exerciseData.date);
   }
   
   if (exerciseData.type) {
