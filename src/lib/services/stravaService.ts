@@ -6,7 +6,7 @@ export interface StravaSyncResult {
   total: number;
 }
 
-export async function syncStrava(scope: 'today' | 'week' | 'backfill' = 'week'): Promise<StravaSyncResult> {
+export async function syncStrava(scope: 'today' | 'backfill' = 'backfill'): Promise<StravaSyncResult> {
   const { data, error } = await supabase.functions.invoke("strava-sync", {
     body: { scope },
   });

@@ -38,10 +38,10 @@ const Exercise = () => {
   const handleStravaSync = async () => {
     setSyncing(true);
     try {
-      const res = await syncStrava('week');
+      const res = await syncStrava('backfill');
       toast({
         title: 'Strava sync complete',
-        description: `Imported ${res.inserted}, skipped ${res.skipped} already-synced of ${res.total} activities from the last 7 days.`,
+        description: `Imported ${res.inserted}, skipped ${res.skipped} already-synced of ${res.total} activities from the last 30 days.`,
       });
       refresh();
     } catch (err: any) {

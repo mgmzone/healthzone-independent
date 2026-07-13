@@ -200,17 +200,18 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Sync window: 'today' = user's local day, 'week' = trailing 7 days
-    // (the Exercise-page button), anything else = 30-day backfill.
+    // Sync window: 'today' = user's local day; anything else = trailing 30
+    // days. The unique (user_id, strava_activity_id) constraint dedupes, so a
+    // wide window is safe and costs the same single Strava API call.
     const now = new Date();
     const afterEpoch = scope === "today"
       ? startOfLocalDayEpoch(now, profile.time_zone || "UTC")
-      : scope === "week"
-      ? Math.floor((now.getTime() - 7 * 86400000) / 1000)
       : Math.floor((now.getTime() - 30 * 86400000) / 1000);
 
+    // per_page=200 is Strava's max; with `after`, results are oldest-first, so
+    // a smaller page would silently drop the NEWEST activities if it overflowed.
     const activitiesRes = await fetch(
-      `https://www.strava.com/api/v3/athlete/activities?after=${afterEpoch}&per_page=50`,
+      `https://www.strava.com/api/v3/athlete/activities?after=${afterEpoch}&per_page=200`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     if (!activitiesRes.ok) {
