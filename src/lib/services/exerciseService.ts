@@ -55,6 +55,37 @@ export async function getExerciseLogs(limit?: number) {
   }));
 }
 
+// Range-based fetch for the Trends chart: unlike getExerciseLogs this is not
+// period-scoped, so the chart's 7/30/90-day windows show everything logged.
+export async function getExerciseLogsInRange(start: Date, end: Date): Promise<ExerciseLog[]> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
+
+  const { data, error } = await supabase
+    .from('exercise_logs')
+    .select('id, user_id, date, type, activity_name, minutes, intensity, distance')
+    .eq('user_id', session.user.id)
+    .gte('date', start.toISOString())
+    .lte('date', end.toISOString())
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching exercise logs range:', error);
+    return [];
+  }
+
+  return data.map(item => ({
+    id: item.id,
+    userId: item.user_id,
+    date: new Date(item.date),
+    type: item.type as 'cardio' | 'resistance' | 'sports' | 'flexibility' | 'other',
+    activityName: item.activity_name || undefined,
+    minutes: item.minutes,
+    intensity: item.intensity as 'low' | 'medium' | 'high',
+    distance: item.distance || undefined,
+  }));
+}
+
 export async function addExerciseLog(exerciseData: Partial<ExerciseLog>) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');

@@ -28,7 +28,6 @@ import { format } from 'date-fns';
 import {
   WeighIn,
   MealLog,
-  ExerciseLog,
   PROTEIN_TARGET_MIN,
   PROTEIN_TARGET_MAX,
 } from '@/lib/types';
@@ -75,7 +74,6 @@ const VITAL_FIELDS = [
 interface TrendsSectionProps {
   weighIns: WeighIn[];
   mealLogs: MealLog[];
-  exerciseLogs: ExerciseLog[];
   isImperial: boolean;
   proteinTargetMin?: number;
   proteinTargetMax?: number;
@@ -84,12 +82,13 @@ interface TrendsSectionProps {
 const TrendsSection: React.FC<TrendsSectionProps> = ({
   weighIns,
   mealLogs,
-  exerciseLogs,
   isImperial,
   proteinTargetMin,
   proteinTargetMax,
 }) => {
-  const { vitals, trackedEvents, eventTypes, isLoading } = useTrendData();
+  // exerciseLogs come from the trend hook (full 90-day range) — the dashboard's
+  // own exercise data is week-filtered and would truncate the chart.
+  const { vitals, trackedEvents, eventTypes, exerciseLogs, isLoading } = useTrendData();
 
   const [rangeDays, setRangeDays] = useState<number>(() => {
     const stored = Number(localStorage.getItem(RANGE_STORAGE_KEY));

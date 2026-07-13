@@ -217,7 +217,6 @@ const DashboardContent = () => {
               <TrendsSection
                 weighIns={weighIns}
                 mealLogs={mealLogs}
-                exerciseLogs={exerciseLogs}
                 isImperial={isImperial}
                 proteinTargetMin={profile?.proteinTargetMin}
                 proteinTargetMax={profile?.proteinTargetMax}
