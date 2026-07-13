@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("strava_client_id, strava_client_secret, strava_refresh_token")
+      .select("strava_client_id, strava_client_secret, strava_refresh_token, time_zone")
       .eq("id", userId)
       .single();
 
@@ -178,13 +178,36 @@ const handler = async (req: Request): Promise<Response> => {
       await supabase.from("profiles").update({ strava_refresh_token: newRefreshToken }).eq("id", userId);
     }
 
-    // Range: default to today (local day, approximated as UTC midnight)
+    // Epoch seconds at the start of "today" in the user's IANA time zone.
+    // UTC midnight is 8 PM ET, so the old UTC approximation silently dropped
+    // most of the user's local day from the sync window.
+    function startOfLocalDayEpoch(at: Date, timeZone: string): number {
+      try {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone,
+          hour12: false,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).formatToParts(at);
+        const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+        const secondsSinceMidnight = (get("hour") % 24) * 3600 + get("minute") * 60 + get("second");
+        return Math.floor(at.getTime() / 1000) - secondsSinceMidnight;
+      } catch {
+        const d = new Date(at);
+        d.setUTCHours(0, 0, 0, 0);
+        return Math.floor(d.getTime() / 1000);
+      }
+    }
+
+    // Sync window: 'today' = user's local day, 'week' = trailing 7 days
+    // (the Exercise-page button), anything else = 30-day backfill.
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setUTCHours(0, 0, 0, 0);
     const afterEpoch = scope === "today"
-      ? Math.floor(startOfDay.getTime() / 1000)
-      : Math.floor((now.getTime() - 30 * 86400000) / 1000); // 30-day backfill for any other scope
+      ? startOfLocalDayEpoch(now, profile.time_zone || "UTC")
+      : scope === "week"
+      ? Math.floor((now.getTime() - 7 * 86400000) / 1000)
+      : Math.floor((now.getTime() - 30 * 86400000) / 1000);
 
     const activitiesRes = await fetch(
       `https://www.strava.com/api/v3/athlete/activities?after=${afterEpoch}&per_page=50`,
