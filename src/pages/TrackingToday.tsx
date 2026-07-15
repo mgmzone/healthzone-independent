@@ -174,7 +174,7 @@ const TrackingToday: React.FC = () => {
             {/* Tally trackers */}
             <SectionHeader title="Trackers" action={<TrackerManagerDialog />} />
             {eventTypes.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Starter trackers (water, ostomy, bag changes) are added automatically.</p>
+              <p className="text-sm text-muted-foreground">Starter trackers (fluids, ostomy, bag changes) are added automatically.</p>
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {eventTypes.map((et) => (

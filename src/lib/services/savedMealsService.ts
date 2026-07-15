@@ -10,6 +10,7 @@ type SavedMealRow = {
   protein_grams: number | null;
   carbs_grams: number | null;
   fat_grams: number | null;
+  fiber_grams: number | null;
   sodium_mg: number | null;
   calories: number | null;
   anti_inflammatory: boolean | null;
@@ -27,6 +28,7 @@ function mapSavedMeal(row: SavedMealRow): SavedMeal {
     proteinGrams: row.protein_grams ?? undefined,
     carbsGrams: row.carbs_grams ?? undefined,
     fatGrams: row.fat_grams ?? undefined,
+    fiberGrams: row.fiber_grams ?? undefined,
     sodiumMg: row.sodium_mg ?? undefined,
     calories: row.calories ?? undefined,
     antiInflammatory: row.anti_inflammatory ?? false,
@@ -43,6 +45,7 @@ function toDbData(input: Partial<SavedMeal>): Record<string, unknown> {
   if (input.proteinGrams !== undefined) dbData.protein_grams = input.proteinGrams ?? null;
   if (input.carbsGrams !== undefined) dbData.carbs_grams = input.carbsGrams ?? null;
   if (input.fatGrams !== undefined) dbData.fat_grams = input.fatGrams ?? null;
+  if (input.fiberGrams !== undefined) dbData.fiber_grams = input.fiberGrams ?? null;
   if (input.sodiumMg !== undefined) dbData.sodium_mg = input.sodiumMg ?? null;
   if (input.calories !== undefined) dbData.calories = input.calories ?? null;
   if (input.antiInflammatory !== undefined) dbData.anti_inflammatory = input.antiInflammatory;

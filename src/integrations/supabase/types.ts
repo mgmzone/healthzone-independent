@@ -474,6 +474,7 @@ export type Database = {
           created_at: string | null
           date: string
           fat_grams: number | null
+          fiber_grams: number | null
           id: string
           irritant_notes: string | null
           irritant_violation: boolean | null
@@ -493,6 +494,7 @@ export type Database = {
           created_at?: string | null
           date: string
           fat_grams?: number | null
+          fiber_grams?: number | null
           id?: string
           irritant_notes?: string | null
           irritant_violation?: boolean | null
@@ -512,6 +514,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           fat_grams?: number | null
+          fiber_grams?: number | null
           id?: string
           irritant_notes?: string | null
           irritant_violation?: boolean | null
@@ -951,6 +954,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           fat_grams: number | null
+          fiber_grams: number | null
           id: string
           last_used_at: string | null
           meal_slot: string | null
@@ -967,6 +971,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           fat_grams?: number | null
+          fiber_grams?: number | null
           id?: string
           last_used_at?: string | null
           meal_slot?: string | null
@@ -983,6 +988,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           fat_grams?: number | null
+          fiber_grams?: number | null
           id?: string
           last_used_at?: string | null
           meal_slot?: string | null

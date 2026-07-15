@@ -4,6 +4,7 @@ export interface MealEvaluation {
   proteinEstimate: number;
   carbsEstimate?: number;
   fatEstimate?: number;
+  fiberEstimate?: number;
   sodiumEstimate?: number;
   caloriesEstimate?: number;
   assessment: string;
@@ -71,6 +72,7 @@ export async function evaluateMeal(data: {
     proteinEstimate: result.proteinEstimate,
     carbsEstimate: result.carbsEstimate,
     fatEstimate: result.fatEstimate,
+    fiberEstimate: result.fiberEstimate,
     sodiumEstimate: result.sodiumEstimate,
     caloriesEstimate: result.caloriesEstimate,
     assessment: result.assessment,

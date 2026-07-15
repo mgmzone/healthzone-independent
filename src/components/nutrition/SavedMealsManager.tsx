@@ -25,6 +25,7 @@ const emptyForm = {
   proteinGrams: '',
   carbsGrams: '',
   fatGrams: '',
+  fiberGrams: '',
   sodiumMg: '',
   calories: '',
   antiInflammatory: false,
@@ -58,6 +59,7 @@ const SavedMealsManager: React.FC = () => {
       proteinGrams: meal.proteinGrams?.toString() || '',
       carbsGrams: meal.carbsGrams?.toString() || '',
       fatGrams: meal.fatGrams?.toString() || '',
+      fiberGrams: meal.fiberGrams?.toString() || '',
       sodiumMg: meal.sodiumMg?.toString() || '',
       calories: meal.calories?.toString() || '',
       antiInflammatory: meal.antiInflammatory,
@@ -73,6 +75,7 @@ const SavedMealsManager: React.FC = () => {
       proteinGrams: parseOptional(form.proteinGrams),
       carbsGrams: parseOptional(form.carbsGrams),
       fatGrams: parseOptional(form.fatGrams),
+      fiberGrams: parseOptional(form.fiberGrams),
       sodiumMg: parseOptional(form.sodiumMg),
       calories: parseOptional(form.calories),
       antiInflammatory: form.antiInflammatory,
@@ -101,6 +104,7 @@ const SavedMealsManager: React.FC = () => {
     if (m.calories != null) parts.push(`${m.calories} cal`);
     if (m.carbsGrams != null) parts.push(`${m.carbsGrams}g carbs`);
     if (m.fatGrams != null) parts.push(`${m.fatGrams}g fat`);
+    if (m.fiberGrams != null) parts.push(`${m.fiberGrams}g fiber`);
     return parts.join(' · ');
   };
 
@@ -158,6 +162,10 @@ const SavedMealsManager: React.FC = () => {
                 <div className="space-y-2">
                   <Label>Fat (g)</Label>
                   <Input type="number" step="0.1" min="0" value={form.fatGrams} onChange={set('fatGrams')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Fiber (g)</Label>
+                  <Input type="number" step="0.1" min="0" value={form.fiberGrams} onChange={set('fiberGrams')} />
                 </div>
                 <div className="space-y-2">
                   <Label>Sodium (mg)</Label>

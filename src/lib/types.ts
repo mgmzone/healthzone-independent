@@ -137,6 +137,7 @@ export interface MealLog {
   proteinGrams?: number;
   carbsGrams?: number;
   fatGrams?: number;
+  fiberGrams?: number;
   sodiumMg?: number;
   calories?: number;
   proteinSource?: string;
@@ -167,6 +168,7 @@ export interface SavedMeal {
   proteinGrams?: number;
   carbsGrams?: number;
   fatGrams?: number;
+  fiberGrams?: number;
   sodiumMg?: number;
   calories?: number;
   antiInflammatory: boolean;

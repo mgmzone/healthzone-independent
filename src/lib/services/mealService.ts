@@ -42,6 +42,7 @@ export async function getMealLogs() {
     proteinGrams: item.protein_grams ?? undefined,
     carbsGrams: item.carbs_grams ?? undefined,
     fatGrams: item.fat_grams ?? undefined,
+    fiberGrams: item.fiber_grams ?? undefined,
     sodiumMg: item.sodium_mg ?? undefined,
     calories: item.calories ?? undefined,
     proteinSource: item.protein_source || undefined,
@@ -72,6 +73,7 @@ export async function addMealLog(mealData: Partial<MealLog>) {
     protein_grams: mealData.proteinGrams,
     carbs_grams: mealData.carbsGrams,
     fat_grams: mealData.fatGrams,
+    fiber_grams: mealData.fiberGrams,
     sodium_mg: mealData.sodiumMg,
     calories: mealData.calories,
     protein_source: mealData.proteinSource,
@@ -102,6 +104,7 @@ export async function addMealLog(mealData: Partial<MealLog>) {
     proteinGrams: data.protein_grams ?? undefined,
     carbsGrams: data.carbs_grams ?? undefined,
     fatGrams: data.fat_grams ?? undefined,
+    fiberGrams: data.fiber_grams ?? undefined,
     sodiumMg: data.sodium_mg ?? undefined,
     calories: data.calories ?? undefined,
     proteinSource: data.protein_source || undefined,
@@ -127,6 +130,7 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
   if (mealData.proteinGrams !== undefined) dbData.protein_grams = mealData.proteinGrams;
   if (mealData.carbsGrams !== undefined) dbData.carbs_grams = mealData.carbsGrams;
   if (mealData.fatGrams !== undefined) dbData.fat_grams = mealData.fatGrams;
+  if (mealData.fiberGrams !== undefined) dbData.fiber_grams = mealData.fiberGrams;
   if (mealData.sodiumMg !== undefined) dbData.sodium_mg = mealData.sodiumMg;
   if (mealData.calories !== undefined) dbData.calories = mealData.calories;
   if (mealData.proteinSource !== undefined) dbData.protein_source = mealData.proteinSource;
@@ -158,6 +162,7 @@ export async function updateMealLog(id: string, mealData: Partial<MealLog>) {
     proteinGrams: data.protein_grams ?? undefined,
     carbsGrams: data.carbs_grams ?? undefined,
     fatGrams: data.fat_grams ?? undefined,
+    fiberGrams: data.fiber_grams ?? undefined,
     sodiumMg: data.sodium_mg ?? undefined,
     calories: data.calories ?? undefined,
     proteinSource: data.protein_source || undefined,

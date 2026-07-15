@@ -12,6 +12,8 @@ interface AdditionalNutritionSectionProps {
   setCarbsGrams: (value: string) => void;
   fatGrams: string;
   setFatGrams: (value: string) => void;
+  fiberGrams: string;
+  setFiberGrams: (value: string) => void;
   sodiumMg: string;
   setSodiumMg: (value: string) => void;
   calories: string;
@@ -25,6 +27,8 @@ const AdditionalNutritionSection: React.FC<AdditionalNutritionSectionProps> = ({
   setCarbsGrams,
   fatGrams,
   setFatGrams,
+  fiberGrams,
+  setFiberGrams,
   sodiumMg,
   setSodiumMg,
   calories,
@@ -64,6 +68,18 @@ const AdditionalNutritionSection: React.FC<AdditionalNutritionSectionProps> = ({
               min="0"
               value={fatGrams}
               onChange={(e) => setFatGrams(e.target.value)}
+              placeholder="0"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fiber-grams">Fiber (g)</Label>
+            <Input
+              id="fiber-grams"
+              type="number"
+              step="0.1"
+              min="0"
+              value={fiberGrams}
+              onChange={(e) => setFiberGrams(e.target.value)}
               placeholder="0"
             />
           </div>

@@ -94,11 +94,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Build system prompt with user context
     const systemParts: string[] = [
       "You are a nutrition evaluator for a health tracking app. Your job is to evaluate meals and estimate their nutritional content.",
-      "Always respond with valid JSON in this exact format: {\"breakdown\": [{\"item\": \"<string>\", \"grams\": <number>, \"protein\": <number>, \"carbs\": <number>, \"fat\": <number>, \"sodium\": <number>, \"calories\": <number>}, ...], \"assessment\": \"<string>\"}",
+      "Always respond with valid JSON in this exact format: {\"breakdown\": [{\"item\": \"<string>\", \"grams\": <number>, \"protein\": <number>, \"carbs\": <number>, \"fat\": <number>, \"fiber\": <number>, \"sodium\": <number>, \"calories\": <number>}, ...], \"assessment\": \"<string>\"}",
       "breakdown: an array with one entry per food item in the meal. Each entry's macros are for THAT item's portion (not per 100g).",
       "  - item: short label in the user's language (e.g. 'pão de forma', 'cooked chicken breast').",
       "  - grams: the portion size in grams. If the user gave a non-gram unit (slice, cup, egg), convert to approximate grams.",
-      "  - protein, carbs, fat: grams for this portion (numbers, no units).",
+      "  - protein, carbs, fat, fiber: grams for this portion (numbers, no units). fiber is dietary fiber (a subset of carbs).",
       "  - sodium: milligrams for this portion (number, no units).",
       "  - calories: total kilocalories for this portion (number, no units).",
       "Use 0 for any field you truly cannot estimate, but give a best-effort number for typical foods.",
@@ -114,7 +114,8 @@ const handler = async (req: Request): Promise<Response> => {
       "  - 100g COOKED white rice ≈ 28g carbs, ~130 kcal",
       "  - 100g COOKED brown rice ≈ 23g carbs, ~110 kcal",
       "  - 100g DRY rice ≈ 78g carbs, ~360 kcal",
-      "  - 1 medium slice bread ≈ 15g carbs, ~80 kcal",
+      "  - 1 medium slice bread ≈ 15g carbs, ~1g fiber (whole grain/Ezekiel ≈ 3g fiber), ~80 kcal",
+      "  - fiber anchors: 100g cooked vegetables ≈ 2-3g; 100g raw fruit ≈ 2-3g; 100g cooked beans/lentils ≈ 6-8g; 100g cooked brown rice ≈ 1.8g; white rice/pasta/eggs/meat/dairy ≈ 0-1g",
       "  - 100g boiled potato ≈ 17g carbs, ~85 kcal",
       "  - 1 whole large egg ≈ 6g protein, 0.5g carbs, 5g fat, ~70 kcal",
       "  - 100g egg whites ≈ 11g protein, 0.7g carbs, 0.2g fat, ~50 kcal",
@@ -193,6 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
         protein?: number;
         carbs?: number;
         fat?: number;
+        fiber?: number;
         sodium?: number;
         calories?: number;
       }>;
@@ -205,13 +207,14 @@ const handler = async (req: Request): Promise<Response> => {
     // protein but proteinEstimate said 22). Summing server-side makes the
     // arithmetic deterministic.
     const breakdown = Array.isArray(parsed?.breakdown) ? parsed.breakdown : [];
-    const sumField = (key: "protein" | "carbs" | "fat" | "sodium" | "calories") =>
+    const sumField = (key: "protein" | "carbs" | "fat" | "fiber" | "sodium" | "calories") =>
       breakdown.reduce((acc, item) => acc + (typeof item?.[key] === "number" ? item[key]! : 0), 0);
     const round1 = (n: number) => Math.round(n * 10) / 10;
 
     const proteinEstimate = round1(sumField("protein"));
     const carbsEstimate = round1(sumField("carbs"));
     const fatEstimate = round1(sumField("fat"));
+    const fiberEstimate = round1(sumField("fiber"));
     const sodiumEstimate = Math.round(sumField("sodium"));
     const caloriesEstimate = Math.round(sumField("calories"));
     const assessment = parsed?.assessment || (parsed ? "" : responseText);
@@ -221,6 +224,7 @@ const handler = async (req: Request): Promise<Response> => {
       proteinEstimate,
       carbsEstimate,
       fatEstimate,
+      fiberEstimate,
       sodiumEstimate,
       caloriesEstimate,
       assessment,

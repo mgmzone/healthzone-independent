@@ -50,6 +50,7 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   const [proteinEdited, setProteinEdited] = useState(false);
   const [carbsGrams, setCarbsGrams] = useState<string>('');
   const [fatGrams, setFatGrams] = useState<string>('');
+  const [fiberGrams, setFiberGrams] = useState<string>('');
   const [sodiumMg, setSodiumMg] = useState<string>('');
   const [calories, setCalories] = useState<string>('');
   const [nutritionExpanded, setNutritionExpanded] = useState<boolean>(() => {
@@ -80,11 +81,13 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       setProteinEdited(false);
       setCarbsGrams(initialData?.carbsGrams?.toString() || '');
       setFatGrams(initialData?.fatGrams?.toString() || '');
+      setFiberGrams(initialData?.fiberGrams?.toString() || '');
       setSodiumMg(initialData?.sodiumMg?.toString() || '');
       setCalories(initialData?.calories?.toString() || '');
       if (
         initialData?.carbsGrams !== undefined ||
         initialData?.fatGrams !== undefined ||
+        initialData?.fiberGrams !== undefined ||
         initialData?.sodiumMg !== undefined ||
         initialData?.calories !== undefined
       ) {
@@ -113,11 +116,13 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
     setProteinEdited(false);
     setCarbsGrams(meal.carbsGrams?.toString() || '');
     setFatGrams(meal.fatGrams?.toString() || '');
+    setFiberGrams(meal.fiberGrams?.toString() || '');
     setSodiumMg(meal.sodiumMg?.toString() || '');
     setCalories(meal.calories?.toString() || '');
     if (
       meal.carbsGrams !== undefined ||
       meal.fatGrams !== undefined ||
+      meal.fiberGrams !== undefined ||
       meal.sodiumMg !== undefined ||
       meal.calories !== undefined
     ) {
@@ -158,6 +163,9 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
         if (result.fatEstimate !== undefined && result.fatEstimate > 0) {
           setFatGrams(result.fatEstimate.toString());
         }
+        if (result.fiberEstimate !== undefined && result.fiberEstimate > 0) {
+          setFiberGrams(result.fiberEstimate.toString());
+        }
         if (result.sodiumEstimate !== undefined && result.sodiumEstimate > 0) {
           setSodiumMg(result.sodiumEstimate.toString());
         }
@@ -194,6 +202,7 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       proteinGrams: parseOptionalNumber(proteinGrams),
       carbsGrams: parseOptionalNumber(carbsGrams),
       fatGrams: parseOptionalNumber(fatGrams),
+      fiberGrams: parseOptionalNumber(fiberGrams),
       sodiumMg: parseOptionalNumber(sodiumMg),
       calories: parseOptionalNumber(calories),
       proteinSource: description || undefined,
@@ -212,6 +221,7 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
         proteinGrams: parseOptionalNumber(proteinGrams),
         carbsGrams: parseOptionalNumber(carbsGrams),
         fatGrams: parseOptionalNumber(fatGrams),
+        fiberGrams: parseOptionalNumber(fiberGrams),
         sodiumMg: parseOptionalNumber(sodiumMg),
         calories: parseOptionalNumber(calories),
         antiInflammatory,
@@ -336,6 +346,8 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
               setCarbsGrams={setCarbsGrams}
               fatGrams={fatGrams}
               setFatGrams={setFatGrams}
+              fiberGrams={fiberGrams}
+              setFiberGrams={setFiberGrams}
               sodiumMg={sodiumMg}
               setSodiumMg={setSodiumMg}
               calories={calories}
