@@ -37,6 +37,8 @@ Page → Custom Hook → Service Layer → Supabase Client → Database
 - Toast notifications for all user-facing success/error feedback
 - Use `toLocalDateString()` from `src/lib/utils/dateUtils.ts` for date-to-string — never `toISOString().split('T')[0]` (timezone bug)
 - When converting date-only DB strings (e.g. `"2026-04-03"`) to Date objects, append `T12:00:00` — `new Date("2026-04-03")` parses as UTC midnight which shifts to the previous day in US timezones
+- Storage side of the same rule: day-granularity timestamps (exercise logs, Strava imports) store as `<local date>T12:00:00+00:00` (noon UTC). Raw `toISOString()` puts evening entries (8 PM+ ET) on the next UTC day — this bug shipped twice before the convention existed
+- Dashboard data hooks are period-scoped, and `useExerciseData()` defaults to a `'week'` time filter. A feature that charts a time range (like the Trends card) must fetch its own data by date range (`useTrendData` pattern) — reusing dashboard props silently truncates history
 - Protein targets are centralized as `PROTEIN_TARGET_MIN` / `PROTEIN_TARGET_MAX` in `src/lib/types.ts`
 - Meal slots are freeform text (not a fixed enum) — users name their own meals
 - `target_meals_per_day` is on the `profiles` table, configurable in Profile > Health
@@ -78,7 +80,7 @@ All edge functions use `verify_jwt: false` at the gateway level (configured in `
 | `admin-delete-user` | JWT + server-side `is_admin` check | Hard-delete a user and cascade all their data |
 | `admin-set-user-ban` | JWT + server-side `is_admin` check | Ban/unban a user in `auth.users` |
 | `strava-oauth-exchange` | JWT (user session) | OAuth code → token exchange for Strava integration |
-| `strava-sync` | JWT (user session) | Pull recent activities from Strava into `exercise_logs` |
+| `strava-sync` | JWT (user session) | Pull Strava activities into `exercise_logs`. Exercise-page button syncs the trailing 30 days (`per_page=200`); dedupe is the unique `(user_id, strava_activity_id)` constraint, so wide windows can't duplicate. `today` scope computes the day boundary from `profiles.time_zone`, not UTC |
 
 Fallback Claude key (`CLAUDE_API_KEY_FALLBACK`) is capped per-user per-day via `checkFallbackDailyCap()` in `_shared/aiUsage.ts`. Default cap is $0.25/day, override with `CLAUDE_FALLBACK_DAILY_CAP_USD` secret. Interactive functions return 429 when capped; `send-weekly-summary` skips the AI section and still sends the email.
 
