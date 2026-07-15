@@ -943,6 +943,65 @@ export type Database = {
           },
         ]
       }
+      saved_meals: {
+        Row: {
+          anti_inflammatory: boolean | null
+          calories: number | null
+          carbs_grams: number | null
+          created_at: string | null
+          description: string | null
+          fat_grams: number | null
+          id: string
+          last_used_at: string | null
+          meal_slot: string | null
+          name: string
+          protein_grams: number | null
+          sodium_mg: number | null
+          times_used: number | null
+          user_id: string
+        }
+        Insert: {
+          anti_inflammatory?: boolean | null
+          calories?: number | null
+          carbs_grams?: number | null
+          created_at?: string | null
+          description?: string | null
+          fat_grams?: number | null
+          id?: string
+          last_used_at?: string | null
+          meal_slot?: string | null
+          name: string
+          protein_grams?: number | null
+          sodium_mg?: number | null
+          times_used?: number | null
+          user_id: string
+        }
+        Update: {
+          anti_inflammatory?: boolean | null
+          calories?: number | null
+          carbs_grams?: number | null
+          created_at?: string | null
+          description?: string | null
+          fat_grams?: number | null
+          id?: string
+          last_used_at?: string | null
+          meal_slot?: string | null
+          name?: string
+          protein_grams?: number | null
+          sodium_mg?: number | null
+          times_used?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_meals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracked_events: {
         Row: {
           created_at: string | null

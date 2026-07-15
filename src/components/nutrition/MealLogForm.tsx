@@ -11,9 +11,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Brain, Loader2 } from 'lucide-react';
-import { MealLog, ProteinSource, DEFAULT_MEAL_NAMES } from '@/lib/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Brain, Loader2, Star } from 'lucide-react';
+import { MealLog, ProteinSource, SavedMeal, DEFAULT_MEAL_NAMES } from '@/lib/types';
 import { evaluateMeal } from '@/lib/services/aiService';
+import { useSavedMeals } from '@/hooks/useSavedMeals';
 import DatePickerField from '@/components/weight/DatePickerField';
 import AdditionalNutritionSection from '@/components/nutrition/AdditionalNutritionSection';
 
@@ -55,6 +63,11 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [aiProteinFromAi, setAiProteinFromAi] = useState<number | null>(null);
+  const [pickedSavedMeal, setPickedSavedMeal] = useState<SavedMeal | null>(null);
+  const [saveAsFavorite, setSaveAsFavorite] = useState(false);
+  const [favoriteName, setFavoriteName] = useState('');
+
+  const { savedMeals, saveMeal, markUsed } = useSavedMeals();
 
   const mealNameSuggestions = [...new Set([...recentMealNames, ...DEFAULT_MEAL_NAMES])];
 
@@ -83,8 +96,42 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       setAiAssessment(initialData?.aiAssessment || '');
       setAiProteinFromAi(initialData?.aiProteinEstimate ?? null);
       setAiError('');
+      setPickedSavedMeal(null);
+      setSaveAsFavorite(false);
+      setFavoriteName('');
     }
   }, [isOpen, initialData]);
+
+  // Prefill the whole form from a saved favorite.
+  const applySavedMeal = (id: string) => {
+    const meal = savedMeals.find((m) => m.id === id);
+    if (!meal) return;
+    setPickedSavedMeal(meal);
+    setDescription(meal.description || meal.name);
+    if (meal.mealSlot && !mealSlot) setMealSlot(meal.mealSlot);
+    setProteinGrams(meal.proteinGrams?.toString() || '');
+    setProteinEdited(false);
+    setCarbsGrams(meal.carbsGrams?.toString() || '');
+    setFatGrams(meal.fatGrams?.toString() || '');
+    setSodiumMg(meal.sodiumMg?.toString() || '');
+    setCalories(meal.calories?.toString() || '');
+    if (
+      meal.carbsGrams !== undefined ||
+      meal.fatGrams !== undefined ||
+      meal.sodiumMg !== undefined ||
+      meal.calories !== undefined
+    ) {
+      setNutritionExpanded(true);
+    }
+    setAntiInflammatory(meal.antiInflammatory);
+  };
+
+  const handleToggleSaveAsFavorite = (checked: boolean) => {
+    setSaveAsFavorite(checked);
+    if (checked && !favoriteName) {
+      setFavoriteName(pickedSavedMeal?.name || description.slice(0, 60).trim() || mealSlot);
+    }
+  };
 
   const handleAskAI = async () => {
     if (!description.trim()) {
@@ -157,6 +204,20 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
       aiAssessment: aiAssessment || undefined,
       aiProteinEstimate: aiProteinFromAi ?? undefined,
     });
+    if (saveAsFavorite && favoriteName.trim()) {
+      await saveMeal({
+        name: favoriteName.trim(),
+        description: description || undefined,
+        mealSlot: mealSlot || undefined,
+        proteinGrams: parseOptionalNumber(proteinGrams),
+        carbsGrams: parseOptionalNumber(carbsGrams),
+        fatGrams: parseOptionalNumber(fatGrams),
+        sodiumMg: parseOptionalNumber(sodiumMg),
+        calories: parseOptionalNumber(calories),
+        antiInflammatory,
+      });
+    }
+    if (pickedSavedMeal) markUsed(pickedSavedMeal);
     onClose();
   };
 
@@ -185,6 +246,27 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
                 </datalist>
               </div>
             </div>
+
+            {!initialData && savedMeals.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5 text-amber-500" /> Saved meals
+                </Label>
+                <Select value={pickedSavedMeal?.id ?? ''} onValueChange={applySavedMeal}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick a favorite to fill this in…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {savedMeals.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                        {m.proteinGrams != null ? ` · ${m.proteinGrams}g protein` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>What did you eat?</Label>
@@ -259,6 +341,26 @@ const MealLogForm: React.FC<MealLogFormProps> = ({
               calories={calories}
               setCalories={setCalories}
             />
+
+            <div className="space-y-2 rounded-md border p-3">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="save-favorite"
+                  checked={saveAsFavorite}
+                  onCheckedChange={(checked) => handleToggleSaveAsFavorite(checked === true)}
+                />
+                <Label htmlFor="save-favorite" className="text-sm cursor-pointer flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5 text-amber-500" /> Save as favorite
+                </Label>
+              </div>
+              {saveAsFavorite && (
+                <Input
+                  value={favoriteName}
+                  onChange={(e) => setFavoriteName(e.target.value)}
+                  placeholder='Favorite name, e.g. "Boost Shake (Vanilla)"'
+                />
+              )}
+            </div>
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">

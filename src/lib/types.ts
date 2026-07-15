@@ -157,6 +157,23 @@ export interface ProteinSource {
   sortOrder: number;
 }
 
+// A reusable meal preset ("favorite") that prefills the meal log form
+export interface SavedMeal {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  mealSlot?: string;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
+  sodiumMg?: number;
+  calories?: number;
+  antiInflammatory: boolean;
+  timesUsed: number;
+  lastUsedAt?: Date;
+}
+
 export interface DailyGoal {
   id: string;
   userId: string;

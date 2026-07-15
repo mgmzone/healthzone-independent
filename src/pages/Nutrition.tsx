@@ -17,6 +17,7 @@ import MealLogForm from '@/components/nutrition/MealLogForm';
 import MealTable from '@/components/nutrition/MealTable';
 import GoalManager from '@/components/nutrition/GoalManager';
 import ProteinSourceManager from '@/components/nutrition/ProteinSourceManager';
+import SavedMealsManager from '@/components/nutrition/SavedMealsManager';
 
 const Nutrition = () => {
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
@@ -166,6 +167,7 @@ const Nutrition = () => {
           </TabsContent>
 
           <TabsContent value="foods" className="space-y-6">
+            <SavedMealsManager />
             <ProteinSourceManager
               sources={proteinSources}
               onAdd={addProteinSource}
