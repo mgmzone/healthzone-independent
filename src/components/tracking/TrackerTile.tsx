@@ -6,16 +6,17 @@ import { Undo2 } from 'lucide-react';
 
 interface TrackerTileProps {
   eventType: EventType;
-  total: number;               // summed quantity logged today
+  total: number;               // summed quantity logged for the day shown
   onLog: () => void;
   onUndo: () => void;
   disabled?: boolean;
+  isToday?: boolean;           // false when browsing/backfilling a past day
 }
 
 // A single one-tap tracker. Tapping the tile logs the tracker's default quantity;
 // the small corner button undoes the last entry. Shows today's progress toward
 // the optional daily target.
-const TrackerTile: React.FC<TrackerTileProps> = ({ eventType, total, onLog, onUndo, disabled }) => {
+const TrackerTile: React.FC<TrackerTileProps> = ({ eventType, total, onLog, onUndo, disabled, isToday = true }) => {
   const Icon = resolveTrackerIcon(eventType.icon);
   const emoji = isEmojiIcon(eventType.icon) ? eventType.icon : null;
   const target = eventType.dailyTarget;
@@ -55,7 +56,9 @@ const TrackerTile: React.FC<TrackerTileProps> = ({ eventType, total, onLog, onUn
         <div>
           <div className="text-sm font-medium text-foreground">{eventType.label}</div>
           <div className="text-xs text-muted-foreground">
-            {target != null ? `of ${target}${unitLabel} today` : `logged today${unitLabel ? ` (${eventType.unit})` : ''}`}
+            {target != null
+              ? `of ${target}${unitLabel}${isToday ? ' today' : ''}`
+              : `logged${isToday ? ' today' : ''}${unitLabel ? ` (${eventType.unit})` : ''}`}
           </div>
         </div>
 

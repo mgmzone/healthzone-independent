@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
-import { Loader2, HeartPulse, Check } from 'lucide-react';
+import { Loader2, HeartPulse, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getMilestones } from '@/lib/services/milestonesService';
 import { useDailyTracking } from '@/hooks/useDailyTracking';
 import { useTodayChecklist, PrnItem } from '@/hooks/useTodayChecklist';
@@ -12,21 +12,22 @@ import TrackerManagerDialog from '@/components/tracking/TrackerManagerDialog';
 import MedicationManagerDialog from '@/components/tracking/MedicationManagerDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toLocalDateString, isLocalToday } from '@/lib/utils/dateUtils';
 
-// Days since surgery ("POD"), derived from the most recent past surgery milestone.
-function usePostOpDay() {
+// Days since surgery ("POD") as of the given date, derived from the most
+// recent surgery milestone on or before it.
+function usePostOpDay(asOf: Date) {
   return useQuery({
     queryKey: ['milestones'],
     queryFn: getMilestones,
     select: (milestones) => {
-      const today = new Date();
-      const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const asOfMid = new Date(asOf.getFullYear(), asOf.getMonth(), asOf.getDate());
       const past = milestones
-        .filter((m) => m.type === 'surgery' && new Date(`${m.date}T12:00:00`) <= todayMid)
+        .filter((m) => m.type === 'surgery' && new Date(`${m.date}T12:00:00`) <= asOfMid)
         .sort((a, b) => b.date.localeCompare(a.date));
       if (past.length === 0) return null;
       const surgery = new Date(`${past[0].date}T12:00:00`);
-      const days = Math.floor((todayMid.getTime() - surgery.getTime()) / 86_400_000);
+      const days = Math.floor((asOfMid.getTime() - surgery.getTime()) / 86_400_000);
       return days >= 0 ? days : null;
     },
   });
@@ -39,7 +40,7 @@ const SectionHeader: React.FC<{ title: string; action?: React.ReactNode }> = ({ 
   </div>
 );
 
-const PrnRow: React.FC<{ item: PrnItem; onTake: () => void }> = ({ item, onTake }) => {
+const PrnRow: React.FC<{ item: PrnItem; isToday: boolean; onTake: () => void }> = ({ item, isToday, onTake }) => {
   const { med, takenCount, canTake, blockReason } = item;
   const cap = med.maxPerDay ? ` · max ${med.maxPerDay}/day` : '';
   return (
@@ -47,7 +48,7 @@ const PrnRow: React.FC<{ item: PrnItem; onTake: () => void }> = ({ item, onTake 
       <div className="min-w-0">
         <div className="truncate text-sm font-medium">{med.name}</div>
         <div className="text-xs text-muted-foreground">
-          {med.dose ? `${med.dose} · ` : ''}{takenCount} today{cap}
+          {med.dose ? `${med.dose} · ` : ''}{takenCount} {isToday ? 'today' : 'this day'}{cap}
           {blockReason ? ` · ${blockReason}` : ''}
         </div>
       </div>
@@ -59,28 +60,62 @@ const PrnRow: React.FC<{ item: PrnItem; onTake: () => void }> = ({ item, onTake 
 };
 
 const TrackingToday: React.FC = () => {
-  const { eventTypes, totals, logEvent, undoLast, isLogging } = useDailyTracking();
-  const { slotGroups, prnItems, checks, vitalsLoggedToday, progress, isLoading, toggleDose, takePrn, toggleCheck } =
-    useTodayChecklist();
-  const { data: postOpDay } = usePostOpDay();
+  // Midnight-local anchor for the day being viewed; back/forward shifts it,
+  // capped at today (no logging into the future).
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  });
+  const isToday = isLocalToday(selectedDate);
+  const shiftDay = (delta: number) =>
+    setSelectedDate((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + delta));
+  const goToToday = () => {
+    const now = new Date();
+    setSelectedDate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
+  };
 
-  const todayLabel = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const { eventTypes, totals, logEvent, undoLast, isLogging } = useDailyTracking(selectedDate);
+  const { slotGroups, prnItems, checks, vitalsLogged, progress, isLoading, toggleDose, takePrn, toggleCheck } =
+    useTodayChecklist(selectedDate);
+  const { data: postOpDay } = usePostOpDay(selectedDate);
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = toLocalDateString(selectedDate) === toLocalDateString(yesterday);
+
+  const title = isToday ? 'Today' : isYesterday ? 'Yesterday' : selectedDate.toLocaleDateString(undefined, { weekday: 'long' });
+  const dayLabel = selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
   const hasMeds = slotGroups.length > 0 || prnItems.length > 0;
 
   return (
     <Layout>
       <div className="container mx-auto max-w-3xl p-4 pt-24 pb-32">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold">Today</h1>
-          <p className="text-sm text-muted-foreground">
-            {todayLabel}
-            {postOpDay != null && (
-              <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                Post-op day {postOpDay}
-              </span>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold">{title}</h1>
+            <p className="text-sm text-muted-foreground">
+              {dayLabel}
+              {postOpDay != null && (
+                <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                  Post-op day {postOpDay}
+                </span>
+              )}
+            </p>
+          </div>
+          <div className="flex items-center gap-1 pt-1">
+            <Button variant="outline" size="icon" aria-label="Previous day" onClick={() => shiftDay(-1)}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {!isToday && (
+              <Button variant="outline" size="sm" onClick={goToToday}>
+                Today
+              </Button>
             )}
-          </p>
+            <Button variant="outline" size="icon" aria-label="Next day" disabled={isToday} onClick={() => shiftDay(1)}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Daily progress */}
@@ -128,7 +163,7 @@ const TrackingToday: React.FC = () => {
                     <div className="mb-1.5 text-xs font-medium text-muted-foreground">As needed</div>
                     <div className="space-y-2">
                       {prnItems.map((item) => (
-                        <PrnRow key={item.med.id} item={item} onTake={() => takePrn(item.med)} />
+                        <PrnRow key={item.med.id} item={item} isToday={isToday} onTake={() => takePrn(item.med)} />
                       ))}
                     </div>
                   </div>
@@ -150,6 +185,7 @@ const TrackingToday: React.FC = () => {
                     onLog={() => logEvent(et)}
                     onUndo={() => undoLast(et.key)}
                     disabled={isLogging}
+                    isToday={isToday}
                   />
                 ))}
               </div>
@@ -174,23 +210,25 @@ const TrackingToday: React.FC = () => {
             )}
 
             {/* Vitals */}
-            <SectionHeader title="Vitals" action={<VitalsQuickDialog />} />
+            <SectionHeader title="Vitals" action={<VitalsQuickDialog date={selectedDate} />} />
             <div
               className={cn(
                 'flex items-center gap-3 rounded-xl border p-3',
-                vitalsLoggedToday && 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20',
+                vitalsLogged && 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20',
               )}
             >
               <span
                 className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-full',
-                  vitalsLoggedToday ? 'bg-emerald-500 text-white' : 'bg-primary/10 text-primary',
+                  vitalsLogged ? 'bg-emerald-500 text-white' : 'bg-primary/10 text-primary',
                 )}
               >
-                {vitalsLoggedToday ? <Check className="h-4 w-4" /> : <HeartPulse className="h-4 w-4" />}
+                {vitalsLogged ? <Check className="h-4 w-4" /> : <HeartPulse className="h-4 w-4" />}
               </span>
               <span className="text-sm">
-                {vitalsLoggedToday ? 'Vitals logged today' : 'No vitals logged yet today'}
+                {vitalsLogged
+                  ? `Vitals logged ${isToday ? 'today' : 'this day'}`
+                  : `No vitals logged ${isToday ? 'yet today' : 'this day'}`}
               </span>
             </div>
           </>

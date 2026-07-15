@@ -16,6 +16,7 @@ import { HeartPulse } from 'lucide-react';
 import { addVitals } from '@/lib/services/vitalsService';
 import { Vitals } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { localNoon, isLocalToday } from '@/lib/utils/dateUtils';
 
 const numOrUndef = (v: string): number | undefined => {
   if (v.trim() === '') return undefined;
@@ -24,7 +25,8 @@ const numOrUndef = (v: string): number | undefined => {
 };
 
 // Compact vital-signs entry. All fields optional — log whatever was measured.
-const VitalsQuickDialog: React.FC = () => {
+// Pass a past `date` to backfill that day (reading is timestamped at local noon).
+const VitalsQuickDialog: React.FC<{ date?: Date }> = ({ date }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -51,6 +53,7 @@ const VitalsQuickDialog: React.FC = () => {
         temperature: numOrUndef(form.temperature),
         temperatureUnit: form.temperatureUnit,
         notes: form.notes.trim() || undefined,
+        measuredAt: date && !isLocalToday(date) ? localNoon(date) : undefined,
       };
       return addVitals(payload);
     },

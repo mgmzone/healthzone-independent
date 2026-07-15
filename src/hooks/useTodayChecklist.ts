@@ -4,15 +4,7 @@ import { getMedications, getMedicationLogs, logMedication, deleteMedicationLog }
 import { getDailyGoals, getDailyGoalEntries, upsertDailyGoalEntry } from '@/lib/services/dailyGoalsService';
 import { getVitals } from '@/lib/services/vitalsService';
 import { useToast } from '@/hooks/use-toast';
-import { toLocalDateString } from '@/lib/utils/dateUtils';
-
-function todayRange(): { start: Date; end: Date } {
-  const now = new Date();
-  return {
-    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0),
-    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999),
-  };
-}
+import { toLocalDateString, localDayRange, localNoon, isLocalToday } from '@/lib/utils/dateUtils';
 
 export interface MedDoseItem {
   med: Medication;
@@ -44,30 +36,34 @@ export interface SlotGroup {
 // Composes the day's scheduled med doses (grouped by time of day), PRN meds with
 // safety math, and the binary daily checks (vitamins, Boost, yogurt…) into one
 // checklist. Tally trackers and vitals are handled by their own hooks/dialogs.
-export function useTodayChecklist() {
+// Defaults to today; pass a past date to view/backfill that day (entries are
+// timestamped at local noon so they can't drift into an adjacent day).
+export function useTodayChecklist(date: Date = new Date()) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const todayStr = toLocalDateString(new Date());
+  const dateStr = toLocalDateString(date);
+  const isToday = isLocalToday(date);
+  const entryTime = () => (isToday ? new Date() : localNoon(date));
 
   const { data: meds = [], isLoading: medsLoading } = useQuery({
     queryKey: ['medications'],
     queryFn: () => getMedications(false),
   });
   const { data: medLogs = [], isLoading: logsLoading } = useQuery({
-    queryKey: ['medicationLogs', 'today'],
-    queryFn: () => { const { start, end } = todayRange(); return getMedicationLogs(start, end); },
+    queryKey: ['medicationLogs', dateStr],
+    queryFn: () => { const { start, end } = localDayRange(date); return getMedicationLogs(start, end); },
   });
   const { data: goals = [], isLoading: goalsLoading } = useQuery({
     queryKey: ['dailyGoals'],
     queryFn: getDailyGoals,
   });
   const { data: goalEntries = [], isLoading: entriesLoading } = useQuery({
-    queryKey: ['dailyGoalEntries', todayStr],
-    queryFn: () => getDailyGoalEntries(todayStr, todayStr),
+    queryKey: ['dailyGoalEntries', dateStr],
+    queryFn: () => getDailyGoalEntries(dateStr, dateStr),
   });
   const { data: vitalsList = [] } = useQuery({
     queryKey: ['vitals'],
-    queryFn: () => getVitals(20),
+    queryFn: () => getVitals(50),
   });
 
   const scheduled = meds.filter((m) => !m.isPrn && m.slots.length > 0);
@@ -98,7 +94,8 @@ export function useTodayChecklist() {
     if (m.maxPerDay != null && takenCount >= m.maxPerDay) {
       canTake = false;
       blockReason = `Daily max (${m.maxPerDay}) reached`;
-    } else if (m.minHoursBetween != null && lastTakenAt) {
+    } else if (isToday && m.minHoursBetween != null && lastTakenAt) {
+      // Spacing check only applies live — backfilled doses land at noon.
       const hoursSince = (Date.now() - lastTakenAt.getTime()) / 3_600_000;
       if (hoursSince < m.minHoursBetween) {
         canTake = false;
@@ -114,7 +111,7 @@ export function useTodayChecklist() {
     return { goal, met: entry?.met ?? false, entryId: entry?.id };
   });
 
-  const vitalsLoggedToday = vitalsList.some((v) => toLocalDateString(v.measuredAt) === todayStr);
+  const vitalsLogged = vitalsList.some((v) => toLocalDateString(v.measuredAt) === dateStr);
 
   // Progress across checkable items (scheduled doses + binary checks).
   const doseTotal = slotGroups.reduce((n, g) => n + g.items.length, 0);
@@ -124,8 +121,8 @@ export function useTodayChecklist() {
   const total = doseTotal + checks.length;
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['medicationLogs', 'today'] });
-    queryClient.invalidateQueries({ queryKey: ['dailyGoalEntries', todayStr] });
+    queryClient.invalidateQueries({ queryKey: ['medicationLogs', dateStr] });
+    queryClient.invalidateQueries({ queryKey: ['dailyGoalEntries', dateStr] });
   };
 
   const toggleDose = useMutation({
@@ -133,7 +130,7 @@ export function useTodayChecklist() {
       if (item.taken && item.logId) {
         await deleteMedicationLog(item.logId);
       } else {
-        await logMedication({ medication: item.med, slot: item.slot });
+        await logMedication({ medication: item.med, slot: item.slot, takenAt: entryTime() });
       }
     },
     onSuccess: invalidate,
@@ -141,14 +138,14 @@ export function useTodayChecklist() {
   });
 
   const takePrn = useMutation({
-    mutationFn: (med: Medication) => logMedication({ medication: med, slot: 'prn' }),
+    mutationFn: (med: Medication) => logMedication({ medication: med, slot: 'prn', takenAt: entryTime() }),
     onSuccess: (_d, med) => { invalidate(); toast({ title: `Logged ${med.name}` }); },
     onError: (e: Error) => toast({ title: 'Could not log dose', description: e.message, variant: 'destructive' }),
   });
 
   const toggleCheck = useMutation({
     mutationFn: (item: CheckItem) =>
-      upsertDailyGoalEntry({ goalId: item.goal.id, date: new Date(), met: !item.met }),
+      upsertDailyGoalEntry({ goalId: item.goal.id, date, met: !item.met }),
     onSuccess: invalidate,
     onError: (e: Error) => toast({ title: 'Could not update', description: e.message, variant: 'destructive' }),
   });
@@ -157,7 +154,7 @@ export function useTodayChecklist() {
     slotGroups,
     prnItems,
     checks,
-    vitalsLoggedToday,
+    vitalsLogged,
     progress: { done, total },
     isLoading: medsLoading || logsLoading || goalsLoading || entriesLoading,
     toggleDose: (item: MedDoseItem) => toggleDose.mutate(item),

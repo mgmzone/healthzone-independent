@@ -67,6 +67,20 @@ export const toLocalDateString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Inclusive start/end of the local calendar day containing `date`
+export const localDayRange = (date: Date): { start: Date; end: Date } => ({
+  start: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0),
+  end: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999),
+});
+
+// Noon local on the given date — timestamp for backfilled entries that can't
+// drift into an adjacent day in any reasonable timezone
+export const localNoon = (date: Date): Date =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
+
+export const isLocalToday = (date: Date): boolean =>
+  toLocalDateString(date) === toLocalDateString(new Date());
+
 // Helper to ensure we always have a Date object
 export const ensureDate = (dateValue: Date | string | undefined | null): Date | undefined => {
   if (!dateValue) return undefined;

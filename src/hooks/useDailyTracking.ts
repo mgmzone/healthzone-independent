@@ -3,52 +3,46 @@ import { EventType } from '@/lib/types';
 import {
   getEventTypes,
   getTrackedEvents,
-  getTodayTotals,
   logTrackedEvent,
   deleteTrackedEvent,
 } from '@/lib/services/trackingService';
 import { useToast } from '@/hooks/use-toast';
-
-function todayRange(): { start: Date; end: Date } {
-  const now = new Date();
-  return {
-    start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0),
-    end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999),
-  };
-}
+import { toLocalDateString, localDayRange, localNoon, isLocalToday } from '@/lib/utils/dateUtils';
 
 // Powers the one-tap daily tracker tiles: the active tracker definitions, each
-// tracker's summed total for today, and log / undo actions.
-export function useDailyTracking() {
+// tracker's summed total for the day, and log / undo actions. Defaults to today;
+// pass a past date to view/backfill that day (entries land at local noon).
+export function useDailyTracking(date: Date = new Date()) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const dateStr = toLocalDateString(date);
+  const isToday = isLocalToday(date);
 
   const { data: eventTypes = [], isLoading: typesLoading } = useQuery({
     queryKey: ['eventTypes'],
     queryFn: () => getEventTypes(false),
   });
 
-  const { data: totals = {}, isLoading: totalsLoading } = useQuery({
-    queryKey: ['trackedEventTotals', 'today'],
-    queryFn: () => getTodayTotals(),
-  });
-
-  const { data: todayEvents = [] } = useQuery({
-    queryKey: ['trackedEvents', 'today'],
+  const { data: dayEvents = [], isLoading: eventsLoading } = useQuery({
+    queryKey: ['trackedEvents', dateStr],
     queryFn: () => {
-      const { start, end } = todayRange();
+      const { start, end } = localDayRange(date);
       return getTrackedEvents(start, end);
     },
   });
 
+  const totals = dayEvents.reduce<Record<string, number>>((acc, e) => {
+    acc[e.eventKey] = (acc[e.eventKey] ?? 0) + e.quantity;
+    return acc;
+  }, {});
+
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['trackedEventTotals', 'today'] });
-    queryClient.invalidateQueries({ queryKey: ['trackedEvents', 'today'] });
+    queryClient.invalidateQueries({ queryKey: ['trackedEvents', dateStr] });
   };
 
   const logEvent = useMutation({
     mutationFn: (params: { eventType: EventType; quantity?: number; notes?: string }) =>
-      logTrackedEvent(params),
+      logTrackedEvent({ ...params, occurredAt: isToday ? undefined : localNoon(date) }),
     onSuccess: (_data, params) => {
       invalidate();
       toast({ title: `Logged ${params.eventType.label}` });
@@ -61,7 +55,7 @@ export function useDailyTracking() {
   // Undo the most recent event for a given tracker key (the "oops, tapped twice" case).
   const undoLast = useMutation({
     mutationFn: async (eventKey: string) => {
-      const last = todayEvents.find((e) => e.eventKey === eventKey);
+      const last = dayEvents.find((e) => e.eventKey === eventKey);
       if (!last) return;
       await deleteTrackedEvent(last.id);
     },
@@ -77,8 +71,8 @@ export function useDailyTracking() {
   return {
     eventTypes,
     totals,
-    todayEvents,
-    isLoading: typesLoading || totalsLoading,
+    todayEvents: dayEvents,
+    isLoading: typesLoading || eventsLoading,
     logEvent: (eventType: EventType, quantity?: number) => logEvent.mutate({ eventType, quantity }),
     undoLast: (eventKey: string) => undoLast.mutate(eventKey),
     isLogging: logEvent.isPending,

@@ -33,7 +33,7 @@ const TrackerManagerDialog: React.FC = () => {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['eventTypes'] });
-    queryClient.invalidateQueries({ queryKey: ['trackedEventTotals', 'today'] });
+    queryClient.invalidateQueries({ queryKey: ['trackedEvents'] });
   };
 
   const reset = () => {
